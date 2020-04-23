@@ -1,0 +1,4 @@
+marketing.tesla.com
+events.tesla.com
+click.emails.tesla.com
+view.emails.tesla.com
