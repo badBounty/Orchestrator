@@ -48,7 +48,6 @@ def recon_view(request):
 
 
 # Bot token
-# xoxb-1054171484470-1069793838851-XyauyZ7vqmyHKrSREvxlJlZa
 @csrf_exempt
 @require_POST
 def slack_input(request):
