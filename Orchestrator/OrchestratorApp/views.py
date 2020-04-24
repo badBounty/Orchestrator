@@ -7,6 +7,7 @@ from .forms import ReconForm
 from .src.mongo import mongo
 from .src.slack import slack_receiver
 from .src.recon import nmap
+from .src.comms import download
 from .tasks import recon_task, nmap_task
 from .__init__ import slack_web_client
 
@@ -29,6 +30,9 @@ def show_workspaces(request):
 
 def show_workspace(request, target_name):
     resources = mongo.get_workspace_resources(target_name)
+    if request.method == 'POST':
+        response = download.get_workspace_csv(request.path, resources)
+        return response
     return render(request, 'Orchestrator/single_workspace_view.html', {'object_list': resources})
 
 
@@ -38,9 +42,7 @@ def recon_view(request):
         form = ReconForm(request.POST)
         if form.is_valid():
             target_name = form.cleaned_data['target']
-            project_name = form.cleaned_data['project']
-            user_name = form.cleaned_data['name']
-            #recon_task.delay(target_name, project_name, user_name)
+            recon_task.delay(target_name)
             nmap_task.delay(target_name)
             return redirect('/')
     form = ReconForm()

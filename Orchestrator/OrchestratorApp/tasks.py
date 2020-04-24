@@ -16,7 +16,6 @@ def sleepy(duration):
     sleep(duration)
     return None
 
-
 @shared_task
 def recon_task(target, project='None', user='None'):
     recon.run_recon(target, project, user)

@@ -15,6 +15,11 @@
     <p w3-class="w3-large">Don't worry. W3.CSS takes care of your tables.</p>
     --->
   </div>
+    <form method="POST" class="post-form">{% csrf_token %}
+        <div class="w3-container">
+            <button class="w3-btn w3-theme" type="submit">Download csv file</button>
+        </div>
+    </form>
 <div class="w3-responsive w3-card-4">
 <table class="w3-table w3-striped w3-bordered">
 <thead>

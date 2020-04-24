@@ -56,7 +56,9 @@ def get_workspace_resources(target):
             'city': resource['city'],
             'organization': resource['organization'],
             'latitude': resource['latitude'],
-            'longitude': resource['longitude']
+            'longitude': resource['longitude'],
+            'open_ports': resource['open_ports'],
+            'extra_nmap': resource['extra_nmap']
         }
         resources_found.append(current_resource)
 
@@ -84,8 +86,8 @@ def add_resource(workspace, user, name, is_alive, discovery_date, last_seen, ip,
             'latitude': latitude,
             'longitude': longitude}}
                                 )
-        if exists.get('ip') != ip and is_alive == 'True':
-            slack_sender.send_domain_update_message(name, ip)
+        #if exists.get('ip') != ip and is_alive == 'True':
+            #slack_sender.send_domain_update_message(name, ip)
     else:
         resource = {
             'name': name,
@@ -102,10 +104,11 @@ def add_resource(workspace, user, name, is_alive, discovery_date, last_seen, ip,
             'organization': organization,
             'latitude': latitude,
             'longitude': longitude,
-            'open_ports': 'None'
+            'open_ports': 'None',
+            'extra_nmap': 'None'
         }
-        if is_alive == 'True':
-            slack_sender.send_new_domain_found_message(name, ip)
+        #if is_alive == 'True':
+            #slack_sender.send_new_domain_found_message(name, ip)
         db.resources.insert_one(resource)
 
 

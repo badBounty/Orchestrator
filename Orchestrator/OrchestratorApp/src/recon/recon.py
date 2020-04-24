@@ -12,12 +12,11 @@ import json
 
 def run_recon(target_name, project_name='None', user_name='None'):
 
-    # /home/handerllon/Desktop/OrchestratorV1/Orchestrator/src/recon
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     OUTPUT_DIR = ROOT_DIR + '/tools_output'
 
     # Recon start notification
-    slack_sender.send_recon_start_message(target_name)
+    #slack_sender.send_recon_start_message(target_name)
 
     if not path.exists(OUTPUT_DIR + '/' + target_name):
         os.makedirs(OUTPUT_DIR + '/' + target_name)
@@ -53,7 +52,7 @@ def run_recon(target_name, project_name='None', user_name='None'):
     gather_data(PROJECT_DIR, project_name, user_name, target_name)
     cleanup(PROJECT_DIR, OUTPUT_DIR, target_name)
 
-    slack_sender.send_recon_end_message(target_name)
+    #slack_sender.send_recon_end_message(target_name)
 
     return
 
