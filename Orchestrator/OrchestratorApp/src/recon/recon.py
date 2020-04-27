@@ -115,7 +115,10 @@ def gather_additional_info(project_name, user_name, is_alive, ip, url, target_na
     timestamp = datetime.now()
     response = requests.get('http://ip-api.com/json/' + ip, verify=False)
     response_json = response.content.decode().replace('as', 'asn')
-    parsed_json = json.loads(response_json)
+    try:
+        parsed_json = json.loads(response_json)
+    except Exception:
+        return
     try:
         mongo.add_resource(
                         project_name,
