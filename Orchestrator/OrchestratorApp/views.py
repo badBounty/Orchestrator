@@ -42,8 +42,8 @@ def recon_view(request):
         form = ReconForm(request.POST)
         if form.is_valid():
             target_name = form.cleaned_data['target']
-            #recon_task.delay(target_name)
-            #nmap_task.delay(target_name)
+            recon_task.delay(target_name)
+            nmap_task.delay(target_name)
             aquatone_task.delay(target_name)
             return redirect('/')
     form = ReconForm()
