@@ -158,3 +158,4 @@ def cleanup(PROJECT_DIR, OUTPUT_DIR, target_name):
         os.remove(PROJECT_DIR + '/sublist3r_out.txt')
     except FileNotFoundError:
         pass
+    # TODO remover directorio de proyecto

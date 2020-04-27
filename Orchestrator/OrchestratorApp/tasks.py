@@ -7,6 +7,7 @@ import datetime as dt
 
 from .src.recon import recon
 from .src.recon import nmap
+from .src.recon import aquatone
 from .src.mongo import mongo
 from .src.slack import slack_sender
 
@@ -27,6 +28,11 @@ def nmap_task(target):
     subdomains = mongo.get_target_subdomains(target)
     nmap.start_nmap(subdomains)
     return None
+
+@shared_task
+def aquatone_task(target):
+    subdomains = mongo.get_target_subdomains(target)
+    aquatone.start_aquatone(subdomains)
 
 
 # Execute monitor everyday at midnight

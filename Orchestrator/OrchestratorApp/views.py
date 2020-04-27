@@ -8,7 +8,7 @@ from .src.mongo import mongo
 from .src.slack import slack_receiver
 from .src.recon import nmap
 from .src.comms import download
-from .tasks import recon_task, nmap_task
+from .tasks import recon_task, nmap_task, aquatone_task
 from .__init__ import slack_web_client
 
 import json
@@ -42,8 +42,9 @@ def recon_view(request):
         form = ReconForm(request.POST)
         if form.is_valid():
             target_name = form.cleaned_data['target']
-            recon_task.delay(target_name)
-            nmap_task.delay(target_name)
+            #recon_task.delay(target_name)
+            #nmap_task.delay(target_name)
+            aquatone_task.delay(target_name)
             return redirect('/')
     form = ReconForm()
     return render(request, 'Orchestrator/recon_view.html', {'form': form})

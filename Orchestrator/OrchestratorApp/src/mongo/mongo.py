@@ -105,7 +105,12 @@ def add_resource(workspace, user, name, is_alive, discovery_date, last_seen, ip,
             'latitude': latitude,
             'longitude': longitude,
             'open_ports': 'None',
-            'extra_nmap': 'None'
+            'extra_nmap': 'None',
+            'has_urls': 'None',
+            'responsive_urls': 'None',
+            'http_image': 'None',
+            'https_image': 'None'
+
         }
         #if is_alive == 'True':
             #slack_sender.send_new_domain_found_message(name, ip)
@@ -138,8 +143,8 @@ def add_ports_to_subdomain(subdomain, port_list):
                                   port['service']['@product'])
             except KeyError:
                 extra_info.append(port['@portid'] + ' ' + port['service']['@name'])
-        ports_to_add = ','.join(map(str, open_ports))
-        extra_to_add = '\n'.join(map(str, extra_info))
+        ports_to_add = ';'.join(map(str, open_ports))
+        extra_to_add = ';'.join(map(str, extra_info))
         db.resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
             'open_ports': ports_to_add,
             'extra_nmap': extra_to_add}})
@@ -151,3 +156,21 @@ def add_ports_to_subdomain(subdomain, port_list):
             'extra_nmap': 'None'}})
         return
 
+
+def add_urls_to_subdomain(subdomain, has_urls, url_list):
+    db = client.Orchestrator
+    subdomain = db.resources.find_one({'name': subdomain})
+    db.resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
+        'has_urls': str(has_urls),
+        'responsive_urls': url_list}})
+
+    return
+
+
+def add_images_to_subdomain(subdomain, http_image, https_image):
+    db = client.Orchestrator
+    subdomain = db.resources.find_one({'name': subdomain})
+    db.resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
+        'http_image': http_image,
+        'https_image': https_image}})
+    return
