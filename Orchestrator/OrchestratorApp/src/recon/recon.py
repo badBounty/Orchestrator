@@ -105,8 +105,8 @@ def gather_data(project_dir, project_name, user_name, target_name):
 
         else:
             ip = None
-            mongo.add_resource(project_name, user_name, url, is_alive_clause, timestamp, timestamp, ip, target_name,
-                                 None, None, None, None, None, None, None, None)
+            mongo.add_recon_resource(project_name, user_name, url, is_alive_clause, timestamp, timestamp, ip, target_name,
+                                     None, None, None, None, None, None, None, None)
 
     return
 
@@ -120,7 +120,7 @@ def gather_additional_info(project_name, user_name, is_alive, ip, url, target_na
     except Exception:
         return
     try:
-        mongo.add_resource(
+        mongo.add_recon_resource(
                         project_name,
                         user_name,
                         url,

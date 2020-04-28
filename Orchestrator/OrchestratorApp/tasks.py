@@ -5,9 +5,8 @@ from celery.task import periodic_task
 from time import sleep
 import datetime as dt
 
-from .src.recon import recon
-from .src.recon import nmap
-from .src.recon import aquatone
+from .src.recon import recon, nmap, aquatone
+from .src.security_baseline import header_scan, http_method_scan, ssl_tls_scan
 from .src.mongo import mongo
 from .src.slack import slack_sender
 
@@ -17,6 +16,37 @@ def sleepy(duration):
     sleep(duration)
     return None
 
+
+# ------------------ Security baseline tasks ------------------ #
+@shared_task
+def header_scan_task(target, mode):
+    if mode == 'TARGET':
+        subdomains = mongo.get_responsive_http_resources(target)
+        header_scan.handle_target(subdomains)
+    elif mode == 'SINGLE':
+        header_scan.handle_single(target)
+    return None
+
+
+@shared_task
+def http_method_scan_task(target, mode):
+    if mode == 'TARGET':
+        subdomains = mongo.get_responsive_http_resources(target)
+        http_method_scan.handle_target(subdomains)
+    elif mode == 'SINGLE':
+        http_method_scan.handle_single(target)
+    return None
+
+@shared_task
+def ssl_tls_scan_task(target, mode):
+    if mode == 'TARGET':
+        subdomains = mongo.get_ssl_scannable_resources(target)
+        ssl_tls_scan.handle_target(subdomains)
+    elif mode == 'SINGLE':
+        ssl_tls_scan.handle_single(target)
+    return None
+
+# ------------------ Recon tasks ------------------ #
 @shared_task
 def recon_task(target, project='None', user='None'):
     recon.run_recon(target, project, user)
@@ -25,13 +55,13 @@ def recon_task(target, project='None', user='None'):
 
 @shared_task
 def nmap_task(target):
-    subdomains = mongo.get_target_subdomains(target)
+    subdomains = mongo.get_target_alive_subdomains(target)
     nmap.start_nmap(subdomains)
     return None
 
 @shared_task
 def aquatone_task(target):
-    subdomains = mongo.get_target_subdomains(target)
+    subdomains = mongo.get_target_alive_subdomains(target)
     aquatone.start_aquatone(subdomains)
 
 

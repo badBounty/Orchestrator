@@ -3,10 +3,28 @@ from ..slack import slack_sender
 from ...__init__ import client
 
 
+# ------------------- GETTERS -------------------
 def get_workspaces():
     db = client.Orchestrator
     workspaces = db.resources.distinct('from_workspace')
     return workspaces
+
+
+def get_responsive_http_resources(target):
+    db = client.Orchestrator
+    subdomains = db.resources.find({'domain': target, 'has_urls': 'True'})
+    subdomain_list = list()
+    for subdomain in subdomains:
+        for url_with_http in subdomain['responsive_urls'].split(';'):
+            if url_with_http:
+                current_subdomain = {
+                    'target': subdomain['domain'],
+                    'ip': subdomain['ip'],
+                    'name': subdomain['name'],
+                    'url_with_http': url_with_http
+                }
+                subdomain_list.append(current_subdomain)
+    return subdomain_list
 
 
 def get_targets():
@@ -23,7 +41,7 @@ def get_target_last_scan(target):
     return latest_record
 
 
-def get_target_subdomains(target):
+def get_target_alive_subdomains(target):
     db = client.Orchestrator
     subdomains = db.resources.find({'domain': target, 'is_alive': 'True'})
     subdomain_list = list()
@@ -65,8 +83,9 @@ def get_workspace_resources(target):
     return resources_found
 
 
-def add_resource(workspace, user, name, is_alive, discovery_date, last_seen, ip, domain, isp, asn, country,
-                 region, city, organization, latitude, longitude):
+# ------------------- RECON -------------------
+def add_recon_resource(workspace, user, name, is_alive, discovery_date, last_seen, ip, domain, isp, asn, country,
+                       region, city, organization, latitude, longitude):
     # Our table is called resources
     db = client.Orchestrator
 
@@ -86,8 +105,8 @@ def add_resource(workspace, user, name, is_alive, discovery_date, last_seen, ip,
             'latitude': latitude,
             'longitude': longitude}}
                                 )
-        #if exists.get('ip') != ip and is_alive == 'True':
-            #slack_sender.send_domain_update_message(name, ip)
+        # if exists.get('ip') != ip and is_alive == 'True':
+        # slack_sender.send_domain_update_message(name, ip)
     else:
         resource = {
             'name': name,
@@ -112,8 +131,8 @@ def add_resource(workspace, user, name, is_alive, discovery_date, last_seen, ip,
             'https_image': 'None'
 
         }
-        #if is_alive == 'True':
-            #slack_sender.send_new_domain_found_message(name, ip)
+        # if is_alive == 'True':
+        # slack_sender.send_new_domain_found_message(name, ip)
         db.resources.insert_one(resource)
 
 
@@ -174,3 +193,44 @@ def add_images_to_subdomain(subdomain, http_image, https_image):
         'http_image': http_image,
         'https_image': https_image}})
     return
+
+
+# ------------------- VULNERABILITY -------------------
+def add_vulnerability(target_name, subdomain, vulnerability_name, current_time):
+    db = client.Orchestrator
+
+    exists = db.vulnerabilities.find_one({'target_name': target_name, 'subdomain': subdomain,
+                                          'vulnerability_name': vulnerability_name})
+    if exists:
+        db.vulnerabilities.update_one({'_id': exists.get('_id')}, {'$set': {
+            'last_seen': current_time
+        }})
+    else:
+        resource = {
+            'target_name': target_name,
+            'subdomain': subdomain,
+            'vulnerability_name': vulnerability_name,
+            'date_found': current_time,
+            'last_seen': current_time
+        }
+        db.vulnerabilities.insert_one(resource)
+    return
+
+
+def get_ssl_scannable_resources(target):
+    valid_ports = ['80', '81', '443', '591', '2082', '2087', '2095', '2096', '3000', '8000',
+                   '8001', '8008', '8080', '8083', '8443', '8834', '8888']
+    db = client.Orchestrator
+    subdomains = db.resources.find({'domain': target, 'is_alive': 'True'})
+    subdomain_list = list()
+    for subdomain in subdomains:
+        for port in subdomain['open_ports'].split(';'):
+            if port in valid_ports:
+                current_subdomain = {
+                    'target': subdomain['domain'],
+                    'ip': subdomain['ip'],
+                    'name': subdomain['name'],
+                    'url_with_port': subdomain['name'] + ':' + port
+                }
+                subdomain_list.append(current_subdomain)
+    return subdomain_list

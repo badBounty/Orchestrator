@@ -2,17 +2,18 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+
 from .forms import ReconForm
 
 from .src.mongo import mongo
 from .src.slack import slack_receiver
-from .src.recon import nmap
+from .src.recon import recon_handler
 from .src.comms import download
-from .tasks import recon_task, nmap_task, aquatone_task
+from .src.security_baseline import security_baseline_handler
+
 from .__init__ import slack_web_client
 
 import json
-
 
 
 def newIndex(request):
@@ -36,21 +37,34 @@ def show_workspace(request, target_name):
     return render(request, 'Orchestrator/single_workspace_view.html', {'object_list': resources})
 
 
-# Form handling #
 def recon_view(request):
     if request.method == 'POST':
         form = ReconForm(request.POST)
         if form.is_valid():
             target_name = form.cleaned_data['target']
-            recon_task.delay(target_name)
-            nmap_task.delay(target_name)
-            aquatone_task.delay(target_name)
+            recon_handler.handle_recon(target_name)
             return redirect('/')
     form = ReconForm()
     return render(request, 'Orchestrator/recon_view.html', {'form': form})
 
 
-# Bot token
+def baseline_scan_view(request):
+    target = mongo.get_targets()
+    if request.method == 'POST':
+        form = ReconForm(request.POST)
+        if form.is_valid():
+            single_url = form.cleaned_data['target']
+            security_baseline_handler.handle_url_baseline_security_scan(single_url)
+            return redirect('/')
+    form = ReconForm()
+    return render(request, 'Orchestrator/baseline_targets_view.html', {'object_list': target, 'form': form})
+
+
+def baseline_started_view(request, target_name):
+    security_baseline_handler.handle_target_baseline_security_scan(target_name)
+    return HttpResponseRedirect('/')
+
+
 @csrf_exempt
 @require_POST
 def slack_input(request):
