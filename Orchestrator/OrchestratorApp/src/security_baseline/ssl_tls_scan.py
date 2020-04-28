@@ -4,6 +4,7 @@ from ..mongo import mongo
 from datetime import datetime
 import subprocess
 import os
+import xml
 
 
 def handle_target(url_list):
@@ -56,7 +57,12 @@ def scan_target(target_name, url, url_with_port):
        ['sslscan', '--no-failed', '--tls1', '--xml=' + OUTPUT_FULL_NAME, url_with_port])
 
     with open(OUTPUT_FULL_NAME) as xml_file:
-        my_dict = xmltodict.parse(xml_file.read())
+        try:
+            my_dict = xmltodict.parse(xml_file.read())
+        except xml.parsers.expat.ExpatError:
+            cleanup(OUTPUT_FULL_NAME)
+            return
+
     xml_file.close()
     json_data = json.dumps(my_dict)
     json_data = json.loads(json_data)
