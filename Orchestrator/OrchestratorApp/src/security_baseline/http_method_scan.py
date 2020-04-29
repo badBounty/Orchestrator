@@ -1,26 +1,38 @@
 import requests
 from ..mongo import mongo
+from .. import constants
 from datetime import datetime
 
 
-def handle_target(url_list):
+def handle_target(url_list, language):
     print('------------------- TARGET HTTP METHOD SCAN STARTING -------------------')
     print('Found ' + str(len(url_list)) + ' targets to scan')
     for url in url_list:
         print('Scanning ' + url['url_with_http'])
-        scan_target(url['target'], url['url_with_http'])
+        scan_target(url['target'], url['url_with_http'], language)
     print('------------------- TARGET HTTP METHOD SCAN FINISHED -------------------')
     return
 
 
-def handle_single(url):
+def handle_single(url, language):
     print('------------------- SINGLE HTTP METHOD SCAN STARTING -------------------')
-    scan_target(url, url)
+    scan_target(url, url, language)
     print('------------------- SINGLE HTTP METHOD SCAN FINISHED -------------------')
     return
 
 
-def scan_target(target_name, url_to_scan):
+def add_vulnerability(target_name, scanned_url, timestamp, language):
+    if language == constants.LANGUAGE_ENGLISH:
+        mongo.add_vulnerability(target_name, scanned_url,
+                                constants.UNSECURE_METHOD_ENGLISH,
+                                timestamp, language)
+    if language == constants.LANGUAGE_SPANISH:
+        mongo.add_vulnerability(target_name, scanned_url,
+                                constants.UNSECURE_METHOD_SPANISH,
+                                timestamp, language)
+
+
+def scan_target(target_name, url_to_scan, language):
     responses = list()
     try:
         put_response = requests.put(url_to_scan, data={'key': 'value'})
@@ -39,6 +51,4 @@ def scan_target(target_name, url_to_scan):
         if response['response'].status_code == 200:
             # Reportar metodo
             timestamp = datetime.now()
-            mongo.add_vulnerability(target_name, url_to_scan,
-                                    "Method " + response['method'] + ' is available',
-                                    timestamp)
+            add_vulnerability(target_name, url_to_scan, timestamp, language)

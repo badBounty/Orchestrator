@@ -196,11 +196,12 @@ def add_images_to_subdomain(subdomain, http_image, https_image):
 
 
 # ------------------- VULNERABILITY -------------------
-def add_vulnerability(target_name, subdomain, vulnerability_name, current_time):
+def add_vulnerability(target_name, subdomain, vulnerability_name, current_time, language):
     db = client.Orchestrator
 
     exists = db.vulnerabilities.find_one({'target_name': target_name, 'subdomain': subdomain,
-                                          'vulnerability_name': vulnerability_name})
+                                          'vulnerability_name': vulnerability_name,
+                                          'language': 'language'})
     if exists:
         db.vulnerabilities.update_one({'_id': exists.get('_id')}, {'$set': {
             'last_seen': current_time
@@ -211,7 +212,8 @@ def add_vulnerability(target_name, subdomain, vulnerability_name, current_time):
             'subdomain': subdomain,
             'vulnerability_name': vulnerability_name,
             'date_found': current_time,
-            'last_seen': current_time
+            'last_seen': current_time,
+            'language': language,
         }
         db.vulnerabilities.insert_one(resource)
     return

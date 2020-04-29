@@ -19,31 +19,31 @@ def sleepy(duration):
 
 # ------------------ Security baseline tasks ------------------ #
 @shared_task
-def header_scan_task(target, mode):
+def header_scan_task(target, mode, language):
     if mode == 'TARGET':
         subdomains = mongo.get_responsive_http_resources(target)
-        header_scan.handle_target(subdomains)
+        header_scan.handle_target(subdomains, language)
     elif mode == 'SINGLE':
-        header_scan.handle_single(target)
+        header_scan.handle_single(target, language)
     return None
 
 
 @shared_task
-def http_method_scan_task(target, mode):
+def http_method_scan_task(target, mode, language):
     if mode == 'TARGET':
         subdomains = mongo.get_responsive_http_resources(target)
-        http_method_scan.handle_target(subdomains)
+        http_method_scan.handle_target(subdomains, language)
     elif mode == 'SINGLE':
-        http_method_scan.handle_single(target)
+        http_method_scan.handle_single(target, language)
     return None
 
 @shared_task
-def ssl_tls_scan_task(target, mode):
+def ssl_tls_scan_task(target, mode, language):
     if mode == 'TARGET':
         subdomains = mongo.get_ssl_scannable_resources(target)
-        ssl_tls_scan.handle_target(subdomains)
+        ssl_tls_scan.handle_target(subdomains, language)
     elif mode == 'SINGLE':
-        ssl_tls_scan.handle_single(target)
+        ssl_tls_scan.handle_single(target, language)
     return None
 
 # ------------------ Recon tasks ------------------ #

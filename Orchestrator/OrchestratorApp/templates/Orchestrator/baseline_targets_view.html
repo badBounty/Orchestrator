@@ -10,16 +10,9 @@
 
 <div class="w3-half">
 <div class="w3-card-4 w3-container">
-<h2>Available targets</h2>
 <ul class="w3-ul w3-margin-bottom">
-  <ul>
-{% for workspace in object_list %}
-    <li><a href="{% url 'OrchestratorApp:baseline_against_target' workspace%}">{{ workspace }}</a></li>
-{% empty %}
-    <li>No workspaces yet.</li>
-{% endfor %}
-</ul>
-    <h2>Scan against single url</h2>
+
+    <h2>Select options and hit start!</h2>
         <form method="POST" class="post-form">{% csrf_token %}
             {{ form.as_p }}
             <button type="submit" class="save btn btn-default">Start</button>
@@ -30,6 +23,8 @@
 
 <!-- Script for Sidebar, Tabs, Accordions, Progress bars and slideshows -->
 <script>
+function showInfo(target){ alert("SE GENERO SCAN PARA:" + value) }
+
 // Side navigation
 function w3_open() {
   var x = document.getElementById("mySidebar");

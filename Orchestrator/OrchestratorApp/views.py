@@ -53,16 +53,16 @@ def baseline_scan_view(request):
     if request.method == 'POST':
         form = ReconForm(request.POST)
         if form.is_valid():
-            single_url = form.cleaned_data['target']
-            security_baseline_handler.handle_url_baseline_security_scan(single_url)
+            selected_target = form.cleaned_data['target']
+            if selected_target == 'url_target':
+                security_baseline_handler.handle_url_baseline_security_scan(form.cleaned_data['single_url'], form.cleaned_data['selected_language'])
+                # print('Selected single with ' + form.cleaned_data['single_url'] + ' with language ' + form.cleaned_data['selected_language'])
+            else:
+                security_baseline_handler.handle_target_baseline_security_scan(selected_target, form.cleaned_data['selected_language'])
+                # print('Selected existing target ' + selected_target + ' with language ' + form.cleaned_data['selected_language'])
             return redirect('/')
     form = ReconForm()
     return render(request, 'Orchestrator/baseline_targets_view.html', {'object_list': target, 'form': form})
-
-
-def baseline_started_view(request, target_name):
-    security_baseline_handler.handle_target_baseline_security_scan(target_name)
-    return HttpResponseRedirect('/')
 
 
 @csrf_exempt
