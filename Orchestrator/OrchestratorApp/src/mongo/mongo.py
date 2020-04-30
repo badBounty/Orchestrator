@@ -219,6 +219,27 @@ def add_vulnerability(target_name, subdomain, vulnerability_name, current_time, 
     return
 
 
+def get_vulns_from_target(target):
+    db = client.Orchestrator
+    resources = db.vulnerabilities.find({'target_name': target})
+    resources_list = list()
+    for resource in resources:
+        to_add = {
+            'target_name': resource['target_name'],
+            'affected_resource': resource['subdomain'],
+            'vulnerability_name': resource['vulnerability_name'],
+            'found': resource['date_found'],
+            'last_seen': resource['last_seen']
+        }
+        try:
+            to_add['language'] = resource['language']
+        except KeyError:
+            to_add['language'] = None
+        resources_list.append(to_add)
+
+    return resources_list
+
+
 def get_ssl_scannable_resources(target):
     valid_ports = ['80', '81', '443', '591', '2082', '2087', '2095', '2096', '3000', '8000',
                    '8001', '8008', '8080', '8083', '8443', '8834', '8888']

@@ -24,6 +24,7 @@ def index(request):
     return render(request, 'Orchestrator/base.html')
 
 
+#### RECON ####
 def show_workspaces(request):
     target = mongo.get_targets()
     return render(request, 'Orchestrator/workspaces_view.html', {'object_list': target})
@@ -46,6 +47,20 @@ def recon_view(request):
             return redirect('/')
     form = ReconForm()
     return render(request, 'Orchestrator/recon_view.html', {'form': form})
+
+
+#### BASELINE ####
+def show_vulns(request):
+    target = mongo.get_targets()
+    return render(request, 'Orchestrator/vulns_view.html', {'object_list': target})
+
+
+def show_project_vulns(request, target_name):
+    resources = mongo.get_vulns_from_target(target_name)
+    if request.method == 'POST':
+        response = download.get_workspace_csv(request.path, resources)
+        return response
+    return render(request, 'Orchestrator/single_vulns_view.html', {'object_list': resources})
 
 
 def baseline_scan_view(request):

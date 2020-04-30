@@ -47,8 +47,13 @@ def scan_target(target_name, url_to_scan, language):
     options_response = requests.options(url_to_scan)
     responses.append({'method': 'OPTIONS', 'response': options_response})
 
-    for response in responses:
-        if response['response'].status_code == 200:
-            # Reportar metodo
-            timestamp = datetime.now()
-            add_vulnerability(target_name, url_to_scan, timestamp, language)
+    res = any(response['response'].status_code == 200 for response in responses)
+    timestamp = datetime.now()
+    if res:
+        add_vulnerability(target_name, url_to_scan, timestamp, language)
+
+    #for response in responses:
+    #    if response['response'].status_code == 200:
+    #        # Reportar metodo
+    #        timestamp = datetime.now()
+    #        add_vulnerability(target_name, url_to_scan, timestamp, language)

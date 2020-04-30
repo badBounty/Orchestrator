@@ -69,16 +69,21 @@ def scan_target(target_name, url_to_scan, language):
     important_headers = ['Content-Security-Policy', 'X-XSS-Protection', 'x-frame-options', 'X-Content-Type-options',
                          'Strict-Transport-Security', 'Access-Control-Allow-Origin']
 
+    reported = False
     if response.status_code != 404:
         for header in important_headers:
             try:
                 # If the header exists
                 if response.headers[header]:
                     if not check_header_value(header, response.headers[header]):
-                        timestamp = datetime.now()
-                        add_header_value_vulnerability(target_name, url_to_scan, timestamp, header, language)
+                        # No header differenciation, so we do this for now
+                        if not reported:
+                            timestamp = datetime.now()
+                            add_header_value_vulnerability(target_name, url_to_scan, timestamp, header, language)
+                        reported = True
             except KeyError:
-                # If header does not exist
-                timestamp = datetime.now()
-                add_header_value_vulnerability(target_name, url_to_scan, timestamp, header, language)
+                if not reported:
+                    timestamp = datetime.now()
+                    add_header_value_vulnerability(target_name, url_to_scan, timestamp, header, language)
+                reported = True
     return
