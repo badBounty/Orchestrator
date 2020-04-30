@@ -45,7 +45,7 @@ def recon_view(request):
             target_name = form.cleaned_data['target']
             recon_handler.handle_recon(target_name)
             return redirect('/')
-    form = BaselineScanForm()
+    form = ReconForm()
     return render(request, 'Orchestrator/recon_view.html', {'form': form})
 
 
