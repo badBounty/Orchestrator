@@ -82,10 +82,10 @@ def scan_target(target_name, url_to_scan, language):
                         if not reported:
                             timestamp = datetime.now()
                             add_header_value_vulnerability(target_name, url_to_scan, timestamp, header, language)
-                        reported = True
+                            reported = True
             except KeyError:
                 if not reported:
                     timestamp = datetime.now()
                     add_header_value_vulnerability(target_name, url_to_scan, timestamp, header, language)
-                reported = True
+                    reported = True
     return
