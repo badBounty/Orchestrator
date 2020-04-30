@@ -65,6 +65,8 @@ def scan_target(target_name, url_to_scan, language):
         response = requests.get(url_to_scan)
     except requests.exceptions.SSLError:
         return
+    except requests.exceptions.ConnectionError:
+        return
 
     important_headers = ['Content-Security-Policy', 'X-XSS-Protection', 'x-frame-options', 'X-Content-Type-options',
                          'Strict-Transport-Security', 'Access-Control-Allow-Origin']

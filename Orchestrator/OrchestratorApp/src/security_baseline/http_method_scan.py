@@ -38,6 +38,8 @@ def scan_target(target_name, url_to_scan, language):
         put_response = requests.put(url_to_scan, data={'key': 'value'})
     except requests.exceptions.SSLError:
         return
+    except requests.exceptions.ConnectionError:
+        return
 
     responses.append({'method': 'PUT', 'response': put_response})
 
