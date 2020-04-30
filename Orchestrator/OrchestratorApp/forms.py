@@ -10,6 +10,10 @@ LANGUAGE_CHOICES = [
 
 
 class ReconForm(forms.Form):
+    target = forms.CharField(label='Enter target', max_length=20)
+
+
+class BaselineScanForm(forms.Form):
     targets = mongo.get_targets()
     target_list = list()
     for available_target in targets:

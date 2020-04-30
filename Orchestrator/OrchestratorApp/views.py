@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from .forms import ReconForm
+from .forms import BaselineScanForm, ReconForm
 
 from .src.mongo import mongo
 from .src.slack import slack_receiver
@@ -45,7 +45,7 @@ def recon_view(request):
             target_name = form.cleaned_data['target']
             recon_handler.handle_recon(target_name)
             return redirect('/')
-    form = ReconForm()
+    form = BaselineScanForm()
     return render(request, 'Orchestrator/recon_view.html', {'form': form})
 
 
@@ -66,7 +66,7 @@ def show_project_vulns(request, target_name):
 def baseline_scan_view(request):
     target = mongo.get_targets()
     if request.method == 'POST':
-        form = ReconForm(request.POST)
+        form = BaselineScanForm(request.POST)
         if form.is_valid():
             selected_target = form.cleaned_data['target']
             if selected_target == 'url_target':
@@ -76,7 +76,7 @@ def baseline_scan_view(request):
                 security_baseline_handler.handle_target_baseline_security_scan(selected_target, form.cleaned_data['selected_language'])
                 # print('Selected existing target ' + selected_target + ' with language ' + form.cleaned_data['selected_language'])
             return redirect('/')
-    form = ReconForm()
+    form = BaselineScanForm()
     return render(request, 'Orchestrator/baseline_targets_view.html', {'object_list': target, 'form': form})
 
 
