@@ -89,8 +89,7 @@ def slack_input(request):
         return JsonResponse({'challenge': data})
     slack_web_client.chat_postMessage(channel='#orchestrator', text=str('Message received! processing...'))
     try:
-        #response = slack_receiver.receive_bot_message(data)
-        print('Sthelse')
+        response = slack_receiver.receive_bot_message(data)
     except RuntimeError:
         pass
     return HttpResponse(status=200)

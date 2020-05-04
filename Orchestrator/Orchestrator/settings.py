@@ -120,6 +120,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-CELERY_BROKER_URL = "redis://h:p6eed3dbc306cf3c3b121312b56c843fdbe528f03d47ca327c2d93cc6f7b19cb0@ec2-34-196-228-21.compute-1.amazonaws.com:16179"
+CELERY_BROKER_URL = "redis://h:p6eed3dbc306cf3c3b121312b56c843fdbe528f03d47ca327c2d93cc6f7b19cb0@ec2-54-86-8-11.compute-1.amazonaws.com:16159"
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'

@@ -1,8 +1,9 @@
 import urllib.parse
 import json
 
-from ...tasks import recon_task
-from ...tasks import nmap_task
+from ..recon import recon_handler
+from ..security_baseline import security_baseline_handler
+from ..mongo import mongo
 from ...__init__ import slack_web_client
 
 
@@ -29,15 +30,27 @@ def receive_message(message):
 
 def recon_handle(user, target):
 
-    recon_task.delay(target)
-    nmap_task.delay(target)
+    print('sth')
+    #recon_handler.handle_recon(target)
 
     return "Hey <@%s>! message was received and recon against %s is starting!" % (user, target)
 
 
+def baseline_handle(user, target):
+
+    targets = mongo.get_targets()
+    if target not in targets:
+        return "Hey <@%s>! target %s is not present in our database. Has a recon been done against it?" % (user, target)
+
+    print('scan starting')
+    #security_baseline_handler.handle_target_baseline_security_scan(target)
+
+    return "Hey <@%s>! message was received and baseline scan against %s is starting!" % (user, target)
+
+
 def help_handle():
 
-    return "Current options are: \n" + "    - start_recon <target>"
+    return "Current options are: \n" + "    - start_recon <target>\n" + "   - start_baseline <target>"
 
 
 def receive_bot_message(data):
@@ -53,6 +66,8 @@ def receive_bot_message(data):
         slack_web_client.chat_postMessage(channel=channel, text=str('Message received! processing...'))
         if messages[1]['text'].replace(' ', '') == 'start_recon':
             response_msg = recon_handle(user, messages[2]['text'])
+        elif messages[1]['text'].replace(' ', '') == 'start_baseline_scan':
+            response_msg = baseline_handle(user, messages[2]['text'])
         elif messages[1]['text'].replace(' ', '') == 'help':
             response_msg = help_handle()
         else:
