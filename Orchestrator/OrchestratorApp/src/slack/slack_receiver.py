@@ -30,8 +30,7 @@ def receive_message(message):
 
 def recon_handle(user, target):
 
-    print('sth')
-    #recon_handler.handle_recon(target)
+    recon_handler.handle_recon(target)
 
     return "Hey <@%s>! message was received and recon against %s is starting!" % (user, target)
 
@@ -42,8 +41,7 @@ def baseline_handle(user, target):
     if target not in targets:
         return "Hey <@%s>! target %s is not present in our database. Has a recon been done against it?" % (user, target)
 
-    print('scan starting')
-    #security_baseline_handler.handle_target_baseline_security_scan(target)
+    security_baseline_handler.handle_target_baseline_security_scan(target)
 
     return "Hey <@%s>! message was received and baseline scan against %s is starting!" % (user, target)
 

@@ -1,14 +1,15 @@
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, FileResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from .forms import BaselineScanForm, ReconForm
+from .forms import BaselineScanForm, ReconForm, ReportForm
 
 from .src.mongo import mongo
 from .src.slack import slack_receiver
 from .src.recon import recon_handler
 from .src.comms import download
+from .src.reporting import reporting
 from .src.security_baseline import security_baseline_handler
 
 from .__init__ import slack_web_client
@@ -80,6 +81,7 @@ def baseline_scan_view(request):
     return render(request, 'Orchestrator/baseline_targets_view.html', {'object_list': target, 'form': form})
 
 
+### SLACK ###
 @csrf_exempt
 @require_POST
 def slack_input(request):
@@ -93,3 +95,19 @@ def slack_input(request):
     except RuntimeError:
         pass
     return HttpResponse(status=200)
+
+
+### REPORTING ###
+def reporting_view(request):
+    target = mongo.get_targets_with_vulns()
+    if request.method == 'POST':
+        form = ReportForm(request.POST)
+        if form.is_valid():
+            selected_target = form.cleaned_data['target']
+            client = form.cleaned_data['client']
+            language = form.cleaned_data['selected_language']
+            report_type = form.cleaned_data['report_type']
+            file_dir = reporting.create_report(client, language, report_type, selected_target)
+            return FileResponse(open(file_dir, 'rb'))
+    form = ReportForm()
+    return render(request, 'Orchestrator/reporting_view.html', {'object_list': target, 'form': form})

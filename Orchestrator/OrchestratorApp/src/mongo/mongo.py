@@ -33,6 +33,12 @@ def get_targets():
     return domains
 
 
+def get_targets_with_vulns():
+    db = client.Orchestrator
+    domains = db.vulnerabilities.distinct('target_name')
+    return domains
+
+
 def get_target_last_scan(target):
     db = client.Orchestrator
     latest_record = db.resources.find({'domain': target}).sort([('last_seen', -1)]).limit(1)
@@ -257,3 +263,21 @@ def get_ssl_scannable_resources(target):
                 }
                 subdomain_list.append(current_subdomain)
     return subdomain_list
+
+
+# ------------------- REPORTING -------------------
+def get_vulns_with_language(target, language):
+    db = client.Orchestrator
+    resources = db.vulnerabilities.find({'target_name': target, 'language': language})
+    resources_list = list()
+    for resource in resources:
+        to_add = {
+            'target_name': resource['target_name'],
+            'affected_resource': resource['subdomain'],
+            'vulnerability_name': resource['vulnerability_name'],
+            'found': resource['date_found'],
+            'last_seen': resource['last_seen']
+        }
+        resources_list.append(to_add)
+
+    return resources_list

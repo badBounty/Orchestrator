@@ -1,39 +1,30 @@
 <!DOCTYPE html>
 <html>
-<title>Orchestrator</title>
+<title>W3.CSS Template</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-black.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css">
 <body>
-<!-- Side Navigation -->
-<nav class="w3-sidebar w3-bar-block w3-card w3-animate-left w3-center" style="display:none" id="mySidebar">
-  <h1 class="w3-xxxlarge w3-text-theme">Options</h1>
-  <button class="w3-bar-item w3-button" onclick="w3_close()">Close <i class="fa fa-remove"></i></button>
-  <a href="{% url 'OrchestratorApp:recon' %}" class="w3-bar-item w3-button">Recon</a>
-  <a href="{% url 'OrchestratorApp:baseline_scan' %}" class="w3-bar-item w3-button">Baseline Scan</a>
-  <a href="{% url 'OrchestratorApp:reporting' %}" class="w3-bar-item w3-button">Reporting</a>
-  <a href="{% url 'OrchestratorApp:workspaces' %}" class="w3-bar-item w3-button">Workspaces</a>
-  <a href="{% url 'OrchestratorApp:vulnerabilities' %}" class="w3-bar-item w3-button">Vulnerabilities</a>
-</nav>
 
-<!-- Header -->
-<header class="w3-container w3-theme w3-padding" id="myHeader">
-  <i onclick="w3_open()" class="fa fa-bars w3-xlarge w3-button w3-theme"></i>
-  <div class="w3-center">
-  <!---<h4>BEAUTIFUL RESPONSIVE WEB SITES</h4>-->
-  <h1 class="w3-xxxlarge w3-animate-bottom">Orchestrator</h1>
-    <div class="w3-padding-32">
-      <!---button class="w3-btn w3-xlarge w3-dark-grey w3-hover-light-grey" onclick="document.getElementById('id01').style.display='block'" style="font-weight:900;">Handerllon</button--->
-    </div>
-  </div>
-</header>
+<div class="w3-half">
+<div class="w3-card-4 w3-container">
+<ul class="w3-ul w3-margin-bottom">
 
-
+    <h2>Select options and generate</h2>
+        <form method="POST" class="post-form">{% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="save btn btn-default">Generate Report</button>
+        </form>
+</ul>
+</div>
+</div>
 
 <!-- Script for Sidebar, Tabs, Accordions, Progress bars and slideshows -->
 <script>
+function showInfo(target){ alert("SE GENERO SCAN PARA:" + value) }
+
 // Side navigation
 function w3_open() {
   var x = document.getElementById("mySidebar");
@@ -110,5 +101,6 @@ function move() {
   }
 }
 </script>
+
 </body>
 </html>
