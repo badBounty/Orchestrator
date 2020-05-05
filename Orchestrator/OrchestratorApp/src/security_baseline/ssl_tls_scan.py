@@ -31,11 +31,15 @@ def handle_single(url, language):
     return
 
 
-def checker(protocol):
-    if protocol['@type'] == 'ssl' and protocol['@enabled'] == '1':
-        return True
-    elif protocol['@type'] == 'tls' and protocol['@version'] == '1.0' and protocol['@enabled'] == '1':
-        return True
+def checker(target_name, url_with_port, language, result):
+    timestamp = datetime.now()
+    # testssl has a bunch of vulns, we could test more
+    if result['id'] == 'SSLv2' and result['finding'] != 'not offered':
+        add_vulnerability(target_name, url_with_port, timestamp, language)
+    elif result['id'] == 'SSLv3' and result['finding'] != 'not offered':
+        add_vulnerability(target_name, url_with_port, timestamp, language)
+    elif result['id'] == 'TLS1' and result['finding'] != 'not offered':
+        add_vulnerability(target_name, url_with_port, timestamp, language)
 
 
 def cleanup(path):
@@ -61,36 +65,19 @@ def add_vulnerability(target_name, scanned_url, timestamp, language):
 def scan_target(target_name, url, url_with_port, language):
 
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    TOOL_DIR = ROOT_DIR + '/tools/testssl.sh/testssl.sh'
     OUTPUT_DIR = ROOT_DIR + '/tools_output'
-    OUTPUT_FULL_NAME = OUTPUT_DIR + '/' + url + '.xml'
+    OUTPUT_FULL_NAME = OUTPUT_DIR + '/' + url + '.json'
 
     # We first run the subprocess that creates the xml output file
-    sslscan_process = subprocess.run(
-       ['sslscan', '--no-failed', '--no-ciphersuites', '--xml=' + OUTPUT_FULL_NAME, url_with_port])
+    testssl_process = subprocess.run(
+       ['bash', TOOL_DIR, '-oj', OUTPUT_FULL_NAME, url_with_port])
 
-    with open(OUTPUT_FULL_NAME) as xml_file:
-        try:
-            my_dict = xmltodict.parse(xml_file.read())
-        except xml.parsers.expat.ExpatError:
-            cleanup(OUTPUT_FULL_NAME)
-            return
+    with open(OUTPUT_FULL_NAME) as f:
+        results = json.load(f)
 
-    xml_file.close()
-    json_data = json.dumps(my_dict)
-    json_data = json.loads(json_data)
-
-    # xml.parsers.expat.ExpatError
-
-    try:
-        protocol_list = json_data['document']['ssltest']['protocol']
-    except KeyError:
-        cleanup(OUTPUT_FULL_NAME)
-        return
-
-    for protocol in protocol_list:
-        if checker(protocol):
-            timestamp = datetime.now()
-            add_vulnerability(target_name, url, timestamp, language)
+    for result in results:
+        checker(target_name, url_with_port, language, result)
 
     cleanup(OUTPUT_FULL_NAME)
 
