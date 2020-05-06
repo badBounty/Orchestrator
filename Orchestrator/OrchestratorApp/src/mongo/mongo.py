@@ -281,3 +281,14 @@ def get_vulns_with_language(target, language):
         resources_list.append(to_add)
 
     return resources_list
+
+
+def get_specific_finding_info(finding, language):
+    db = client.Orchestrator
+    specific_finding = db.observations.find({'TITLE': finding['title'], 'LANGUAGE': language})
+    if specific_finding:
+        finding_to_send = specific_finding[0]
+        finding_to_send['resourceAf'] = finding['resourceAf']
+        return finding_to_send
+    else:
+        return None

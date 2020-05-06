@@ -14,6 +14,7 @@ import json
 import os
 
 from .. import constants
+from ..mongo import mongo
 
 # Variables Generales
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -97,11 +98,11 @@ def addFindingInfo(table, language, urls):
         paragraph.text = urls
 
 
-def clonarTemplateYAgregarFinding(doc, indexNros, language, finding, jsonFinding):
+def clonarTemplateYAgregarFinding(doc, indexNros, language, jsonFinding):
     nroParagraph = indexNros[0]
     nroTable = indexNros[1]
     nroPageBreak = indexNros[2]
-    urls = finding['resourceAf']
+    urls = jsonFinding['resourceAf']
     refUrls = jsonFinding['RECOMMENDATION']['URLS']
     page_break = doc.paragraphs[nroPageBreak]
     templateParag = deepcopy(doc.paragraphs[nroParagraph])
@@ -210,15 +211,14 @@ def crearReporte(language, reportType, client, findings):
     # Itero sobre la lista recibida si el finding existe lo agrego sino pongo un mensaje de alerta
     print("Generando Reporte espere")
     setClientInDoc(doc, estado, client)
-    exists = False
     for finding in findings:
-        for json_value in json_data:
-            if finding['title'] == json_value['TITLE'] and language == json_value["LANGUAGE"]:
-                exists = True
-                clonarTemplateYAgregarFinding(doc, indexNros, eng, finding, json_value)
-        if not exists:
-            print("FINDING NO ENCONTRADO, PUEDE SER QUE ESTE MAL ESCRITO O KB DESACTUALZIADA")
-            print("INGRESADO: " + finding['title'])
+        # Obtenemos finding de la KB
+        json_value = mongo.get_specific_finding_info(finding, language)
+        if json_value:
+            clonarTemplateYAgregarFinding(doc, indexNros, eng, json_value)
+        else:
+            #TODO mensaje a slack
+            print("The following finding was not found: "+finding['title'])
     print("Se genero el reporte con los findings que fueron encontrados")
     d1 = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     name = ""

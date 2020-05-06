@@ -1,15 +1,11 @@
-from ...tasks import header_scan_task, http_method_scan_task, ssl_tls_scan_task
+from ...tasks import baseline_scan_single_task, baseline_scan_target_task
 
 
 def handle_target_baseline_security_scan(target_name, language):
-    header_scan_task.delay(target_name, 'TARGET', language)
-    http_method_scan_task.delay(target_name, 'TARGET', language)
-    ssl_tls_scan_task.delay(target_name, 'TARGET', language)
+    baseline_scan_target_task(target_name, language)
     return
 
 
 def handle_url_baseline_security_scan(single_url, language):
-    header_scan_task.delay(single_url, 'SINGLE', language)
-    http_method_scan_task.delay(single_url, 'SINGLE', language)
-    ssl_tls_scan_task.delay(single_url, 'SINGLE', language)
+    baseline_scan_single_task(single_url, language)
     return
