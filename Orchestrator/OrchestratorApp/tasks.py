@@ -6,7 +6,7 @@ from time import sleep
 import datetime as dt
 
 from .src.recon import recon, nmap, aquatone
-from .src.security_baseline import header_scan, http_method_scan, ssl_tls_scan
+from .src.security_baseline import header_scan, http_method_scan, ssl_tls_scan, cors_scan
 from .src.mongo import mongo
 from .src.slack import slack_sender
 
@@ -21,11 +21,12 @@ def sleepy(duration):
 @shared_task
 def baseline_scan_target_task(target, language):
     subdomains = mongo.get_responsive_http_resources(target)
-    header_scan.handle_target(target, language)
-    http_method_scan.handle_target(subdomains, language)
+    #header_scan.handle_target(target, language)
+    #http_method_scan.handle_target(subdomains, language)
+    cors_scan.handle_target(subdomains, language)
 
-    ssl_valid = mongo.get_ssl_scannable_resources(target)
-    ssl_tls_scan.handle_target(ssl_valid, language)
+    #ssl_valid = mongo.get_ssl_scannable_resources(target)
+    #ssl_tls_scan.handle_target(ssl_valid, language)
     return
 
 
@@ -33,6 +34,7 @@ def baseline_scan_target_task(target, language):
 def baseline_scan_single_task(target, language):
     header_scan.handle_single(target, language)
     http_method_scan.handle_single(target, language)
+    cors_scan.handle_single(target, language)
 
     ssl_tls_scan.handle_single(target, language)
     return

@@ -1,3 +1,6 @@
 [submodule "Orchestrator/OrchestratorApp/src/security_baseline/tools/testssl.sh"]
 	path = Orchestrator/OrchestratorApp/src/security_baseline/tools/testssl.sh
 	url = https://github.com/drwetter/testssl.sh.git
+[submodule "Orchestrator/OrchestratorApp/src/security_baseline/tools/CORScanner"]
+	path = Orchestrator/OrchestratorApp/src/security_baseline/tools/CORScanner
+	url = https://github.com/chenjj/CORScanner.git

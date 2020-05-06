@@ -28,7 +28,7 @@ class BaselineScanForm(forms.Form):
 
     # target = forms.CharField(max_length=20)
     target = forms.CharField(label='Select target', widget=forms.Select(choices=target_list))
-    single_url = forms.CharField(label='For single url', max_length=20, required=False)
+    single_url = forms.CharField(label='For single url', max_length=50, required=False)
     selected_language = forms.CharField(label='Select language', widget=forms.Select(choices=LANGUAGE_CHOICES))
 
 
