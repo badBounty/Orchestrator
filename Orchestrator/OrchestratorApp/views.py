@@ -12,6 +12,8 @@ from .src.comms import download
 from .src.reporting import reporting
 from .src.security_baseline import security_baseline_handler
 
+from .tasks import recon_and_security_baseline_scan_task
+
 from .__init__ import slack_web_client
 
 import json
@@ -73,6 +75,8 @@ def baseline_scan_view(request):
             if selected_target == 'url_target':
                 security_baseline_handler.handle_url_baseline_security_scan(form.cleaned_data['single_url'], form.cleaned_data['selected_language'])
                 # print('Selected single with ' + form.cleaned_data['single_url'] + ' with language ' + form.cleaned_data['selected_language'])
+            elif selected_target == 'new_target':
+                recon_and_security_baseline_scan_task.delay(form.cleaned_data['single_url'], form.cleaned_data['selected_language'])
             else:
                 security_baseline_handler.handle_target_baseline_security_scan(selected_target, form.cleaned_data['selected_language'])
                 # print('Selected existing target ' + selected_target + ' with language ' + form.cleaned_data['selected_language'])
