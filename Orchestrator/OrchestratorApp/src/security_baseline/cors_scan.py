@@ -76,7 +76,7 @@ def scan_target(target_name, file_name, language):
     cleanup(FILE_WITH_JSON_RESULT)
     cors_process = subprocess.run(
         ['python3', TOOL_DIR, '-i', file_name, '-o', FILE_WITH_JSON_RESULT])
-
+    
     with open(FILE_WITH_JSON_RESULT) as json_file:
         vulns = json.load(json_file)
 
