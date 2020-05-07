@@ -17,6 +17,8 @@ HSTS_ENGLISH = 'HTTP Strict Transport Security not enforced'
 UNSECURE_METHOD_ENGLISH = 'Extended HTTP methods enabled'
 # SSL_TLS #
 SSL_TLS_ENGLISH = 'Weak transport layer security (TLS) configuration'
+# CORS #
+CORS_ENGLISH = 'Found CORS %s with origin %s'
 
 ### SPANISH VULNERABILITIES ###
 # HEADERS #
@@ -29,6 +31,8 @@ HSTS_SPANISH = 'HTTP Strict Transport Security (HSTS) no aplicada'
 UNSECURE_METHOD_SPANISH = 'Métodos HTTP extendidos habilitados'
 # SSL_TLS #
 SSL_TLS_SPANISH = 'Inadecuada configuración de seguridad de capa de transporte (TLS)'
+# CORS #
+CORS_SPANISH = 'Se encontro CORS %s usando origin %s'
 
 ### REPORTING ###
 recursoAfectadoPlu_ES = "Recursos Afectados"

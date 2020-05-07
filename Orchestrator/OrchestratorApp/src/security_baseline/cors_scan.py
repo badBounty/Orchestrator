@@ -55,6 +55,18 @@ def handle_single(url, language):
     return
 
 
+def add_vulnerability(target_name, language, vuln):
+    timestamp = datetime.now()
+    if language == constants.LANGUAGE_ENGLISH:
+        mongo.add_vulnerability(target_name, vuln['url'],
+                                constants.CORS_ENGLISH % (vuln['type'], vuln['origin']),
+                                timestamp, language)
+    elif language == constants.LANGUAGE_SPANISH:
+        mongo.add_vulnerability(target_name, vuln['url'],
+                                constants.CORS_ENGLISH % (vuln['type'], vuln['origin']),
+                                timestamp, language)
+
+
 def scan_target(target_name, file_name, language):
 
     # Call the tool with the previous file
@@ -73,8 +85,7 @@ def scan_target(target_name, file_name, language):
         return
 
     for vuln in vulns:
-        # Add to mongo
-        print(vuln)
+        add_vulnerability(target_name, language, vuln)
 
     cleanup(FILE_WITH_JSON_RESULT)
     return
