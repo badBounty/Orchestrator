@@ -5,6 +5,7 @@ from slack import WebClient
 # Connections
 MONGO_CLIENT = os.getenv('MONGO_CLIENT')
 SLACK_CLIENT = os.getenv('SLACK_CLIENT')
+WAPPALIZE_KEY = os.getenv('WAPPALIZE_KEY')
 
 client = MongoClient(str(MONGO_CLIENT))
 
