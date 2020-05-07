@@ -247,7 +247,7 @@ def get_vulns_from_target(target):
 
 
 def get_ssl_scannable_resources(target):
-    valid_ports = ['80', '81', '443', '591', '2082', '2087', '2095', '2096', '3000', '8000',
+    valid_ports = ['81', '443', '591', '2082', '2087', '2095', '2096', '3000', '8000',
                    '8001', '8008', '8080', '8083', '8443', '8834', '8888']
     db = client.Orchestrator
     subdomains = db.resources.find({'domain': target, 'is_alive': 'True'})

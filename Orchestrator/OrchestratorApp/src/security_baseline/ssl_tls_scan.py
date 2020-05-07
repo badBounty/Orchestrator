@@ -20,7 +20,7 @@ def handle_target(url_list, language):
 
 def handle_single(url, language):
     # Url will come with http or https, we will strip and append ports that could have tls/ssl
-    valid_ports = ['80', '81', '443', '591', '2082', '2087', '2095', '2096', '3000', '8000',
+    valid_ports = ['81', '443', '591', '2082', '2087', '2095', '2096', '3000', '8000',
                    '8001', '8008', '8080', '8083', '8443', '8834', '8888']
     split_url = url.split('/')
     final_url = split_url[2]
