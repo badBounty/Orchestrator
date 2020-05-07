@@ -17,16 +17,36 @@ def sleepy(duration):
     return None
 
 
+# ------------------ Full tasks ------------------ #
+@shared_task
+def recon_and_security_baseline_scan_task(target, language):
+    print('Started recon and scan agains target ' + target + ' language ' + language)
+    recon.run_recon(target)
+    subdomains = mongo.get_target_alive_subdomains(target)
+    nmap.start_nmap(subdomains)
+    aquatone.start_aquatone(subdomains)
+
+    subdomains = mongo.get_responsive_http_resources(target)
+    header_scan.handle_target(target, language)
+    http_method_scan.handle_target(subdomains, language)
+    cors_scan.handle_target(subdomains, language)
+
+    ssl_valid = mongo.get_ssl_scannable_resources(target)
+    ssl_tls_scan.handle_target(ssl_valid, language)
+
+    return
+
+
 # ------------------ Security baseline tasks ------------------ #
 @shared_task
 def baseline_scan_target_task(target, language):
     subdomains = mongo.get_responsive_http_resources(target)
-    #header_scan.handle_target(target, language)
-    #http_method_scan.handle_target(subdomains, language)
-    #cors_scan.handle_target(subdomains, language)
+    header_scan.handle_target(target, language)
+    http_method_scan.handle_target(subdomains, language)
+    cors_scan.handle_target(subdomains, language)
     libraries_scan.handle_target(subdomains,language)
-    #ssl_valid = mongo.get_ssl_scannable_resources(target)
-    #ssl_tls_scan.handle_target(ssl_valid, language)
+    ssl_valid = mongo.get_ssl_scannable_resources(target)
+    ssl_tls_scan.handle_target(ssl_valid, language)
     return
 
 

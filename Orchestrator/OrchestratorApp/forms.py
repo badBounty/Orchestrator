@@ -25,10 +25,11 @@ class BaselineScanForm(forms.Form):
         target_list.append((available_target, available_target))
 
     target_list.append(('url_target', 'Single URL'))
+    target_list.append(('new_target', 'Target (Will run recon and vuln scan)'))
 
     # target = forms.CharField(max_length=20)
     target = forms.CharField(label='Select target', widget=forms.Select(choices=target_list))
-    single_url = forms.CharField(label='For single url', max_length=50, required=False)
+    single_url = forms.CharField(label='For single url /  new target', max_length=50, required=False)
     selected_language = forms.CharField(label='Select language', widget=forms.Select(choices=LANGUAGE_CHOICES))
 
 
