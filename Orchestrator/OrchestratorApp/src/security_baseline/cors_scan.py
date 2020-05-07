@@ -44,10 +44,10 @@ def handle_single(url, language):
     FILE_WITH_URL = ROOT_DIR + '/tools_output/' + only_host + '.txt'
     cleanup(FILE_WITH_URL)
     with open(FILE_WITH_URL, 'w') as f:
-        f.write("%s\n" % url['url_with_http'])
+        f.write("%s\n" % url)
 
     # Call scan target
-    scan_target(only_host, FILE_WITH_URL, language)
+    scan_target(only_host, url,FILE_WITH_URL, language)
 
     # Delete all created files
     cleanup(FILE_WITH_URL)
@@ -67,7 +67,7 @@ def add_vulnerability(target_name, language, vuln):
                                 timestamp, language)
 
 
-def scan_target(target_name, file_name, language):
+def scan_target(target_name, plain_url,file_name, language):
 
     # Call the tool with the previous file
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -85,7 +85,7 @@ def scan_target(target_name, file_name, language):
         return
 
     for vuln in vulns:
-        add_vulnerability(target_name, language, vuln)
+        add_vulnerability(plain_url, language, vuln)
 
     cleanup(FILE_WITH_JSON_RESULT)
     return
