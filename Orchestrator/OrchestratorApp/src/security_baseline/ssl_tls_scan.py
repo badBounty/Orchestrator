@@ -69,6 +69,7 @@ def scan_target(target_name, url, url_with_port, language):
     OUTPUT_DIR = ROOT_DIR + '/tools_output'
     OUTPUT_FULL_NAME = OUTPUT_DIR + '/' + url + '.json'
 
+    cleanup(OUTPUT_FULL_NAME)
     # We first run the subprocess that creates the xml output file
     testssl_process = subprocess.run(
        ['bash', TOOL_DIR, '-oj', OUTPUT_FULL_NAME, url_with_port])

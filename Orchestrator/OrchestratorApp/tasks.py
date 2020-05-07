@@ -44,7 +44,7 @@ def baseline_scan_target_task(target, language):
     header_scan.handle_target(subdomains, language)
     http_method_scan.handle_target(subdomains, language)
     cors_scan.handle_target(subdomains, language)
-    libraries_scan.handle_target(subdomains,language)
+    libraries_scan.handle_target(subdomains, language)
     ssl_valid = mongo.get_ssl_scannable_resources(target)
     ssl_tls_scan.handle_target(ssl_valid, language)
     return

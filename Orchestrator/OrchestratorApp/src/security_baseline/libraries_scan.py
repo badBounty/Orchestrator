@@ -40,6 +40,7 @@ def get_cves_and_last_version(librarie):
         print("No CVE'S found for: "+librarie['name'])
         return {},""
 
+
 def add_libraries_vulnerability(target_name,scanned_url,language,libraries):
     timestamp = datetime.now()
     finding_name = ''
@@ -48,6 +49,7 @@ def add_libraries_vulnerability(target_name,scanned_url,language,libraries):
     else:
         finding_name = constants.OUTDATED_3RD_LIBRARIES_SPANISH
     mongo.add_vulnerability(target_name,scanned_url,finding_name,timestamp,language,str(libraries))
+
 
 def analyze(target_name,url_to_scan, language):
         print('Scanning target {}'.format(url_to_scan))
@@ -62,6 +64,7 @@ def analyze(target_name,url_to_scan, language):
             print('\nActive Scan completed\n')
         except Exception as e:
             print('\nSomethig went wrong! :'+'\n'+str(e))
+
 
 def handle_target(url_list, language):
     print('------------------- TARGET LIBRARIES SCAN STARTING -------------------')
