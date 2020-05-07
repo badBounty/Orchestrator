@@ -17,6 +17,8 @@ HSTS_ENGLISH = 'HTTP Strict Transport Security not enforced'
 UNSECURE_METHOD_ENGLISH = 'Extended HTTP methods enabled'
 # SSL_TLS #
 SSL_TLS_ENGLISH = 'Weak transport layer security (TLS) configuration'
+# OUTDATED 3RD PARTY LIBRARIES #
+OUTDATED_3RD_LIBRARIES_ENGLISH = 'Outdated 3rd party libraries in use'
 
 ### SPANISH VULNERABILITIES ###
 # HEADERS #
@@ -29,6 +31,8 @@ HSTS_SPANISH = 'HTTP Strict Transport Security (HSTS) no aplicada'
 UNSECURE_METHOD_SPANISH = 'Métodos HTTP extendidos habilitados'
 # SSL_TLS #
 SSL_TLS_SPANISH = 'Inadecuada configuración de seguridad de capa de transporte (TLS)'
+# OUTDATED 3RD PARTY LIBRARIES #
+OUTDATED_3RD_LIBRARIES_SPANISH = 'Librerias 3rd party desactualizadas en uso'
 
 ### REPORTING ###
 recursoAfectadoPlu_ES = "Recursos Afectados"
