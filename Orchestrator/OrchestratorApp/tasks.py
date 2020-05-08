@@ -36,7 +36,7 @@ def recon_and_security_baseline_scan_task(target, language):
     aquatone.start_aquatone(subdomains)
 
     subdomains = mongo.get_responsive_http_resources(target)
-    header_scan.handle_target(target, language)
+    header_scan.handle_target(subdomains, language)
     http_method_scan.handle_target(subdomains, language)
     cors_scan.handle_target(subdomains, language)
 
@@ -50,10 +50,10 @@ def recon_and_security_baseline_scan_task(target, language):
 @shared_task
 def baseline_scan_target_task(target, language):
     subdomains = mongo.get_responsive_http_resources(target)
-    header_scan.handle_target(target, language)
+    header_scan.handle_target(subdomains, language)
     http_method_scan.handle_target(subdomains, language)
     cors_scan.handle_target(subdomains, language)
-    libraries_scan.handle_target(subdomains,language)
+    libraries_scan.handle_target(subdomains, language)
     ssl_valid = mongo.get_ssl_scannable_resources(target)
     ssl_tls_scan.handle_target(ssl_valid, language)
     return

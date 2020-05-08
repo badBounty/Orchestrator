@@ -20,13 +20,12 @@ def handle_target(url_list, language):
 
 def handle_single(url, language):
     # Url will come with http or https, we will strip and append ports that could have tls/ssl
-    valid_ports = ['80', '81', '443', '591', '2082', '2087', '2095', '2096', '3000', '8000',
-                   '8001', '8008', '8080', '8083', '8443', '8834', '8888']
+    valid_ports = ['443', '8000', '8080', '8443']
     split_url = url.split('/')
     final_url = split_url[2]
     print('------------------- SINGLE SSL/TLS SCAN STARTING -------------------')
     for port in valid_ports:
-        scan_target(url, url, final_url+':'+port, language)
+        scan_target(final_url, url, final_url+':'+port, language)
     print('------------------- SINGLE SSL/TLS SCAN FINISHED -------------------')
     return
 
@@ -67,17 +66,19 @@ def scan_target(target_name, url, url_with_port, language):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     TOOL_DIR = ROOT_DIR + '/tools/testssl.sh/testssl.sh'
     OUTPUT_DIR = ROOT_DIR + '/tools_output'
-    OUTPUT_FULL_NAME = OUTPUT_DIR + '/' + url + '.json'
+    OUTPUT_FULL_NAME = OUTPUT_DIR + '/' + target_name + '.json'
 
+    cleanup(OUTPUT_FULL_NAME)
+    print(url_with_port)
     # We first run the subprocess that creates the xml output file
     testssl_process = subprocess.run(
-       ['bash', TOOL_DIR, '-oj', OUTPUT_FULL_NAME, url_with_port])
+       ['bash', TOOL_DIR, '--fast', '--warnings=off', '-oj', OUTPUT_FULL_NAME, url_with_port])
 
     with open(OUTPUT_FULL_NAME) as f:
         results = json.load(f)
 
     for result in results:
-        checker(target_name, url_with_port, language, result)
+        checker(url, url_with_port, language, result)
 
     cleanup(OUTPUT_FULL_NAME)
 
