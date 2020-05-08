@@ -1,8 +1,10 @@
 from django.core.mail import EmailMessage
 from datetime import datetime
-import json,ast
+import json, ast
+import os
 
-def send_email(vulns,email_to):
+
+def send_email(vulns, email_to):
 	message=""
 	finals=""
 	message+="Target: "+vulns[0]['target_name']+'\n'
@@ -20,6 +22,6 @@ def send_email(vulns,email_to):
 				for cve in info['cves']:
 					cve_info='CVE ID: '+cve['CVE ID']+' - Vulnerability: '+cve['Vulnerability Type(s)']+'- CVSS Score: '+cve['Score']
 					message+="\t\t\t\t"+cve_info+'\n'
-	email = EmailMessage("Orchestator: Vuls finded",message,"MAIL HERE",[email_to])
-	print("An email has been send succesfully at:"+str(datetime.now()))
+	email = EmailMessage("Orchestator: Vuls finded", message, os.getenv('EMAIL_USER'), [email_to])
 	email.send()
+	print("An email has been send succesfully at:"+str(datetime.now()))
