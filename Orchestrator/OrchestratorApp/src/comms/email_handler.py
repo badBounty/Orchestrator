@@ -20,6 +20,6 @@ def send_email(vulns,email_to):
 				for cve in info['cves']:
 					cve_info='CVE ID: '+cve['CVE ID']+' - Vulnerability: '+cve['Vulnerability Type(s)']+'- CVSS Score: '+cve['Score']
 					message+="\t\t\t\t"+cve_info+'\n'
-	email = EmailMessage("Orchestator: Vuls finded",message,"testMobilefer@gmail.com",[email_to])
+	email = EmailMessage("Orchestator: Vuls finded",message,"MAIL HERE",[email_to])
 	print("An email has been send succesfully at:"+str(datetime.now()))
 	email.send()
