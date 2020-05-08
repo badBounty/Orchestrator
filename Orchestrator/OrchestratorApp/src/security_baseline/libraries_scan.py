@@ -16,8 +16,8 @@ def get_cves_and_last_version(librarie):
     cve_list = []
     version = librarie["versions"][0] if librarie["versions"] else ""
     name = librarie["name"]
-    name = "Internet Information Services" if name == "IIS" else name
-    url = "https://www.cvedetails.com/version-search.php?vendor=&product="+name+"&version="+version
+    name = "Internet Information Server" if name == "IIS" else name
+    url = "https://www.cvedetails.com/version-search.php?vendor=&product=%"+name+"%&version="+version
     resp = requests.get(url)
     html = BeautifulSoup(resp.text, "html.parser")
     table_div = html.find('div', {'id': 'searchresults'})
@@ -58,7 +58,7 @@ def add_libraries_vulnerability(target_name, scanned_url, language, libraries):
 def analyze(target_name, url_to_scan, language):
     print('Scanning target {}'.format(url_to_scan))
     target = endpoint + url_to_scan
-    headers = {'x-api-key': WAPPALIZE_KEY}
+    headers = {'x-api-key': "wappalyzer.api.demo.key"}#WAPPALIZE_KEY}
     try:
         response = requests.get(target, headers=headers)
         libraries = response.json()[0]['applications']

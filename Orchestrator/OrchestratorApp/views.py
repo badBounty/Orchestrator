@@ -125,7 +125,8 @@ def email_scan_view(request):
             email = form.cleaned_data['email']
             target = form.cleaned_data['target']
             language = form.cleaned_data['selected_language']
-            security_baseline_handler.handle_scan_with_email_notification(email,target,language)
+            report_type = form.cleaned_data['selected_language']
+            security_baseline_handler.handle_scan_with_email_notification(email,target,language,report_type)
             return JsonResponse({"Message":"You will recive and email soon...very soon"})
     form = EmailForm()
     return render(request, 'Orchestrator/single_with_email_view.html', {'form': form})

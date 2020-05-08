@@ -47,4 +47,5 @@ class ReportForm(forms.Form):
 class EmailForm(forms.Form):
     email = forms.CharField(label='email To', max_length=30)
     target = forms.CharField(label='Target(Single URL)', max_length=50, required=False)
+    report_type = forms.CharField(label='Select report type', widget=forms.Select(choices=REPORT_CHOICES))
     selected_language = forms.CharField(label='Select language', widget=forms.Select(choices=LANGUAGE_CHOICES))

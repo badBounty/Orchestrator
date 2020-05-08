@@ -10,6 +10,6 @@ def handle_url_baseline_security_scan(single_url, language):
     baseline_scan_single_task.delay(single_url, language)
     return
 
-def handle_scan_with_email_notification(email,single_url,language):
-	baseline_scan_with_email_notification.delay(email,single_url,language)
+def handle_scan_with_email_notification(email,single_url,language,report_type):
+	baseline_scan_with_email_notification.delay(email,single_url,language,report_type)
 	return
