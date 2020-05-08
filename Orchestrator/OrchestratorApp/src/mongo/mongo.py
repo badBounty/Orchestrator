@@ -275,6 +275,7 @@ def get_vulns_with_language(target, language):
             'target_name': resource['target_name'],
             'affected_resource': resource['subdomain'],
             'vulnerability_name': resource['vulnerability_name'],
+            'extra_info' : resource['extra_info'] if 'extra_info' in resource else None,
             'found': resource['date_found'],
             'last_seen': resource['last_seen']
         }

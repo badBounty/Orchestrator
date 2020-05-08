@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from .forms import BaselineScanForm, ReconForm, ReportForm
+from .forms import BaselineScanForm, ReconForm, ReportForm, EmailForm
 
 from .src.mongo import mongo
 from .src.slack import slack_receiver
@@ -115,3 +115,17 @@ def reporting_view(request):
             return FileResponse(open(file_dir, 'rb'))
     form = ReportForm()
     return render(request, 'Orchestrator/reporting_view.html', {'object_list': target, 'form': form})
+
+### EMAIL ###
+def email_scan_view(request):
+    # Form handle
+    if request.method == 'POST':
+        form = EmailForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            target = form.cleaned_data['target']
+            language = form.cleaned_data['selected_language']
+            security_baseline_handler.handle_scan_with_email_notification(email,target,language)
+            return JsonResponse({"Message":"You will recive and email soon...very soon"})
+    form = EmailForm()
+    return render(request, 'Orchestrator/single_with_email_view.html', {'form': form})
