@@ -18,6 +18,7 @@ def sleepy(duration):
     sleep(duration)
     return None
 
+
 # ------------------ Scan with email ------------------ #
 @shared_task
 def baseline_scan_with_email_notification(email, url_to_scan, language,report_type):
@@ -65,9 +66,9 @@ def baseline_scan_target_task(target, language):
 def baseline_scan_single_task(target, language):
     header_scan.handle_single(target, language)
     http_method_scan.handle_single(target, language)
-    #cors_scan.handle_single(target, language)
+    cors_scan.handle_single(target, language)
     libraries_scan.handle_single(target,language)
-    #ssl_tls_scan.handle_single(target, language)
+    ssl_tls_scan.handle_single(target, language)
     return
 
 

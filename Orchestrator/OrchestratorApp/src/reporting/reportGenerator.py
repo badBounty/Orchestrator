@@ -66,7 +66,7 @@ def add_cves(jsonFinding):
     message=""
     if jsonFinding['extra_info'] != None :
         for info in ast.literal_eval(jsonFinding['extra_info']):
-            info_title= "Name: "+info['name']
+            info_title= "\nName: "+info['name']
             version = info['versions'][0] if info['versions'] else ""
             last_version = info['last_version']
             if version or last_version:

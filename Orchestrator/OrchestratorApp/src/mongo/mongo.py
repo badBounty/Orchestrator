@@ -202,7 +202,7 @@ def add_images_to_subdomain(subdomain, http_image, https_image):
 
 
 # ------------------- VULNERABILITY -------------------
-def add_vulnerability(target_name, subdomain, vulnerability_name, current_time, language,extra_info=None):
+def add_vulnerability(target_name, subdomain, vulnerability_name, current_time, language, extra_info=None):
     db = client.Orchestrator
     exists = db.vulnerabilities.find_one({'target_name': target_name, 'subdomain': subdomain,
                                           'vulnerability_name': vulnerability_name,
@@ -216,7 +216,7 @@ def add_vulnerability(target_name, subdomain, vulnerability_name, current_time, 
             'target_name': target_name,
             'subdomain': subdomain,
             'vulnerability_name': vulnerability_name,
-            'extra_info' : extra_info,
+            'extra_info': extra_info,
             'date_found': current_time,
             'last_seen': current_time,
             'language': language
@@ -274,7 +274,7 @@ def get_vulns_with_language(target, language):
             'target_name': resource['target_name'],
             'affected_resource': resource['subdomain'],
             'vulnerability_name': resource['vulnerability_name'],
-            'extra_info' : resource['extra_info'] if 'extra_info' in resource else None,
+            'extra_info': resource['extra_info'] if 'extra_info' in resource else None,
             'found': resource['date_found'],
             'last_seen': resource['last_seen']
         }

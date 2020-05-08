@@ -58,7 +58,7 @@ def add_libraries_vulnerability(target_name, scanned_url, language, libraries):
 def analyze(target_name, url_to_scan, language):
     print('Scanning target {}'.format(url_to_scan))
     target = endpoint + url_to_scan
-    headers = {'x-api-key': "wappalyzer.api.demo.key"}#WAPPALIZE_KEY}
+    headers = {'x-api-key': WAPPALIZE_KEY}
     try:
         response = requests.get(target, headers=headers)
         libraries = response.json()[0]['applications']

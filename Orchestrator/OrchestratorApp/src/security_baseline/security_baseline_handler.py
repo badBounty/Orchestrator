@@ -1,4 +1,4 @@
-from ...tasks import baseline_scan_single_task, baseline_scan_target_task,baseline_scan_with_email_notification
+from ...tasks import baseline_scan_single_task, baseline_scan_target_task, baseline_scan_with_email_notification
 
 
 def handle_target_baseline_security_scan(target_name, language):
