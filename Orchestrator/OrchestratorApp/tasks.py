@@ -65,7 +65,7 @@ def baseline_scan_single_task(target, language):
     header_scan.handle_single(target, language)
     http_method_scan.handle_single(target, language)
     cors_scan.handle_single(target, language)
-    #libraries_scan.handle_single(target,language)
+    libraries_scan.handle_single(target,language)
     ssl_tls_scan.handle_single(target, language)
     return
 
