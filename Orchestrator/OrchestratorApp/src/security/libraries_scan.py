@@ -16,8 +16,8 @@ def get_cves_and_last_version(librarie):
     cve_list = []
     version = librarie["versions"][0] if librarie["versions"] else ""
     name = librarie["name"]
-    name = "Internet Information Services" if name == "IIS" else name
-    url = "https://www.cvedetails.com/version-search.php?vendor=&product="+name+"&version="+version
+    name = "Internet Information Server" if name == "IIS" else name
+    url = "https://www.cvedetails.com/version-search.php?vendor=&product=%"+name+"%&version="+version
     resp = requests.get(url)
     html = BeautifulSoup(resp.text, "html.parser")
     table_div = html.find('div', {'id': 'searchresults'})

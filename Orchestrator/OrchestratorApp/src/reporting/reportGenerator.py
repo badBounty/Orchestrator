@@ -8,10 +8,7 @@
 
 from copy import deepcopy
 
-import datetime
-import docx
-import json
-import os
+import datetime,docx,json,os,ast
 
 from .. import constants
 from ..mongo import mongo
@@ -65,6 +62,20 @@ def agregarNota(p, nota):
     elif "Note:" in p.text:
         p.text = "Note: " + nota
 
+def add_cves(jsonFinding):
+    message=""
+    if jsonFinding['extra_info'] != None :
+        for info in ast.literal_eval(jsonFinding['extra_info']):
+            info_title= "\nName: "+info['name']
+            version = info['versions'][0] if info['versions'] else ""
+            last_version = info['last_version']
+            if version or last_version:
+                info_title+=' Version: '+version+' Last Version :'+last_version
+            message+="\t"+info_title+'\n'
+            for cve in info['cves']:
+                cve_info='CVE ID: '+cve['CVE ID']+' - Vulnerability: '+cve['Vulnerability Type(s)']+'- CVSS Score: '+cve['Score']
+                message+="\t\t"+cve_info+'\n'
+    return message
 
 # Agregar info en celda sin romper formato
 def addFindingInfo(table, language, urls):
@@ -176,6 +187,7 @@ def clonarTemplateYAgregarFinding(doc, indexNros, language, jsonFinding):
     else:
         p.addnext(urlTitle._p)
     obsText.text = jsonFinding['OBSERVATION']['TITLE']
+    obsText.text+= add_cves(jsonFinding)
     p.addnext(obsText._p)
     p.addnext(obsTitle._p)
     # Espacio vacio para respetar el formato
@@ -188,9 +200,6 @@ def crearReporte(language, reportType, client, findings):
     eng = True if language == "eng" else False
     estado = True if reportType == "S" else False
     global doc
-    # DB por ahora local
-    with open(ROOT_DIR + '/out/forDB.json', encoding='utf-8-sig') as json_file:
-        json_data = json.load(json_file)
     # Template a utilizar acorde al tipo de reporte que se necesite generar, va a variar dependiendo del idioma, avance o final
     if not eng:
         if estado:

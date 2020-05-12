@@ -10,6 +10,7 @@ from .src.security import header_scan, http_method_scan, ssl_tls_scan, cors_scan
 from .src.slack import slack_sender
 from .src.mongo import mongo
 from .src.comms import email_handler
+from .src.reporting import reporting
 
 
 @shared_task
@@ -20,11 +21,11 @@ def sleepy(duration):
 
 # ------------------ Scan with email ------------------ #
 @shared_task
-def vuln_scan_with_email_notification(email, url_to_scan, language):
+def vuln_scan_with_email_notification(email, url_to_scan, language, report_type):
     vuln_scan_single_task(url_to_scan, language)
     vulns = mongo.get_vulns_with_language(url_to_scan, language)
-    email_handler.send_email(vulns, email) 
-    return
+    file_dir = reporting.create_report("", language, report_type, url_to_scan, vulns)
+    email_handler.send_email(file_dir, email)
 
 
 # ------------------ Full tasks ------------------ #
