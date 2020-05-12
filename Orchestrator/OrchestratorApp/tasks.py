@@ -6,7 +6,7 @@ from time import sleep
 import datetime as dt
 
 from .src.recon import recon, nmap, aquatone
-from .src.security import header_scan, http_method_scan, ssl_tls_scan, cors_scan, ffuf
+from .src.security import header_scan, http_method_scan, ssl_tls_scan, cors_scan, ffuf, libraries_scan
 from .src.slack import slack_sender
 from .src.mongo import mongo
 from .src.comms import email_handler
@@ -55,11 +55,11 @@ def vuln_scan_target_task(target, language):
     subdomains = mongo.get_responsive_http_resources(target)
     ssl_valid = mongo.get_ssl_scannable_resources(target)
     # Baseline
-    #header_scan.handle_target(subdomains, language)
-    #http_method_scan.handle_target(subdomains, language)
-    #cors_scan.handle_target(subdomains, language)
-    #libraries_scan.handle_target(subdomains, language)
-    #ssl_tls_scan.handle_target(ssl_valid, language)
+    header_scan.handle_target(subdomains, language)
+    http_method_scan.handle_target(subdomains, language)
+    cors_scan.handle_target(subdomains, language)
+    libraries_scan.handle_target(subdomains, language)
+    ssl_tls_scan.handle_target(ssl_valid, language)
     # Other
     ffuf.handle_target(subdomains, language)
     return
@@ -70,8 +70,8 @@ def vuln_scan_single_task(target, language):
     # Baseline
     header_scan.handle_single(target, language)
     http_method_scan.handle_single(target, language)
-    #cors_scan.handle_single(target, language)
-    #libraries_scan.handle_single(target, language)
+    cors_scan.handle_single(target, language)
+    libraries_scan.handle_single(target, language)
     ssl_tls_scan.handle_single(target, language)
     # Normal
     ffuf.handle_single(target, language)

@@ -51,7 +51,7 @@ def scan_target(target_name, url_with_http, language):
     cleanup(JSON_RESULT)
 
     ffuf_process = subprocess.run(
-        [TOOL_DIR, '-w', WORDLIST_DIR, '-u', url_with_http + 'FUZZ', '-mc', '200', '-c', '-v',
+        [TOOL_DIR, '-w', WORDLIST_DIR, '-u', url_with_http + 'FUZZ', '-c', '-v',
          '-o', JSON_RESULT])
 
     with open(JSON_RESULT) as json_file:
@@ -59,9 +59,8 @@ def scan_target(target_name, url_with_http, language):
 
     vulns = json_data['results']
     for vuln in vulns:
-        if vuln['status'] == 200:
-            print("Found endpoint " + vuln['input']['FUZZ'] + ' at ' + url_with_http)
-            #add_vulnerability(target_name, url_with_http, vuln['input']['FUZZ'], language)
+        if vuln['status'] == 200 or vuln['status'] == 403:
+            add_vulnerability(target_name, url_with_http, vuln['input']['FUZZ'], language)
 
     cleanup(JSON_RESULT)
     return
