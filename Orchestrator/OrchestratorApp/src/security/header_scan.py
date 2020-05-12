@@ -43,61 +43,45 @@ def check_header_value(header_to_scan, value_received):
 
 
 def add_header_value_vulnerability(target_name, scanned_url, timestamp, header, language):
+    vuln_name = None
     if language == constants.LANGUAGE_ENGLISH:
         if header == 'Strict-Transport-Security':
-            mongo.add_vulnerability(target_name, scanned_url,
-                                    constants.HSTS_ENGLISH,
-                                    timestamp, language)
+            vuln_name = constants.HSTS_ENGLISH
         elif header == 'x-frame-options':
-            mongo.add_vulnerability(target_name, scanned_url,
-                                    constants.X_FRAME_OPTIONS_INVALID_ENGLISH,
-                                    timestamp, language)
+            vuln_name = constants.X_FRAME_OPTIONS_INVALID_ENGLISH
         else:
-            mongo.add_vulnerability(target_name, scanned_url,
-                                constants.INVALID_VALUE_ON_HEADER_ENGLISH,
-                                timestamp, language)
+            vuln_name = constants.INVALID_VALUE_ON_HEADER_ENGLISH
     if language == constants.LANGUAGE_SPANISH:
         if header == 'Strict-Transport-Security':
-            mongo.add_vulnerability(target_name, scanned_url,
-                                    constants.HSTS_SPANISH,
-                                    timestamp, language)
+            vuln_name = constants.HSTS_SPANISH
         elif header == 'x-frame-options':
-            mongo.add_vulnerability(target_name, scanned_url,
-                                    constants.X_FRAME_OPTIONS_INVALID_SPANISH,
-                                    timestamp, language)
+            vuln_name = constants.X_FRAME_OPTIONS_INVALID_SPANISH
         else:
-            mongo.add_vulnerability(target_name, scanned_url,
-                                constants.INVALID_VALUE_ON_HEADER_SPANISH,
-                                timestamp, language)
+            vuln_name = constants.INVALID_VALUE_ON_HEADER_SPANISH
+
+    mongo.add_vulnerability(target_name, scanned_url,
+                            vuln_name, timestamp, language)
 
 
 def add_header_missing_vulnerability(target_name, scanned_url, timestamp, header, language):
+    vuln_name = None
     if language == constants.LANGUAGE_ENGLISH:
         if header == 'Strict-Transport-Security':
-            mongo.add_vulnerability(target_name, scanned_url,
-                                    constants.HSTS_ENGLISH,
-                                    timestamp, language)
+            vuln_name = constants.HSTS_ENGLISH
         elif header == 'x-frame-options':
-            mongo.add_vulnerability(target_name, scanned_url,
-                                    constants.X_FRAME_OPTIONS_NOT_PRESENT_ENGLISH,
-                                    timestamp, language)
+            vuln_name = constants.X_FRAME_OPTIONS_NOT_PRESENT_ENGLISH
         else:
-            mongo.add_vulnerability(target_name, scanned_url,
-                                constants.HEADER_NOT_FOUND_ENGLISH,
-                                timestamp, language)
+            vuln_name = constants.HEADER_NOT_FOUND_ENGLISH
     if language == constants.LANGUAGE_SPANISH:
         if header == 'Strict-Transport-Security':
-            mongo.add_vulnerability(target_name, scanned_url,
-                                    constants.HSTS_SPANISH,
-                                    timestamp, language)
+            vuln_name = constants.HSTS_SPANISH
         elif header == 'x-frame-options':
-            mongo.add_vulnerability(target_name, scanned_url,
-                                    constants.X_FRAME_OPTIONS_NOT_PRESENT_SPANISH,
-                                    timestamp, language)
+            vuln_name = constants.X_FRAME_OPTIONS_NOT_PRESENT_SPANISH
         else:
-            mongo.add_vulnerability(target_name, scanned_url,
-                                constants.HEADER_NOT_FOUND_SPANISH,
-                                timestamp, language)
+            vuln_name = constants.HEADER_NOT_FOUND_SPANISH
+
+    mongo.add_vulnerability(target_name, scanned_url,
+                            vuln_name, timestamp, language)
 
 
 def scan_target(target_name, url_to_scan, language):
