@@ -73,6 +73,8 @@ def vuln_scan_single_task(target, language):
     OUTPUT_DIR = ROOT_DIR + '/src/security/tools_output/fullscreen.png'
     # Baseline
     header_scan.handle_single(target, language)
+    cmd = "gnome-screenshot -B -w --file=" + OUTPUT_DIR
+    os.system(cmd)
     http_method_scan.handle_single(target, language)
     cors_scan.handle_single(target, language)
     libraries_scan.handle_single(target, language)

@@ -59,7 +59,7 @@ def add_libraries_vulnerability(target_name, scanned_url, language, libraries):
 def fastPrint(libraries):
     message= ""
     for info in libraries:
-        info_title= "\nName: "+info['name']
+        info_title= "Name: "+info['name']
         version = info['versions'][0] if info['versions'] else ""
         last_version = info['last_version']
         if version or last_version:
