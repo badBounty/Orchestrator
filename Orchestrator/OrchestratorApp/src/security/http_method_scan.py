@@ -56,6 +56,8 @@ def scan_target(target_name, url_to_scan, language):
     res = any(response['response'].status_code == 200 for response in responses)
     timestamp = datetime.now()
     if res:
+        slack_sender.send_simple_vuln("Extensive http methods found on %s"
+                                      % url_to_scan)
         add_vulnerability(target_name, url_to_scan, timestamp, language)
 
     #for response in responses:

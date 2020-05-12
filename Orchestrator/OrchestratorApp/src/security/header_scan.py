@@ -118,12 +118,16 @@ def scan_target(target_name, url_to_scan, language):
                 # If the header exists
                 if response.headers[header]:
                     if not check_header_value(header, response.headers[header]):
+                        slack_sender.send_simple_vuln("Header %s was found with invalid value at %s"
+                                                      % (header, url_to_scan))
                         # No header differenciation, so we do this for now
                         if not reported:
                             timestamp = datetime.now()
                             add_header_value_vulnerability(target_name, url_to_scan, timestamp, header, language)
                             reported = True
             except KeyError:
+                slack_sender.send_simple_vuln("Header %s was not found at %s"
+                                              % (header, url_to_scan))
                 if not reported:
                     timestamp = datetime.now()
                     add_header_value_vulnerability(target_name, url_to_scan, timestamp, header, language)

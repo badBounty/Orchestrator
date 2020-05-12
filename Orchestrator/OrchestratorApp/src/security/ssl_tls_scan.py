@@ -38,10 +38,13 @@ def checker(target_name, url_with_port, language, result):
     timestamp = datetime.now()
     # testssl has a bunch of vulns, we could test more
     if result['id'] == 'SSLv2' and result['finding'] != 'not offered':
+        slack_sender.send_simple_vuln("SSLv2 is available at %s" % url_with_port)
         add_vulnerability(target_name, url_with_port, timestamp, language)
     elif result['id'] == 'SSLv3' and result['finding'] != 'not offered':
+        slack_sender.send_simple_vuln("SSLv3 is available at %s" % url_with_port)
         add_vulnerability(target_name, url_with_port, timestamp, language)
     elif result['id'] == 'TLS1' and result['finding'] != 'not offered':
+        slack_sender.send_simple_vuln("TLS1.0 is available at %s" % url_with_port)
         add_vulnerability(target_name, url_with_port, timestamp, language)
 
 

@@ -89,6 +89,7 @@ def scan_target(target_name, plain_url, file_name, language):
         return
 
     for vuln in vulns:
+        slack_sender.send_simple_vuln("CORS (%s) vulnerability found at %s" % (vuln['type'], plain_url))
         add_vulnerability(plain_url, language, vuln)
 
     cleanup(FILE_WITH_JSON_RESULT)

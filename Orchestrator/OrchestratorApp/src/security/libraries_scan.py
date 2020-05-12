@@ -65,6 +65,8 @@ def analyze(target_name, url_to_scan, language):
         libraries = response.json()[0]['applications']
         for lib in libraries:
             lib['cves'], lib['last_version'] = get_cves_and_last_version(lib)
+
+        slack_sender.send_simple_vuln("Found libraries at %s : %s" % (url_to_scan, libraries))
         add_libraries_vulnerability(target_name, url_to_scan, language, libraries)
         print('\nActive Scan completed\n')
     except Exception as e:
