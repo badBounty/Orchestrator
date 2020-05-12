@@ -10,9 +10,9 @@ from .src.slack import slack_receiver
 from .src.recon import recon_handler
 from .src.comms import download
 from .src.reporting import reporting
-from .src.security_baseline import security_baseline_handler
+from .src.security import vuln_scan_handler
 
-from .tasks import recon_and_security_baseline_scan_task
+from .tasks import recon_and_vuln_scan_task
 
 from .__init__ import slack_web_client
 
@@ -73,13 +73,11 @@ def baseline_scan_view(request):
         if form.is_valid():
             selected_target = form.cleaned_data['target']
             if selected_target == 'url_target':
-                security_baseline_handler.handle_url_baseline_security_scan(form.cleaned_data['single_url'], form.cleaned_data['selected_language'])
-                # print('Selected single with ' + form.cleaned_data['single_url'] + ' with language ' + form.cleaned_data['selected_language'])
+                vuln_scan_handler.handle_url_baseline_security_scan(form.cleaned_data['single_url'], form.cleaned_data['selected_language'])
             elif selected_target == 'new_target':
-                recon_and_security_baseline_scan_task.delay(form.cleaned_data['single_url'], form.cleaned_data['selected_language'])
+                recon_and_vuln_scan_task.delay(form.cleaned_data['single_url'], form.cleaned_data['selected_language'])
             else:
-                security_baseline_handler.handle_target_baseline_security_scan(selected_target, form.cleaned_data['selected_language'])
-                # print('Selected existing target ' + selected_target + ' with language ' + form.cleaned_data['selected_language'])
+                vuln_scan_handler.handle_target_baseline_security_scan(selected_target, form.cleaned_data['selected_language'])
             return redirect('/')
     form = BaselineScanForm()
     return render(request, 'Orchestrator/baseline_targets_view.html', {'object_list': target, 'form': form})
@@ -126,7 +124,7 @@ def email_scan_view(request):
             email = form.cleaned_data['email']
             target = form.cleaned_data['target']
             language = form.cleaned_data['selected_language']
-            security_baseline_handler.handle_scan_with_email_notification(email, target, language)
+            vuln_scan_handler.handle_scan_with_email_notification(email, target, language)
             return JsonResponse({"Message": "You will recive and email soon...very soon"})
     form = EmailForm()
     return render(request, 'Orchestrator/single_with_email_view.html', {'form': form})

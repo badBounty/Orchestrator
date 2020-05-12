@@ -21,6 +21,8 @@ SSL_TLS_ENGLISH = 'Weak transport layer security (TLS) configuration'
 OUTDATED_3RD_LIBRARIES_ENGLISH = 'Outdated 3rd party libraries in use'
 # CORS #
 CORS_ENGLISH = 'Found CORS %s with origin %s'
+# ENDPOINT #
+ENDPOINT_ENGLISH = 'Endpoint %s was found'
 
 ### SPANISH VULNERABILITIES ###
 # HEADERS #
@@ -37,6 +39,8 @@ SSL_TLS_SPANISH = 'Inadecuada configuración de seguridad de capa de transporte 
 OUTDATED_3RD_LIBRARIES_SPANISH = 'Librerias 3rd party desactualizadas en uso'
 # CORS #
 CORS_SPANISH = 'Se encontro CORS %s usando origin %s'
+# ENDPOINT #
+ENDPOINT_SPANISH = 'Se encontro endpoint %s'
 
 
 ### REPORTING ###

@@ -2,7 +2,7 @@ import urllib.parse
 import json
 
 from ..recon import recon_handler
-from ..security_baseline import security_baseline_handler
+from ..security import vuln_scan_handler
 from ..mongo import mongo
 from ...__init__ import slack_web_client
 
@@ -41,7 +41,7 @@ def baseline_handle(user, target):
     if target not in targets:
         return "Hey <@%s>! target %s is not present in our database. Has a recon been done against it?" % (user, target)
 
-    security_baseline_handler.handle_target_baseline_security_scan(target)
+    vuln_scan_handler.handle_target_baseline_security_scan(target)
 
     return "Hey <@%s>! message was received and baseline scan against %s is starting!" % (user, target)
 

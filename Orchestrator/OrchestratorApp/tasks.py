@@ -6,7 +6,7 @@ from time import sleep
 import datetime as dt
 
 from .src.recon import recon, nmap, aquatone
-from .src.security_baseline import header_scan, http_method_scan, ssl_tls_scan, cors_scan, libraries_scan
+from .src.security import header_scan, http_method_scan, ssl_tls_scan, cors_scan, ffuf
 from .src.slack import slack_sender
 from .src.mongo import mongo
 from .src.comms import email_handler
@@ -20,8 +20,8 @@ def sleepy(duration):
 
 # ------------------ Scan with email ------------------ #
 @shared_task
-def baseline_scan_with_email_notification(email, url_to_scan, language):
-    baseline_scan_single_task(url_to_scan, language)
+def vuln_scan_with_email_notification(email, url_to_scan, language):
+    vuln_scan_single_task(url_to_scan, language)
     vulns = mongo.get_vulns_with_language(url_to_scan, language)
     email_handler.send_email(vulns, email) 
     return
@@ -29,8 +29,8 @@ def baseline_scan_with_email_notification(email, url_to_scan, language):
 
 # ------------------ Full tasks ------------------ #
 @shared_task
-def recon_and_security_baseline_scan_task(target, language):
-    print('Started recon and scan agains target ' + target + ' language ' + language)
+def recon_and_vuln_scan_task(target, language):
+    print('Started recon and scan against target ' + target + ' language ' + language)
     recon.run_recon(target)
     subdomains = mongo.get_target_alive_subdomains(target)
     nmap.start_nmap(subdomains)
@@ -40,6 +40,7 @@ def recon_and_security_baseline_scan_task(target, language):
     header_scan.handle_target(subdomains, language)
     http_method_scan.handle_target(subdomains, language)
     cors_scan.handle_target(subdomains, language)
+    ffuf.handle_single(subdomains, language)
 
     ssl_valid = mongo.get_ssl_scannable_resources(target)
     ssl_tls_scan.handle_target(ssl_valid, language)
@@ -47,26 +48,32 @@ def recon_and_security_baseline_scan_task(target, language):
     return
 
 
-# ------------------ Security baseline tasks ------------------ #
+# ------------------ Vulneability scans ------------------ #
 @shared_task
-def baseline_scan_target_task(target, language):
+def vuln_scan_target_task(target, language):
     subdomains = mongo.get_responsive_http_resources(target)
-    header_scan.handle_target(subdomains, language)
-    http_method_scan.handle_target(subdomains, language)
-    cors_scan.handle_target(subdomains, language)
-    libraries_scan.handle_target(subdomains, language)
     ssl_valid = mongo.get_ssl_scannable_resources(target)
-    ssl_tls_scan.handle_target(ssl_valid, language)
+    # Baseline
+    #header_scan.handle_target(subdomains, language)
+    #http_method_scan.handle_target(subdomains, language)
+    #cors_scan.handle_target(subdomains, language)
+    #libraries_scan.handle_target(subdomains, language)
+    #ssl_tls_scan.handle_target(ssl_valid, language)
+    # Other
+    ffuf.handle_target(subdomains, language)
     return
 
 
 @shared_task
-def baseline_scan_single_task(target, language):
+def vuln_scan_single_task(target, language):
+    # Baseline
     header_scan.handle_single(target, language)
     http_method_scan.handle_single(target, language)
-    cors_scan.handle_single(target, language)
-    libraries_scan.handle_single(target,language)
+    #cors_scan.handle_single(target, language)
+    #libraries_scan.handle_single(target, language)
     ssl_tls_scan.handle_single(target, language)
+    # Normal
+    ffuf.handle_single(target, language)
     return
 
 
