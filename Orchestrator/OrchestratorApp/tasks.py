@@ -7,7 +7,7 @@ import datetime as dt
 import os
 
 from .src.recon import recon, nmap, aquatone
-from .src.security import header_scan, http_method_scan, ssl_tls_scan, cors_scan, ffuf, libraries_scan
+from .src.security import header_scan, http_method_scan, ssl_tls_scan, cors_scan, ffuf, libraries_scan, bucket_finder
 from .src.slack import slack_sender
 from .src.mongo import mongo
 from .src.comms import email_handler
@@ -43,7 +43,8 @@ def recon_and_vuln_scan_task(target, language):
     http_method_scan.handle_target(target, subdomains, language)
     cors_scan.handle_target(target, subdomains, language)
     #libraries_scan.handle_target(target, subdomains, language)
-    ffuf.handle_single(target, subdomains, language)
+    ffuf.handle_target(target, subdomains, language)
+    bucket_finder.handle_target(target, subdomains, language)
 
     ssl_valid = mongo.get_ssl_scannable_resources(target)
     ssl_tls_scan.handle_target(target, ssl_valid, language)
@@ -64,6 +65,7 @@ def vuln_scan_target_task(target, language):
     ssl_tls_scan.handle_target(target, ssl_valid, language)
     # Other
     ffuf.handle_target(target, subdomains, language)
+    bucket_finder.handle_target(target, subdomains, language)
     return
 
 
@@ -72,15 +74,14 @@ def vuln_scan_single_task(target, language):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     OUTPUT_DIR = ROOT_DIR + '/src/security/tools_output/fullscreen.png'
     # Baseline
-    header_scan.handle_single(target, language)
-    cmd = "gnome-screenshot -B -w --file=" + OUTPUT_DIR
-    os.system(cmd)
-    http_method_scan.handle_single(target, language)
-    cors_scan.handle_single(target, language)
-    libraries_scan.handle_single(target, language)
-    ssl_tls_scan.handle_single(target, language)
+    #header_scan.handle_single(target, language)
+    #http_method_scan.handle_single(target, language)
+    #cors_scan.handle_single(target, language)
+    #libraries_scan.handle_single(target, language)
+    #ssl_tls_scan.handle_single(target, language)
     # Normal
-    ffuf.handle_single(target, language)
+    #ffuf.handle_single(target, language)
+    bucket_finder.handle_single(target, language)
     return
 
 
