@@ -2,15 +2,18 @@ import json
 import xmltodict
 from ..mongo import mongo
 from .. import constants
+from ..slack import slack_sender
 from datetime import datetime
 import subprocess
 import os
 import xml
 
 
-def handle_target(url_list, language):
+def handle_target(target, url_list, language):
     print('------------------- TARGET SSL/TLS SCAN STARTING -------------------')
     print('Found ' + str(len(url_list)) + ' targets to scan')
+    slack_sender.send_simple_message("SSL/TLS scan started against target: %s. %d alive urls found!"
+                                     % (target, len(url_list)))
     for url in url_list:
         print('Scanning ' + url['url_with_port'])
         scan_target(url['target'], url['name'], url['url_with_port'], language)
@@ -20,6 +23,7 @@ def handle_target(url_list, language):
 
 def handle_single(url, language):
     # Url will come with http or https, we will strip and append ports that could have tls/ssl
+    slack_sender.send_simple_message("SSL/TLS scan started against %s" % url)
     valid_ports = ['443']
     split_url = url.split('/')
     final_url = split_url[2]

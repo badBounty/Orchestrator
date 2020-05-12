@@ -38,13 +38,14 @@ def recon_and_vuln_scan_task(target, language):
     aquatone.start_aquatone(subdomains)
 
     subdomains = mongo.get_responsive_http_resources(target)
-    header_scan.handle_target(subdomains, language)
-    http_method_scan.handle_target(subdomains, language)
-    cors_scan.handle_target(subdomains, language)
-    ffuf.handle_single(subdomains, language)
+    header_scan.handle_target(target, subdomains, language)
+    http_method_scan.handle_target(target, subdomains, language)
+    cors_scan.handle_target(target, subdomains, language)
+    #libraries_scan.handle_target(target, subdomains, language)
+    ffuf.handle_single(target, subdomains, language)
 
     ssl_valid = mongo.get_ssl_scannable_resources(target)
-    ssl_tls_scan.handle_target(ssl_valid, language)
+    ssl_tls_scan.handle_target(target, ssl_valid, language)
 
     return
 
@@ -55,13 +56,13 @@ def vuln_scan_target_task(target, language):
     subdomains = mongo.get_responsive_http_resources(target)
     ssl_valid = mongo.get_ssl_scannable_resources(target)
     # Baseline
-    header_scan.handle_target(subdomains, language)
-    http_method_scan.handle_target(subdomains, language)
-    cors_scan.handle_target(subdomains, language)
-    libraries_scan.handle_target(subdomains, language)
-    ssl_tls_scan.handle_target(ssl_valid, language)
+    header_scan.handle_target(target, subdomains, language)
+    http_method_scan.handle_target(target, subdomains, language)
+    cors_scan.handle_target(target, subdomains, language)
+    #libraries_scan.handle_target(target, subdomains, language)
+    ssl_tls_scan.handle_target(target, ssl_valid, language)
     # Other
-    ffuf.handle_target(subdomains, language)
+    ffuf.handle_target(target, subdomains, language)
     return
 
 

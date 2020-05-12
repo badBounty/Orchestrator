@@ -1,11 +1,14 @@
 import requests
 from ..mongo import mongo
 from .. import constants
+from ..slack import slack_sender
 from datetime import datetime
 
 
-def handle_target(url_list, language):
+def handle_target(target, url_list, language):
     print('------------------- TARGET HTTP METHOD SCAN STARTING -------------------')
+    slack_sender.send_simple_message("HTTP method scan started against target: %s. %d alive urls found!"
+                                     % (target, len(url_list)))
     print('Found ' + str(len(url_list)) + ' targets to scan')
     for url in url_list:
         print('Scanning ' + url['url_with_http'])
@@ -16,6 +19,7 @@ def handle_target(url_list, language):
 
 def handle_single(url, language):
     print('------------------- SINGLE HTTP METHOD SCAN STARTING -------------------')
+    slack_sender.send_simple_message("HTTP method scan started against %s" % url)
     scan_target(url, url, language)
     print('------------------- SINGLE HTTP METHOD SCAN FINISHED -------------------')
     return

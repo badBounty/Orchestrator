@@ -4,6 +4,7 @@ import json
 from datetime import datetime
 from ..mongo import mongo
 from .. import constants
+from ..slack import slack_sender
 
 
 def cleanup(path):
@@ -14,9 +15,11 @@ def cleanup(path):
     return
 
 
-def handle_target(url_list, language):
+def handle_target(target, url_list, language):
     print('------------------- FFUF SCAN STARTING -------------------')
     print('Found ' + str(len(url_list)) + ' targets to scan')
+    slack_sender.send_simple_message("Directory bruteforce scan started against target: %s. %d alive urls found!"
+                                     % (target, len(url_list)))
     for url in url_list:
         scan_target(url['target'], url['url_with_http'], language)
     print('-------------------  FFUF SCAN FINISHED -------------------')
@@ -25,6 +28,7 @@ def handle_target(url_list, language):
 
 def handle_single(url, language):
     print('------------------- FFUF SCAN STARTING -------------------')
+    slack_sender.send_simple_message("Directory bruteforce scan started against %s" % url)
     scan_target(url, url, language)
     print('------------------- FFUF SCAN FINISHED -------------------')
     return

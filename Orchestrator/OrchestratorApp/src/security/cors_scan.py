@@ -2,6 +2,7 @@ import requests
 from ..mongo import mongo
 from datetime import datetime
 from .. import constants
+from ..slack import slack_sender
 import os
 import subprocess
 import json
@@ -15,9 +16,11 @@ def cleanup(path):
     return
 
 
-def handle_target(url_list, language):
+def handle_target(target, url_list, language):
     print('------------------- CORS SCAN STARTING -------------------')
     print('Found ' + str(len(url_list)) + ' targets to scan')
+    slack_sender.send_simple_message("CORS scan started against target: %s. %d alive urls found!"
+                                     % (target, len(url_list)))
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
     # We first put all the urls with http/s into a txt file
@@ -37,6 +40,7 @@ def handle_target(url_list, language):
 
 def handle_single(url, language):
     print('------------------- CORS SCAN STARTING -------------------')
+    slack_sender.send_simple_message("CORS scan started against %s" % url)
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
     # Put urls in a single file

@@ -2,6 +2,7 @@ import json, requests, itertools, collections, os
 from bs4 import BeautifulSoup
 from ...__init__ import WAPPALIZE_KEY
 from .. import constants
+from ..slack import slack_sender
 from ..mongo import mongo
 from datetime import datetime
 
@@ -70,9 +71,11 @@ def analyze(target_name, url_to_scan, language):
         print('\nSomethig went wrong! :' + '\n' + str(e))
 
 
-def handle_target(url_list, language):
+def handle_target(target, url_list, language):
     print('------------------- TARGET LIBRARIES SCAN STARTING -------------------')
     print('Found ' + str(len(url_list)) + ' targets to scan')
+    slack_sender.send_simple_message("Libraries scan started against target: %s. %d alive urls found!"
+                                     % (target, len(url_list)))
     for url in url_list:
         print('Scanning ' + url['url_with_http'])
         analyze(url['target'], url['url_with_http'], language)
@@ -82,6 +85,7 @@ def handle_target(url_list, language):
 
 def handle_single(url, language):
     print('------------------- SINGLE LIBRARIES SCAN STARTING -------------------')
+    slack_sender.send_simple_message("Libraries scan started against %s" % url)
     analyze(url, url, language)
     print('------------------- SINGLE LIBRARIES SCAN FINISHED -------------------')
     return
