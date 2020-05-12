@@ -4,6 +4,7 @@ from celery.task import periodic_task
 
 from time import sleep
 import datetime as dt
+import os
 
 from .src.recon import recon, nmap, aquatone
 from .src.security import header_scan, http_method_scan, ssl_tls_scan, cors_scan, ffuf, libraries_scan
@@ -11,6 +12,8 @@ from .src.slack import slack_sender
 from .src.mongo import mongo
 from .src.comms import email_handler
 from .src.reporting import reporting
+
+import pyscreenshot as ImageGrab
 
 
 @shared_task
@@ -68,8 +71,14 @@ def vuln_scan_target_task(target, language):
 
 @shared_task
 def vuln_scan_single_task(target, language):
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    OUTPUT_DIR = ROOT_DIR + '/src/security/tools_output/fullscreen.png'
     # Baseline
     header_scan.handle_single(target, language)
+    # grab fullscreen
+    im = ImageGrab.grab()
+    # save image file
+    im.save(OUTPUT_DIR)
     http_method_scan.handle_single(target, language)
     cors_scan.handle_single(target, language)
     libraries_scan.handle_single(target, language)

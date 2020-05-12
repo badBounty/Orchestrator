@@ -87,6 +87,11 @@ def add_header_missing_vulnerability(target_name, scanned_url, timestamp, header
 def scan_target(target_name, url_to_scan, language):
     try:
         response = requests.get(url_to_scan)
+        print('\n------------------------------')
+        print('Response From: ' + url_to_scan)
+        for h in response.headers:
+            print(h + " : " + response.headers[h])
+        print('------------------------------\n')
     except requests.exceptions.SSLError:
         return
     except requests.exceptions.ConnectionError:
