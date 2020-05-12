@@ -13,8 +13,6 @@ from .src.mongo import mongo
 from .src.comms import email_handler
 from .src.reporting import reporting
 
-import pyscreenshot as ImageGrab
-
 
 @shared_task
 def sleepy(duration):
@@ -75,10 +73,6 @@ def vuln_scan_single_task(target, language):
     OUTPUT_DIR = ROOT_DIR + '/src/security/tools_output/fullscreen.png'
     # Baseline
     header_scan.handle_single(target, language)
-    # grab fullscreen
-    im = ImageGrab.grab()
-    # save image file
-    im.save(OUTPUT_DIR)
     http_method_scan.handle_single(target, language)
     cors_scan.handle_single(target, language)
     libraries_scan.handle_single(target, language)

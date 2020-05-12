@@ -56,6 +56,21 @@ def add_libraries_vulnerability(target_name, scanned_url, language, libraries):
     mongo.add_vulnerability(target_name, scanned_url, finding_name, timestamp, language, str(libraries))
 
 
+def fastPrint(libraries):
+    message= ""
+    for info in libraries:
+        info_title= "\nName: "+info['name']
+        version = info['versions'][0] if info['versions'] else ""
+        last_version = info['last_version']
+        if version or last_version:
+            info_title+=' Version: '+version+' Last Version :'+last_version
+        message+="\t"+info_title+'\n'
+        for cve in info['cves']:
+            cve_info='CVE ID: '+cve['CVE ID']+' - Vulnerability: '+cve['Vulnerability Type(s)']+'- CVSS Score: '+cve['Score']
+            message+="\t"+cve_info+'\n'
+    return message
+
+
 def analyze(target_name, url_to_scan, language):
     print('Scanning target {}'.format(url_to_scan))
     target = endpoint + url_to_scan
@@ -66,7 +81,8 @@ def analyze(target_name, url_to_scan, language):
         for lib in libraries:
             lib['cves'], lib['last_version'] = get_cves_and_last_version(lib)
 
-        slack_sender.send_simple_vuln("Found libraries at %s : %s" % (url_to_scan, libraries))
+        message = fastPrint(libraries)
+        slack_sender.send_simple_vuln("Found libraries at %s : \n%s" % (url_to_scan, message))
         add_libraries_vulnerability(target_name, url_to_scan, language, libraries)
         print('\nActive Scan completed\n')
     except Exception as e:

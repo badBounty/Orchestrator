@@ -65,7 +65,7 @@ def scan_target(target_name, url_with_http, language):
         json_data = json.load(json_file)
 
     vulns = json_data['results']
-    valid_codes = [200, 302, 403]
+    valid_codes = [200, 403]
     for vuln in vulns:
         if vuln['status'] in valid_codes:
             slack_sender.send_simple_vuln("Endpoint %s found at %s" % (vuln['input']['FUZZ'], url_with_http))
