@@ -78,16 +78,16 @@ def vuln_scan_target_task(target, language):
 @shared_task
 def vuln_scan_single_task(target, language):
     # Baseline
-    #header_scan.handle_single(target, language)
-    #http_method_scan.handle_single(target, language)
-    #cors_scan.handle_single(target, language)
+    header_scan.handle_single(target, language)
+    http_method_scan.handle_single(target, language)
+    cors_scan.handle_single(target, language)
     #libraries_scan.handle_single(target, language)
-    #ssl_tls_scan.handle_single(target, language)
+    ssl_tls_scan.handle_single(target, language)
     # Normal
-    #ffuf.handle_single(target, language)
+    ffuf.handle_single(target, language)
     # TODO Add dispatcher here
     bucket_finder.handle_single(target, language)
-    #token_scan.handle_single(target, language)
+    token_scan.handle_single(target, language)
     return
 
 
