@@ -4,6 +4,7 @@ import xmltodict
 import json
 
 from ..mongo import mongo
+from ..comms import image_creator
 
 
 def start_nmap(targets):
@@ -28,7 +29,7 @@ def run_nmap(target_name, subdomain):
     PROJECT_DIR = OUTPUT_DIR + '/' + target_name
 
     nmap_process = subprocess.run(
-        ['nmap', '-sV' ,'-Pn', '-oX', PROJECT_DIR + '/' + subdomain + '.xml', subdomain])
+        ['nmap', '-sV' ,'-Pn', '-oA', PROJECT_DIR + '/' + subdomain, subdomain])
 
     with open(PROJECT_DIR + '/' + subdomain + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
@@ -41,11 +42,14 @@ def run_nmap(target_name, subdomain):
     except KeyError:
         port_info = None
         return
-
+    print('----------- TAKING NMAP SCREENSHOT --------')
+    image_creator.create_image_from_file(PROJECT_DIR,PROJECT_DIR+ '/' + subdomain + '.nmap',subdomain)
+    print('----------- DONE --------')
     mongo.add_ports_to_subdomain(subdomain, port_info)
-
     try:
         os.remove(PROJECT_DIR + '/' + subdomain + '.xml')
+        os.remove(PROJECT_DIR + '/' + subdomain + '.nmap')
+        os.remove(PROJECT_DIR + '/' + subdomain + '.gnmap')
     except FileNotFoundError:
         pass
 
