@@ -15,7 +15,7 @@ REPORT_CHOICES = [
 
 
 class ReconForm(forms.Form):
-    target = forms.CharField(label='Enter target', max_length=20)
+    target = forms.CharField(label='Enter target', max_length=100)
 
 
 class BaselineScanForm(forms.Form):
