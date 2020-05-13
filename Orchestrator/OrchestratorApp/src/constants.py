@@ -27,6 +27,8 @@ ENDPOINT_ENGLISH = 'Endpoint %s was found'
 BUCKET_LS_ENGLISH = 'Bucket with ls allowed found'
 BUCKET_NF_ENGLISH = 'Bucket is called but does not exist'
 BUCKET_CPRM_ENGLISH = 'Bucket with copy remove allowed fund'
+# SENSITIVE INFO #
+SENSITIVE_INFO_ENGLISH = 'Sensitive information was found'
 
 ### SPANISH VULNERABILITIES ###
 # HEADERS #
@@ -49,6 +51,8 @@ ENDPOINT_SPANISH = 'Se encontro endpoint %s'
 BUCKET_LS_SPANISH = 'Bucket con listado disponible encontrado'
 BUCKET_NF_SPANISH = 'Bucket fue invocado pero no existe'
 BUCKET_CPRM_SPANISH = 'Bucket con copia y borrado encontrado'
+# SENSITIVE INFO #
+SENSITIVE_INFO_SPANISH = 'Se encontro informacion sensible'
 
 
 ### REPORTING ###

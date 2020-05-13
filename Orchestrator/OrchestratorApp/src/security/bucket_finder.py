@@ -1,5 +1,6 @@
 import re
 import requests
+import urllib3
 import subprocess
 from datetime import datetime
 
@@ -12,6 +13,8 @@ regions = ['us-east-2', 'us-east-1', 'us-west-1', 'us-west-2', 'ap-east-1', 'ap-
            'ap-northeast-2', 'ap-southeast-1', 'ap-southeast-2', 'ap-northeast-1', 'ca-central-1', 'cn-north-1',
            'cn-northwest-1', 'eu-central-1', 'eu-west-1', 'eu-west-2', 'eu-west-3', 'eu-north-1', 'me-south-1',
            'sa-east-1', 'us-gov-east-1', 'us-gov-west-1']
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def handle_target(target, url_list, language):
@@ -47,7 +50,7 @@ def scan_target(target_name, url_to_scan, language):
     # We first search for buckets inside the html code
     get_buckets(target_name, url_to_scan, url_to_scan, language)
     # We now scan javascript files
-    javascript_files_found = utils.get_js_in_url(url_to_scan)
+    javascript_files_found = utils.get_js_files_linkfinder(url_to_scan)
     for javascript in javascript_files_found:
         get_buckets(target_name, url_to_scan, javascript, language)
     return
@@ -119,8 +122,7 @@ def get_cprm_buckets(bucket_list, target, sub_url, url_being_scanned, language):
 
 def get_buckets(target_name, from_url, url_to_scan, language):
     try:
-        response = requests.get(url_to_scan, timeout=3)
-        print("Scanning:" + url_to_scan)
+        response = requests.get(url_to_scan, verify=False, timeout=3)
     except requests.exceptions.ConnectionError:
         return
     except requests.exceptions.ReadTimeout:

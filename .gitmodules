@@ -4,3 +4,6 @@
 [submodule "Orchestrator/OrchestratorApp/src/security_baseline/tools/CORScanner"]
 	path = Orchestrator/OrchestratorApp/src/security_baseline/tools/CORScanner
 	url = https://github.com/chenjj/CORScanner.git
+[submodule "Orchestrator/OrchestratorApp/src/utils/tools/LinkFinder"]
+	path = Orchestrator/OrchestratorApp/src/utils/tools/LinkFinder
+	url = https://github.com/GerbenJavado/LinkFinder.git
