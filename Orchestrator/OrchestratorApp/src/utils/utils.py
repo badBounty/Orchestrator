@@ -18,7 +18,7 @@ def get_js_files_linkfinder(url):
 
     js_files = list()
     for found in output:
-        if 'http' in found and found[-3] == '.js':
+        if 'http' in found and found[-3:] == '.js':
             js_files.append(found)
 
     return found
