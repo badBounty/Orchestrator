@@ -1,5 +1,6 @@
-import requests
+import requests,os
 from ..mongo import mongo
+from ..comms import image_creator
 from datetime import datetime
 from .. import constants
 from ..slack import slack_sender
@@ -87,16 +88,19 @@ def add_header_missing_vulnerability(target_name, scanned_url, timestamp, header
 def scan_target(target_name, url_to_scan, language):
     try:
         response = requests.get(url_to_scan)
-        print('\n------------------------------')
-        print('Response From: ' + url_to_scan)
+        print('------------- SAVING RESPONSE TO IMAGE -----------------')
+        message = 'Response Headers From: ' + url_to_scan+'\n'
         for h in response.headers:
-            print(h + " : " + response.headers[h])
-        print('------------------------------\n')
+            message+= h + " : " + response.headers[h]+'\n'
+        ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+        OUTPUT_DIR = ROOT_DIR + '/tools_output'
+        image_creator.create_image_from_string(OUTPUT_DIR,target_name,message)
+        print('--------------   DONE   -----------------------')
     except requests.exceptions.SSLError:
         return
     except requests.exceptions.ConnectionError:
         return
-
+    """
     important_headers = ['Content-Security-Policy', 'X-XSS-Protection', 'x-frame-options', 'X-Content-Type-options',
                          'Strict-Transport-Security', 'Access-Control-Allow-Origin']
 
@@ -121,4 +125,5 @@ def scan_target(target_name, url_to_scan, language):
                     timestamp = datetime.now()
                     add_header_value_vulnerability(target_name, url_to_scan, timestamp, header, language)
                     reported = True
+    """
     return
