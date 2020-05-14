@@ -38,4 +38,3 @@ def create_image_from_string(path,name,message):
     d.text((6, 12), message, fill=black,font=font)
     dest = path+"/"+name+"-HEADERS.png"
     img.save(dest)
-    print('---------------- DONE --------------')
