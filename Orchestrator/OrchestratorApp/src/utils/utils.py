@@ -22,7 +22,7 @@ def get_js_files_linkfinder(url):
 
     js_files = list()
     for found in output:
-        if 'http' in found and found[-3:] == '.js':
+        if 'http' in found and '.js' in found and 'Running' not in found:
             js_files.append(found)
     return js_files
 
@@ -41,9 +41,10 @@ def get_css_files_linkfinder(url):
 
     css_files = list()
     for found in output:
-        if 'http' in found and found[-4:] == '.css':
+        if 'http' in found and '.css' in found and 'Running' not in found:
             css_files.append(found)
     return css_files
+
 
 def url_screenshot(url):
     global ROOT_DIR
