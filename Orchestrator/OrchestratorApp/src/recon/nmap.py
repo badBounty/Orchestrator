@@ -29,7 +29,7 @@ def run_nmap(target_name, subdomain):
     PROJECT_DIR = OUTPUT_DIR + '/' + target_name
 
     nmap_process = subprocess.run(
-        ['nmap', '-sV' ,'-Pn', '-oA', PROJECT_DIR + '/' + subdomain, subdomain])
+        ['nmap', '-sV' ,'-Pn', '-oA','--top-ports=1000', PROJECT_DIR + '/' + subdomain, subdomain])
 
     with open(PROJECT_DIR + '/' + subdomain + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
@@ -44,7 +44,6 @@ def run_nmap(target_name, subdomain):
         return
     print('----------- TAKING NMAP SCREENSHOT --------')
     image_creator.create_image_from_file(PROJECT_DIR,PROJECT_DIR+ '/' + subdomain + '.nmap',subdomain)
-    print('----------- DONE --------')
     mongo.add_ports_to_subdomain(subdomain, port_info)
     try:
         os.remove(PROJECT_DIR + '/' + subdomain + '.xml')

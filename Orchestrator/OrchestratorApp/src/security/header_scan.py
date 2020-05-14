@@ -95,12 +95,11 @@ def scan_target(target_name, url_to_scan, language):
         ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
         OUTPUT_DIR = ROOT_DIR + '/tools_output'
         image_creator.create_image_from_string(OUTPUT_DIR,target_name,message)
-        print('--------------   DONE   -----------------------')
     except requests.exceptions.SSLError:
         return
     except requests.exceptions.ConnectionError:
         return
-    """
+
     important_headers = ['Content-Security-Policy', 'X-XSS-Protection', 'x-frame-options', 'X-Content-Type-options',
                          'Strict-Transport-Security', 'Access-Control-Allow-Origin']
 
@@ -125,5 +124,4 @@ def scan_target(target_name, url_to_scan, language):
                     timestamp = datetime.now()
                     add_header_value_vulnerability(target_name, url_to_scan, timestamp, header, language)
                     reported = True
-    """
     return
