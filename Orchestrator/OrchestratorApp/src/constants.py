@@ -22,7 +22,7 @@ OUTDATED_3RD_LIBRARIES_ENGLISH = 'Outdated 3rd party libraries in use'
 # CORS #
 CORS_ENGLISH = 'Found CORS %s with origin %s'
 # ENDPOINT #
-ENDPOINT_ENGLISH = 'Endpoint %s was found'
+ENDPOINT_ENGLISH = 'Vulnerable endpoints were found'
 # BUCKETS #
 BUCKET_LS_ENGLISH = 'Bucket with ls allowed found'
 BUCKET_NF_ENGLISH = 'Bucket is called but does not exist'
@@ -46,7 +46,7 @@ OUTDATED_3RD_LIBRARIES_SPANISH = 'Librerias 3rd party desactualizadas en uso'
 # CORS #
 CORS_SPANISH = 'Se encontro CORS %s usando origin %s'
 # ENDPOINT #
-ENDPOINT_SPANISH = 'Se encontro endpoint %s'
+ENDPOINT_SPANISH = 'Se encontraron endpoints vulnerables'
 # BUCKETS #
 BUCKET_LS_SPANISH = 'Bucket con listado disponible encontrado'
 BUCKET_NF_SPANISH = 'Bucket fue invocado pero no existe'

@@ -34,16 +34,16 @@ def handle_single(url, language):
     return
 
 
-def add_vulnerability(target_name, affected_resource, endpoint_name, language):
+def add_vulnerability(target_name, affected_resource, extra_info, language):
     timestamp = datetime.now()
     if language == constants.LANGUAGE_ENGLISH:
         mongo.add_vulnerability(target_name, affected_resource,
-                                constants.ENDPOINT_ENGLISH % endpoint_name,
-                                timestamp, language)
+                                constants.ENDPOINT_ENGLISH,
+                                timestamp, language, extra_info)
     elif language == constants.LANGUAGE_SPANISH:
         mongo.add_vulnerability(target_name, affected_resource,
-                                constants.ENDPOINT_SPANISH % endpoint_name,
-                                timestamp, language)
+                                constants.ENDPOINT_SPANISH,
+                                timestamp, language, extra_info)
 
 
 def scan_target(target_name, url_with_http, language):
@@ -66,10 +66,17 @@ def scan_target(target_name, url_with_http, language):
 
     vulns = json_data['results']
     valid_codes = [200, 403]
+    one_found = False
     for vuln in vulns:
+        extra_info_message = ""
         if vuln['status'] in valid_codes:
-            slack_sender.send_simple_vuln("Endpoint %s found at %s" % (vuln['input']['FUZZ'], url_with_http))
-            add_vulnerability(target_name, url_with_http, vuln['input']['FUZZ'], language)
+            extra_info_message = extra_info_message + "%s\n", vuln['input']['FUZZ']
+            one_found = True
+
+        if one_found:
+            slack_sender.send_simple_vuln("The following endpoints were found at %s:\n %s"
+                                        % (url_with_http, extra_info_message))
+            add_vulnerability(target_name, url_with_http, extra_info_message, language)
 
     cleanup(JSON_RESULT)
     return
