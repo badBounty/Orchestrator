@@ -29,6 +29,8 @@ BUCKET_NF_ENGLISH = 'Bucket is called but does not exist'
 BUCKET_CPRM_ENGLISH = 'Bucket with copy remove allowed fund'
 # SENSITIVE INFO #
 SENSITIVE_INFO_ENGLISH = 'Sensitive information was found'
+# CSS #
+CSS_ENGLISH = 'Possible css injection at %s'
 
 ### SPANISH VULNERABILITIES ###
 # HEADERS #
@@ -53,6 +55,8 @@ BUCKET_NF_SPANISH = 'Bucket fue invocado pero no existe'
 BUCKET_CPRM_SPANISH = 'Bucket con copia y borrado encontrado'
 # SENSITIVE INFO #
 SENSITIVE_INFO_SPANISH = 'Se encontro informacion sensible'
+# CSS #
+CSS_SPANISH = 'Posible inyeccion css en %s'
 
 
 ### REPORTING ###
