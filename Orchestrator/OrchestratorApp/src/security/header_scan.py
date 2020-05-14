@@ -122,6 +122,6 @@ def scan_target(target_name, url_to_scan, language):
                                               % (header, url_to_scan))
                 if not reported:
                     timestamp = datetime.now()
-                    add_header_value_vulnerability(target_name, url_to_scan, timestamp, header, language)
+                    add_header_missing_vulnerability(target_name, url_to_scan, timestamp, header, language)
                     reported = True
     return
