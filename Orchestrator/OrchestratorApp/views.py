@@ -109,7 +109,7 @@ def reporting_view(request):
             client = form.cleaned_data['client']
             language = form.cleaned_data['selected_language']
             report_type = form.cleaned_data['report_type']
-            file_dir = reporting.create_report(client, language, report_type, selected_target)
+            file_dir,missing_finding = reporting.create_report(client, language, report_type, selected_target)
             return FileResponse(open(file_dir, 'rb'))
     form = ReportForm()
     return render(request, 'Orchestrator/reporting_view.html', {'object_list': target, 'form': form})

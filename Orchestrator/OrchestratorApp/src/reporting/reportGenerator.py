@@ -11,7 +11,7 @@ from docx.shared import Inches
 from .. import constants
 from ..mongo import mongo
 from io import BytesIO
-from PIL import Image
+from PIL import Image, ImageOps
 
 # Variables Generales
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -21,6 +21,7 @@ eng = False
 estado = True
 # Estos indices son para copiar el finding de inicio a fin varian segundo el tipo de reporte
 indexNros = (0, 0, 0)
+missing_findings=[]
 # Documento
 doc = docx.Document()
 
@@ -67,6 +68,7 @@ def add_screenshot(jsonFinding):
     if jsonFinding['image_string'] != None:
         buf = BytesIO(base64.b64decode(jsonFinding['image_string']))
         img = Image.open(buf)
+        ImageOps.expand(img,border=10,fill='black').save(ROOT_DIR+"/image.png")
         img.save(ROOT_DIR+"/image.png")
         path = ROOT_DIR+"/image.png"
     return path
@@ -186,10 +188,11 @@ def clonarTemplateYAgregarFinding(doc, indexNros, language, jsonFinding):
     figureText.clear()
     figureText.add_run()
     image_path = add_screenshot(jsonFinding)
-    figureText.runs[0].add_picture(image_path,width=Inches(5.33), height=Inches(4.0))
+    if image_path:
+        figureText.runs[0].add_picture(image_path,width=Inches(5.33), height=Inches(4.0))
+        delete_screenshot(image_path)
     para = deepcopy(figureText)
     p.addnext(para._p)
-    delete_screenshot(image_path)
     p.addnext(legendTable._p)
     mid_tbl = deepcopy(doc.tables[nroTable + 1])
     p.addnext(mid_tbl._tbl)
@@ -220,7 +223,7 @@ def clonarTemplateYAgregarFinding(doc, indexNros, language, jsonFinding):
 def crearReporte(language, reportType, client, findings):
     eng = True if language == "eng" else False
     estado = True if reportType == "S" else False
-    global doc
+    global doc,missing_findings
     # Template a utilizar acorde al tipo de reporte que se necesite generar, va a variar dependiendo del idioma, avance o final
     if not eng:
         if estado:
@@ -249,6 +252,7 @@ def crearReporte(language, reportType, client, findings):
         else:
             #TODO mensaje a slack
             print("The following finding was not found: "+finding['title'])
+            missing_findings.append(finding)
     print("Se genero el reporte con los findings que fueron encontrados")
     d1 = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     name = ""
@@ -263,4 +267,4 @@ def crearReporte(language, reportType, client, findings):
     else:
         name += client + "REPORTE_CON_FINDINGS_INGLES-" + d1 + ".docm"
         doc.save(ROOT_DIR + '/out/' + name)
-    return ROOT_DIR + '/out/' + name
+    return ROOT_DIR + '/out/' + name,missing_findings

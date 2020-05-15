@@ -13,8 +13,8 @@ def create_report(client, language, report_type, selected_target,findings=None):
     language = language
     reportType = report_type
     client = client
-    file_dir = reportGenerator.crearReporte(language, reportType, client, findings)
-    return file_dir
+    file_dir,missing_finding = reportGenerator.crearReporte(language, reportType, client, findings)
+    return file_dir,missing_finding
 
 
 def get_findings(target, language):
