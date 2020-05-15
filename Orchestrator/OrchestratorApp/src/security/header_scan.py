@@ -43,7 +43,7 @@ def check_header_value(header_to_scan, value_received):
     return True
 
 
-def add_header_value_vulnerability(target_name, scanned_url, timestamp, header, language):
+def add_header_value_vulnerability(target_name, scanned_url, timestamp, header, language,img_b64):
     vuln_name = None
     if language == constants.LANGUAGE_ENGLISH:
         if header == 'Strict-Transport-Security':
@@ -60,11 +60,10 @@ def add_header_value_vulnerability(target_name, scanned_url, timestamp, header, 
         else:
             vuln_name = constants.INVALID_VALUE_ON_HEADER_SPANISH
 
-    mongo.add_vulnerability(target_name, scanned_url,
-                            vuln_name, timestamp, language)
+    mongo.add_vulnerability(target_name, scanned_url,vuln_name, timestamp, language,None,img_b64)
 
 
-def add_header_missing_vulnerability(target_name, scanned_url, timestamp, header, language):
+def add_header_missing_vulnerability(target_name, scanned_url, timestamp, header, language,img_b64):
     vuln_name = None
     if language == constants.LANGUAGE_ENGLISH:
         if header == 'Strict-Transport-Security':
@@ -81,8 +80,7 @@ def add_header_missing_vulnerability(target_name, scanned_url, timestamp, header
         else:
             vuln_name = constants.HEADER_NOT_FOUND_SPANISH
 
-    mongo.add_vulnerability(target_name, scanned_url,
-                            vuln_name, timestamp, language)
+    mongo.add_vulnerability(target_name, scanned_url,vuln_name, timestamp, language,None,img_b64)
 
 
 def scan_target(target_name, url_to_scan, language):
@@ -92,9 +90,7 @@ def scan_target(target_name, url_to_scan, language):
         message = 'Response Headers From: ' + url_to_scan+'\n'
         for h in response.headers:
             message+= h + " : " + response.headers[h]+'\n'
-        ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-        OUTPUT_DIR = ROOT_DIR + '/tools_output'
-        image_creator.create_image_from_string(OUTPUT_DIR,target_name,message)
+        img_b64 = image_creator.create_image_from_string(message)
     except requests.exceptions.SSLError:
         return
     except requests.exceptions.ConnectionError:
@@ -102,7 +98,6 @@ def scan_target(target_name, url_to_scan, language):
 
     important_headers = ['Content-Security-Policy', 'X-XSS-Protection', 'x-frame-options', 'X-Content-Type-options',
                          'Strict-Transport-Security', 'Access-Control-Allow-Origin']
-
     reported = False
     if response.status_code != 404:
         for header in important_headers:
@@ -115,13 +110,13 @@ def scan_target(target_name, url_to_scan, language):
                         # No header differenciation, so we do this for now
                         if not reported:
                             timestamp = datetime.now()
-                            add_header_value_vulnerability(target_name, url_to_scan, timestamp, header, language)
+                            add_header_value_vulnerability(target_name, url_to_scan, timestamp, header, language,img_b64)
                             reported = True
             except KeyError:
                 slack_sender.send_simple_vuln("Header %s was not found at %s"
                                               % (header, url_to_scan))
                 if not reported:
                     timestamp = datetime.now()
-                    add_header_value_vulnerability(target_name, url_to_scan, timestamp, header, language)
+                    add_header_missing_vulnerability(target_name, url_to_scan, timestamp, header, language,img_b64)
                     reported = True
     return

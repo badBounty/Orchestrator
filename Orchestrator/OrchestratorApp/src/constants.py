@@ -35,7 +35,7 @@ CSS_ENGLISH = 'Possible css injection at %s'
 ### SPANISH VULNERABILITIES ###
 # HEADERS #
 INVALID_VALUE_ON_HEADER_SPANISH = 'Inadecuada configuración de encabezados de seguridad'
-HEADER_NOT_FOUND_SPANISH = 'Inadecuanda configuración de encabezados de seguridad'
+HEADER_NOT_FOUND_SPANISH = 'Inadecuada configuración de encabezados de seguridad'
 X_FRAME_OPTIONS_NOT_PRESENT_SPANISH = 'Inexistencia de protección contra IFRAMES'
 X_FRAME_OPTIONS_INVALID_SPANISH = 'Ataque de Clickjacking posible'
 HSTS_SPANISH = 'HTTP Strict Transport Security (HSTS) no aplicada'

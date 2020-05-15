@@ -85,7 +85,7 @@ def vuln_scan_single_task(target, language):
     ssl_tls_scan.handle_single(target, language)
     # Normal
     ffuf.handle_single(target, language)
-    # TODO Add dispatcher here
+    # TODO Add dispatcher single here
     bucket_finder.handle_single(target, language)
     token_scan.handle_single(target, language)
     return
