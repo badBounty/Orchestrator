@@ -110,13 +110,13 @@ def scan_target(target_name, url_to_scan, language):
                         # No header differenciation, so we do this for now
                         if not reported:
                             timestamp = datetime.now()
-                            add_header_value_vulnerability(target_name, url_to_scan, timestamp, header, language,img_b64)
+                            add_header_value_vulnerability(target_name, url_to_scan, timestamp, header, language, img_b64)
                             reported = True
             except KeyError:
                 slack_sender.send_simple_vuln("Header %s was not found at %s"
                                               % (header, url_to_scan))
                 if not reported:
                     timestamp = datetime.now()
-                    add_header_missing_vulnerability(target_name, url_to_scan, timestamp, header, language,img_b64)
+                    add_header_missing_vulnerability(target_name, url_to_scan, timestamp, header, language, img_b64)
                     reported = True
     return

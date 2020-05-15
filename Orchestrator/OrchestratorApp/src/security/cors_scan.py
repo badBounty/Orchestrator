@@ -63,12 +63,12 @@ def add_vulnerability(target_name, language, vuln):
     timestamp = datetime.now()
     if language == constants.LANGUAGE_ENGLISH:
         mongo.add_vulnerability(target_name, vuln['url'],
-                                constants.CORS_ENGLISH % (vuln['type'], vuln['origin']),
-                                timestamp, language)
+                                constants.CORS_ENGLISH,
+                                timestamp, language, 'Found CORS %s with origin %s' % (vuln['type'], vuln['origin']))
     elif language == constants.LANGUAGE_SPANISH:
         mongo.add_vulnerability(target_name, vuln['url'],
-                                constants.CORS_ENGLISH % (vuln['type'], vuln['origin']),
-                                timestamp, language)
+                                constants.CORS_SPANISH,
+                                timestamp, language, 'Se encontro CORS %s usando origin %s' % (vuln['type'], vuln['origin']))
 
 
 def scan_target(target_name, plain_url, file_name, language):

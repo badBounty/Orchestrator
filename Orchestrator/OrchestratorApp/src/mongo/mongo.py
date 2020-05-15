@@ -213,7 +213,8 @@ def add_vulnerability(target_name, subdomain, vulnerability_name, current_time, 
                                           'language': language})
     if exists:
         db.vulnerabilities.update_one({'_id': exists.get('_id')}, {'$set': {
-            'last_seen': current_time
+            'last_seen': current_time,
+            'extra_info': extra_info
         }})
     else:
         resource = {

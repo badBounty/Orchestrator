@@ -33,11 +33,14 @@ def handle_single(url, language):
 def add_vulnerability(target, scanned_url, firebase_name, language):
     timestamp = datetime.now()
     vuln_name = ""
+    extra_to_send = ""
     if language == constants.LANGUAGE_ENGLISH:
-        vuln_name = constants.FIREBASE_ENGLISH % firebase_name
+        vuln_name = constants.FIREBASE_ENGLISH
+        extra_to_send = 'Firebase name %s' % firebase_name
     elif language == constants.LANGUAGE_SPANISH:
-        vuln_name = constants.FIREBASE_SPANISH % firebase_name
-    mongo.add_vulnerability(target, scanned_url, vuln_name, timestamp, language)
+        vuln_name = constants.FIREBASE_SPANISH
+        extra_to_send = 'Firebase name %s' % firebase_name
+    mongo.add_vulnerability(target, scanned_url, vuln_name, timestamp, language, extra_to_send)
 
 
 def filter_invalids(some_list):

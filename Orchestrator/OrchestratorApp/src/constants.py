@@ -24,7 +24,7 @@ OUTDATED_SOFTWARE_IN_USE_ENGLISH = 'Outdated software in use'
 # UNSUPPORTED SOFTWARE IN USE
 UNSUPPORTED_SOFTWARE_IN_USE_ENGLISH = 'Unsupported software in use'
 # CORS #
-CORS_ENGLISH = 'Found CORS %s with origin %s'
+CORS_ENGLISH = 'CORS vulnerability found'
 # ENDPOINT #
 ENDPOINT_ENGLISH = 'Vulnerable endpoints were found'
 # BUCKETS #
@@ -34,9 +34,13 @@ BUCKET_CPRM_ENGLISH = 'Bucket with copy remove allowed fund'
 # SENSITIVE INFO #
 SENSITIVE_INFO_ENGLISH = 'Sensitive information was found'
 # CSS #
-CSS_ENGLISH = 'Possible css injection at %s'
+CSS_ENGLISH = 'Possible css injection found'
 # FIREBASE #
-FIREBASE_ENGLISH = 'Firebase %s was found open'
+FIREBASE_ENGLISH = 'Firebase found open'
+# NMAP #
+OUTDATED_SOFTWARE_NMAP_ENGLISH = 'Outdated software nmap script'
+HTTP_PASSWD_NMAP_ENGLISH = 'Http passwd nmap script'
+WEB_VERSIONS_NMAP_ENGLISH = 'Web versions nmap script'
 
 ### SPANISH VULNERABILITIES ###
 # HEADERS #
@@ -56,7 +60,7 @@ OUTDATED_SOFTWARE_IN_USE_SPANISH = 'Software desactualizado'
 # UNSUPPORTED SOFTWARE IN USE
 UNSUPPORTED_SOFTWARE_IN_USE_SPANISH = 'Software no soportado por el fabricante'
 # CORS #
-CORS_SPANISH = 'Se encontro CORS %s usando origin %s'
+CORS_SPANISH = 'Se encontro una vulnerabilidad de CORS'
 # ENDPOINT #
 ENDPOINT_SPANISH = 'Se encontraron endpoints vulnerables'
 # BUCKETS #
@@ -66,9 +70,13 @@ BUCKET_CPRM_SPANISH = 'Bucket con copia y borrado encontrado'
 # SENSITIVE INFO #
 SENSITIVE_INFO_SPANISH = 'Se encontro informacion sensible'
 # CSS #
-CSS_SPANISH = 'Posible inyeccion css en %s'
+CSS_SPANISH = 'Posible inyeccion css'
 # FIREBASE #
-FIREBASE_SPANISH = 'Se encontro la firebase %s abierta'
+FIREBASE_SPANISH = 'Se encontro firebase abierta'
+# NMAP #
+OUTDATED_SOFTWARE_NMAP_SPANISH = 'Software desactualizado nmap script'
+HTTP_PASSWD_NMAP_SPANISH = 'Path traversal nmap script'
+WEB_VERSIONS_NMAP_SPANISH = 'Versiones web nmap script'
 
 
 ### REPORTING ###

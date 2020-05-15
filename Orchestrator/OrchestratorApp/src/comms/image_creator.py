@@ -13,6 +13,7 @@ normal = (800,600)
 extraL = (1024,768)
 image_format = "PNG"
 
+
 def create_image_from_file(path_filename):
     print('---------------- CREATING IMAGE FROM OUTPUT--------------')
     global font_size,font,black,image_format
@@ -28,7 +29,7 @@ def create_image_from_file(path_filename):
     img.save(buffered, format=image_format)
     img_str = base64.b64encode(buffered.getvalue())
     return img_str.decode('utf-8')
-    print('---------------- DONE --------------')
+
 
 def create_image_from_string(message):
     global font_size,font,black,extraL,image_format
@@ -39,4 +40,3 @@ def create_image_from_string(message):
     img.save(buffered, format=image_format)
     img_str = base64.b64encode(buffered.getvalue())
     return img_str.decode('utf-8')
-    print('---------------- DONE --------------')
