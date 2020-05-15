@@ -8,7 +8,8 @@ import os
 
 from .src.recon import recon, nmap, aquatone
 from .src.security import header_scan, http_method_scan, ssl_tls_scan,\
-    cors_scan, ffuf, libraries_scan, bucket_finder, token_scan
+    cors_scan, ffuf, libraries_scan, bucket_finder, token_scan, css_scan,\
+    firebase_scan
 from .src.slack import slack_sender
 from .src.mongo import mongo
 from .src.comms import email_handler
@@ -48,6 +49,8 @@ def recon_and_vuln_scan_task(target, language):
     # TODO Add dispatcher single here
     bucket_finder.handle_target(target, subdomains, language)
     token_scan.handle_target(target, subdomains, language)
+    css_scan.handle_target(target, subdomains, language)
+    firebase_scan.handle_target(target, subdomains, language)
 
     ssl_valid = mongo.get_ssl_scannable_resources(target)
     ssl_tls_scan.handle_target(target, ssl_valid, language)
@@ -71,6 +74,8 @@ def vuln_scan_target_task(target, language):
     # TODO Add dispatcher here
     bucket_finder.handle_target(target, subdomains, language)
     token_scan.handle_target(target, subdomains, language)
+    css_scan.handle_target(target, subdomains, language)
+    firebase_scan.handle_target(target, subdomains, language)
 
     return
 
@@ -88,6 +93,8 @@ def vuln_scan_single_task(target, language):
     # TODO Add dispatcher single here
     bucket_finder.handle_single(target, language)
     token_scan.handle_single(target, language)
+    css_scan.handle_single(target, language)
+    firebase_scan.handle_single(target, language)
     return
 
 

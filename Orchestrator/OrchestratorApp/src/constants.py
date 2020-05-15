@@ -31,6 +31,8 @@ BUCKET_CPRM_ENGLISH = 'Bucket with copy remove allowed fund'
 SENSITIVE_INFO_ENGLISH = 'Sensitive information was found'
 # CSS #
 CSS_ENGLISH = 'Possible css injection at %s'
+# FIREBASE #
+FIREBASE_ENGLISH = 'Firebase %s was found open'
 
 ### SPANISH VULNERABILITIES ###
 # HEADERS #
@@ -57,6 +59,8 @@ BUCKET_CPRM_SPANISH = 'Bucket con copia y borrado encontrado'
 SENSITIVE_INFO_SPANISH = 'Se encontro informacion sensible'
 # CSS #
 CSS_SPANISH = 'Posible inyeccion css en %s'
+# FIREBASE #
+FIREBASE_SPANISH = 'Se encontro la firebase %s abierta'
 
 
 ### REPORTING ###
