@@ -35,17 +35,17 @@ def add_vulnerability_to_mongo(target, scanned_url, css_url, language, extra_inf
     extra_to_send = ""
     vuln_name = ""
     if language == constants.LANGUAGE_ENGLISH:
-        vuln_name = constants.CSS_ENGLISH % css_url
+        vuln_name = constants.CSS_ENGLISH
         if extra_info == 'Access':
-            extra_to_send = 'File could not be accessed'
+            extra_to_send = 'File could not be accessed %s' % css_url
         elif extra_info == 'Status':
-            extra_to_send = 'File did not return status 200'
+            extra_to_send = 'File did %s not return status 200' % css_url
     elif language == constants.LANGUAGE_SPANISH:
-        vuln_name = constants.CSS_SPANISH % css_url
+        vuln_name = constants.CSS_SPANISH
         if extra_info == 'Access':
-            extra_to_send = 'No se pudo acceder al archivo'
+            extra_to_send = 'No se pudo acceder al archivo %s' % css_url
         elif extra_info == 'Status':
-            extra_to_send = 'El archivo no devolvio codigo 200'
+            extra_to_send = 'El archivo %s no devolvio codigo 200' % css_url
 
     mongo.add_vulnerability(target, scanned_url, vuln_name, timestamp, language, extra_to_send)
 
