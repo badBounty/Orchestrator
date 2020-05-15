@@ -181,6 +181,11 @@ def add_ports_to_subdomain(subdomain, port_list):
             'extra_nmap': 'None'}})
         return
 
+def add_scan_screen_to_subdomain(subdomain,img_b64):
+    db = client.Orchestrator
+    subdomain = db.resources.find_one({'name': subdomain})
+    db.resources.update_one({'_id': subdomain.get('_id')}, {'$set': {'scan_screen': img_b64}})
+
 
 def add_urls_to_subdomain(subdomain, has_urls, url_list):
     db = client.Orchestrator
@@ -190,7 +195,6 @@ def add_urls_to_subdomain(subdomain, has_urls, url_list):
         'responsive_urls': url_list}})
 
     return
-
 
 def add_images_to_subdomain(subdomain, http_image, https_image):
     db = client.Orchestrator
@@ -202,7 +206,7 @@ def add_images_to_subdomain(subdomain, http_image, https_image):
 
 
 # ------------------- VULNERABILITY -------------------
-def add_vulnerability(target_name, subdomain, vulnerability_name, current_time, language, extra_info=None):
+def add_vulnerability(target_name, subdomain, vulnerability_name, current_time, language, extra_info=None,img_str=None):
     db = client.Orchestrator
     exists = db.vulnerabilities.find_one({'target_name': target_name, 'subdomain': subdomain,
                                           'vulnerability_name': vulnerability_name,
@@ -218,6 +222,7 @@ def add_vulnerability(target_name, subdomain, vulnerability_name, current_time, 
             'subdomain': subdomain,
             'vulnerability_name': vulnerability_name,
             'extra_info': extra_info,
+            'image_string':img_str,
             'date_found': current_time,
             'last_seen': current_time,
             'language': language
@@ -276,6 +281,7 @@ def get_vulns_with_language(target, language):
             'affected_resource': resource['subdomain'],
             'vulnerability_name': resource['vulnerability_name'],
             'extra_info': resource['extra_info'] if 'extra_info' in resource else None,
+            'image_string': resource['image_string'] if 'image_string' in resource else None,
             'found': resource['date_found'],
             'last_seen': resource['last_seen']
         }
@@ -289,10 +295,11 @@ def get_specific_finding_info(finding, language):
     #TODO OJO CON ESTO SOLO SIRVE 1 SEMANA HAY Q AGREGAR OTRO PARA TENER EL TARGET PRINCIPAL!!!!!!!!!!!
     complete_finding = db.vulnerabilities.find({'target_name':finding['resourceAf'][0],'vulnerability_name': finding['title'], 'language': language})
     specific_finding = db.observations.find({'TITLE': finding['title'], 'LANGUAGE': language})
-    if specific_finding:
+    if specific_finding[0]:
         finding_to_send = specific_finding[0]
         finding_to_send['resourceAf'] = finding['resourceAf']
         finding_to_send['extra_info'] = complete_finding[0]['extra_info'] if 'extra_info' in complete_finding[0] else None
+        finding_to_send['image_string'] = complete_finding[0]['image_string'] if 'image_string' in complete_finding[0] else None
         return finding_to_send
     else:
         return None

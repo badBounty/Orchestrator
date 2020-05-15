@@ -5,13 +5,13 @@
 #   Idioma: eng o spa
 #   Tipo Reporte: S o F (indica si es Estado o Final)
 #   json con los titulos de los findings a buscar
-
+import datetime,docx,json,os,ast,base64,time
 from copy import deepcopy
-
-import datetime,docx,json,os,ast
-
+from docx.shared import Inches
 from .. import constants
 from ..mongo import mongo
+from io import BytesIO
+from PIL import Image
 
 # Variables Generales
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -62,19 +62,32 @@ def agregarNota(p, nota):
     elif "Note:" in p.text:
         p.text = "Note: " + nota
 
+def add_screenshot(jsonFinding):
+    path=""
+    if jsonFinding['image_string'] != None:
+        buf = BytesIO(base64.b64decode(jsonFinding['image_string']))
+        img = Image.open(buf)
+        img.save(ROOT_DIR+"/image.png")
+        path = ROOT_DIR+"/image.png"
+    return path
+
+def delete_screenshot(image_path):
+    os.remove(image_path)
+
 def add_cves(jsonFinding):
     message=""
-    if jsonFinding['extra_info'] != None :
-        for info in ast.literal_eval(jsonFinding['extra_info']):
-            info_title= "\nName: "+info['name']
-            version = info['versions'][0] if info['versions'] else ""
-            last_version = info['last_version']
-            if version or last_version:
-                info_title+=' Version: '+version+' Last Version :'+last_version
-            message+="\t"+info_title+'\n'
-            for cve in info['cves']:
-                cve_info='CVE ID: '+cve['CVE ID']+' - Vulnerability: '+cve['Vulnerability Type(s)']+'- CVSS Score: '+cve['Score']
-                message+="\t\t"+cve_info+'\n'
+    if jsonFinding['TITLE'] == constants.OUTDATED_3RD_LIBRARIES_SPANISH or jsonFinding['TITLE'] == constants.OUTDATED_3RD_LIBRARIES_ENGLISH:
+        if jsonFinding['extra_info'] != None :
+            for info in ast.literal_eval(jsonFinding['extra_info']):
+                info_title= "\nName: "+info['name']
+                version = info['versions'][0] if info['versions'] else ""
+                last_version = info['last_version']
+                if version or last_version:
+                    info_title+=' Version: '+version+' Last Version :'+last_version
+                message+="\t"+info_title+'\n'
+                for cve in info['cves']:
+                    cve_info='CVE ID: '+cve['CVE ID']+' - Vulnerability: '+cve['Vulnerability Type(s)']+'- CVSS Score: '+cve['Score']
+                    message+="\t\t"+cve_info+'\n'
     return message
 
 # Agregar info en celda sin romper formato
@@ -129,12 +142,12 @@ def clonarTemplateYAgregarFinding(doc, indexNros, language, jsonFinding):
     new_pb = deepcopy(pb)
     p.addnext(new_pb)
     # Clonamos toda la informacion que es parte del finding (Observacion, tabla, impacto, etc.)
+    #Excepto el parrafo de la imagen ya que si lo clonamos se puede romper el formato
     obsTitle = deepcopy(doc.paragraphs[nroParagraph + 2])
     obsText = deepcopy(doc.paragraphs[nroParagraph + 3])
     urlTitle = deepcopy(doc.paragraphs[nroParagraph + 4])
     obsNote = deepcopy(doc.paragraphs[nroParagraph + 7])
     legendTable = deepcopy(doc.paragraphs[nroParagraph + 8])
-    figureText = deepcopy(doc.paragraphs[nroParagraph + 9])
     legendFigure = deepcopy(doc.paragraphs[nroParagraph + 10])
     impactTitle = deepcopy(doc.paragraphs[nroParagraph + 11])
     impactDesc = deepcopy(doc.paragraphs[nroParagraph + 12])
@@ -168,7 +181,15 @@ def clonarTemplateYAgregarFinding(doc, indexNros, language, jsonFinding):
     p.addnext(impactDesc._p)
     p.addnext(impactTitle._p)
     p.addnext(legendFigure._p)
-    p.addnext(figureText._p)
+    #Agregamos imagen si es que hay
+    figureText = doc.paragraphs[nroParagraph + 9]
+    figureText.clear()
+    figureText.add_run()
+    image_path = add_screenshot(jsonFinding)
+    figureText.runs[0].add_picture(image_path,width=Inches(5.33), height=Inches(4.0))
+    para = deepcopy(figureText)
+    p.addnext(para._p)
+    delete_screenshot(image_path)
     p.addnext(legendTable._p)
     mid_tbl = deepcopy(doc.tables[nroTable + 1])
     p.addnext(mid_tbl._tbl)
