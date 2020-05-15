@@ -19,6 +19,10 @@ UNSECURE_METHOD_ENGLISH = 'Extended HTTP methods enabled'
 SSL_TLS_ENGLISH = 'Weak transport layer security (TLS) configuration'
 # OUTDATED 3RD PARTY LIBRARIES #
 OUTDATED_3RD_LIBRARIES_ENGLISH = 'Outdated 3rd party libraries in use'
+# OUTDATED SOFTWARE IN USE
+OUTDATED_SOFTWARE_IN_USE_ENGLISH = 'Outdated software in use'
+# UNSUPPORTED SOFTWARE IN USE
+UNSUPPORTED_SOFTWARE_IN_USE_ENGLISH = 'Unsupported software in use'
 # CORS #
 CORS_ENGLISH = 'Found CORS %s with origin %s'
 # ENDPOINT #
@@ -47,6 +51,10 @@ UNSECURE_METHOD_SPANISH = 'Métodos HTTP extendidos habilitados'
 SSL_TLS_SPANISH = 'Inadecuada configuración de seguridad de capa de transporte (TLS)'
 # OUTDATED 3RD PARTY LIBRARIES #
 OUTDATED_3RD_LIBRARIES_SPANISH = 'Librerias 3rd party desactualizadas en uso'
+# OUTDATED SOFTWARE IN USE
+OUTDATED_SOFTWARE_IN_USE_SPANISH = 'Software desactualizado'
+# UNSUPPORTED SOFTWARE IN USE
+UNSUPPORTED_SOFTWARE_IN_USE_SPANISH = 'Software no soportado por el fabricante'
 # CORS #
 CORS_SPANISH = 'Se encontro CORS %s usando origin %s'
 # ENDPOINT #
