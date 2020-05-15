@@ -45,6 +45,7 @@ def recon_and_vuln_scan_task(target, language):
     http_method_scan.handle_target(target, subdomains, language)
     cors_scan.handle_target(target, subdomains, language)
     #libraries_scan.handle_target(target, subdomains, language)
+    nmap_script_scan.handle_target(target, subdomains, language)
     ffuf.handle_target(target, subdomains, language)
     bucket_finder.handle_target(target, subdomains, language)
     token_scan.handle_target(target, subdomains, language)
@@ -68,6 +69,8 @@ def vuln_scan_target_task(target, language):
     cors_scan.handle_target(target, subdomains, language)
     #libraries_scan.handle_target(target, subdomains, language)
     ssl_tls_scan.handle_target(target, ssl_valid, language)
+    # Nmap scripts
+    nmap_script_scan.handle_target(target, subdomains, language)
     # Other
     ffuf.handle_target(target, subdomains, language)
     bucket_finder.handle_target(target, subdomains, language)
@@ -81,20 +84,20 @@ def vuln_scan_target_task(target, language):
 @shared_task
 def vuln_scan_single_task(target, language):
     # Baseline
-    #header_scan.handle_single(target, language)
-    #http_method_scan.handle_single(target, language)
-    #cors_scan.handle_single(target, language)
+    header_scan.handle_single(target, language)
+    http_method_scan.handle_single(target, language)
+    cors_scan.handle_single(target, language)
     #libraries_scan.handle_single(target, language)
-    #ssl_tls_scan.handle_single(target, language)
+    ssl_tls_scan.handle_single(target, language)
     # Extra
-    #ffuf.handle_single(target, language)
+    ffuf.handle_single(target, language)
     # Nmap scripts
     nmap_script_scan.handle_single(target, language)
     # Dispatcher
-    #bucket_finder.handle_single(target, language)
-    #token_scan.handle_single(target, language)
-    #css_scan.handle_single(target, language)
-    #firebase_scan.handle_single(target, language)
+    bucket_finder.handle_single(target, language)
+    token_scan.handle_single(target, language)
+    css_scan.handle_single(target, language)
+    firebase_scan.handle_single(target, language)
     return
 
 
