@@ -33,6 +33,10 @@ SENSITIVE_INFO_ENGLISH = 'Sensitive information was found'
 CSS_ENGLISH = 'Possible css injection at %s'
 # FIREBASE #
 FIREBASE_ENGLISH = 'Firebase %s was found open'
+# NMAP #
+OUTDATED_SOFTWARE_NMAP_ENGLISH = 'Outdated software nmap script'
+HTTP_PASSWD_NMAP_ENGLISH = 'Http passwd nmap script'
+WEB_VERSIONS_NMAP_ENGLISH = 'Web versions nmap script'
 
 ### SPANISH VULNERABILITIES ###
 # HEADERS #
@@ -61,6 +65,10 @@ SENSITIVE_INFO_SPANISH = 'Se encontro informacion sensible'
 CSS_SPANISH = 'Posible inyeccion css en %s'
 # FIREBASE #
 FIREBASE_SPANISH = 'Se encontro la firebase %s abierta'
+# NMAP #
+OUTDATED_SOFTWARE_NMAP_SPANISH = 'Software desactualizado nmap script'
+HTTP_PASSWD_NMAP_SPANISH = 'Path traversal nmap script'
+WEB_VERSIONS_NMAP_SPANISH = 'Versiones web nmap script'
 
 
 ### REPORTING ###

@@ -91,10 +91,10 @@ def scan_target(target_name, url_to_scan, language):
         print('------------- SAVING RESPONSE TO IMAGE -----------------')
         message = 'Response Headers From: ' + url_to_scan+'\n'
         for h in response.headers:
-            message+= h + " : " + response.headers[h]+'\n'
+            message += h + " : " + response.headers[h]+'\n'
         ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
         OUTPUT_DIR = ROOT_DIR + '/tools_output'
-        image_creator.create_image_from_string(OUTPUT_DIR,target_name,message)
+        image_creator.create_image_from_string(OUTPUT_DIR, target_name, message)
     except requests.exceptions.SSLError:
         return
     except requests.exceptions.ConnectionError:

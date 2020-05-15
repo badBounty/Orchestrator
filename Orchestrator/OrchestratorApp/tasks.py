@@ -9,7 +9,7 @@ import os
 from .src.recon import recon, nmap, aquatone
 from .src.security import header_scan, http_method_scan, ssl_tls_scan,\
     cors_scan, ffuf, libraries_scan, bucket_finder, token_scan, css_scan,\
-    firebase_scan
+    firebase_scan, nmap_script_scan
 from .src.slack import slack_sender
 from .src.mongo import mongo
 from .src.comms import email_handler
@@ -46,7 +46,6 @@ def recon_and_vuln_scan_task(target, language):
     cors_scan.handle_target(target, subdomains, language)
     #libraries_scan.handle_target(target, subdomains, language)
     ffuf.handle_target(target, subdomains, language)
-    # TODO Add dispatcher single here
     bucket_finder.handle_target(target, subdomains, language)
     token_scan.handle_target(target, subdomains, language)
     css_scan.handle_target(target, subdomains, language)
@@ -71,7 +70,6 @@ def vuln_scan_target_task(target, language):
     ssl_tls_scan.handle_target(target, ssl_valid, language)
     # Other
     ffuf.handle_target(target, subdomains, language)
-    # TODO Add dispatcher here
     bucket_finder.handle_target(target, subdomains, language)
     token_scan.handle_target(target, subdomains, language)
     css_scan.handle_target(target, subdomains, language)
@@ -83,18 +81,20 @@ def vuln_scan_target_task(target, language):
 @shared_task
 def vuln_scan_single_task(target, language):
     # Baseline
-    header_scan.handle_single(target, language)
-    http_method_scan.handle_single(target, language)
-    cors_scan.handle_single(target, language)
+    #header_scan.handle_single(target, language)
+    #http_method_scan.handle_single(target, language)
+    #cors_scan.handle_single(target, language)
     #libraries_scan.handle_single(target, language)
-    ssl_tls_scan.handle_single(target, language)
-    # Normal
-    ffuf.handle_single(target, language)
-    # TODO Add dispatcher single here
-    bucket_finder.handle_single(target, language)
-    token_scan.handle_single(target, language)
-    css_scan.handle_single(target, language)
-    firebase_scan.handle_single(target, language)
+    #ssl_tls_scan.handle_single(target, language)
+    # Extra
+    #ffuf.handle_single(target, language)
+    # Nmap scripts
+    nmap_script_scan.handle_single(target, language)
+    # Dispatcher
+    #bucket_finder.handle_single(target, language)
+    #token_scan.handle_single(target, language)
+    #css_scan.handle_single(target, language)
+    #firebase_scan.handle_single(target, language)
     return
 
 

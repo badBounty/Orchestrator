@@ -7,3 +7,6 @@
 [submodule "Orchestrator/OrchestratorApp/src/utils/tools/LinkFinder"]
 	path = Orchestrator/OrchestratorApp/src/utils/tools/LinkFinder
 	url = https://github.com/GerbenJavado/LinkFinder.git
+[submodule "Orchestrator/OrchestratorApp/src/security/tools/nmap/nmap-vulners"]
+	path = Orchestrator/OrchestratorApp/src/security/tools/nmap/nmap-vulners
+	url = https://github.com/vulnersCom/nmap-vulners.git

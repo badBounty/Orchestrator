@@ -27,6 +27,7 @@ def create_image_from_file(path,path_filename,name):
     file.close()
     print('---------------- DONE --------------')
 
+
 def create_image_from_string(path,name,message):
     name = name.replace("http://","").replace("https://","").split("/")[0]
     global font_size
