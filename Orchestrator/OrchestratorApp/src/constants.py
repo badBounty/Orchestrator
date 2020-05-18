@@ -13,6 +13,7 @@ HEADER_NOT_FOUND_ENGLISH = 'Insecure HTTP Response Header Configuration'
 X_FRAME_OPTIONS_NOT_PRESENT_ENGLISH = 'Clickjacking X-Frame-Options header missing'
 X_FRAME_OPTIONS_INVALID_ENGLISH = 'Clickjacking attack possible'
 HSTS_ENGLISH = 'HTTP Strict Transport Security not enforced'
+HOST_HEADER_ATTACK_ENGLISH = 'Host header attack possible'
 # METHODS #
 UNSECURE_METHOD_ENGLISH = 'Extended HTTP methods enabled'
 # SSL_TLS #
@@ -49,6 +50,7 @@ HEADER_NOT_FOUND_SPANISH = 'Inadecuada configuración de encabezados de segurida
 X_FRAME_OPTIONS_NOT_PRESENT_SPANISH = 'Inexistencia de protección contra IFRAMES'
 X_FRAME_OPTIONS_INVALID_SPANISH = 'Ataque de Clickjacking posible'
 HSTS_SPANISH = 'HTTP Strict Transport Security (HSTS) no aplicada'
+HOST_HEADER_ATTACK_SPANISH = 'Host header attack posible'
 # METHODS #
 UNSECURE_METHOD_SPANISH = 'Métodos HTTP extendidos habilitados'
 # SSL_TLS #

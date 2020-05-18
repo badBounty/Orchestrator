@@ -9,7 +9,7 @@ import os
 from .src.recon import recon, nmap, aquatone
 from .src.security import header_scan, http_method_scan, ssl_tls_scan,\
     cors_scan, ffuf, libraries_scan, bucket_finder, token_scan, css_scan,\
-    firebase_scan, nmap_script_scan
+    firebase_scan, nmap_script_scan, host_header_attack
 from .src.slack import slack_sender
 from .src.mongo import mongo
 from .src.comms import email_handler
@@ -27,8 +27,8 @@ def sleepy(duration):
 def vuln_scan_with_email_notification(email, url_to_scan, language, report_type):
     vuln_scan_single_task(url_to_scan, language)
     vulns = mongo.get_vulns_with_language(url_to_scan, language)
-    file_dir,missing_findings = reporting.create_report("", language, report_type, url_to_scan, vulns)
-    email_handler.send_email(file_dir,missing_findings, email)
+    file_dir, missing_findings = reporting.create_report("", language, report_type, url_to_scan, vulns)
+    email_handler.send_email(file_dir, missing_findings, email)
 
 
 # ------------------ Full tasks ------------------ #
@@ -41,18 +41,23 @@ def recon_and_vuln_scan_task(target, language):
     aquatone.start_aquatone(subdomains)
 
     subdomains = mongo.get_responsive_http_resources(target)
+    ssl_valid = mongo.get_ssl_scannable_resources(target)
     header_scan.handle_target(target, subdomains, language)
     http_method_scan.handle_target(target, subdomains, language)
     cors_scan.handle_target(target, subdomains, language)
     #libraries_scan.handle_target(target, subdomains, language)
+    ssl_tls_scan.handle_target(target, ssl_valid, language)
+    # Nmap script
     nmap_script_scan.handle_target(target, subdomains, language)
+    # Other
     ffuf.handle_target(target, subdomains, language)
+    # Dispatcher
     bucket_finder.handle_target(target, subdomains, language)
     token_scan.handle_target(target, subdomains, language)
     css_scan.handle_target(target, subdomains, language)
     firebase_scan.handle_target(target, subdomains, language)
+    host_header_attack.handle_target(target, subdomains, language)
 
-    ssl_valid = mongo.get_ssl_scannable_resources(target)
     ssl_tls_scan.handle_target(target, ssl_valid, language)
 
     return
@@ -71,12 +76,14 @@ def vuln_scan_target_task(target, language):
     ssl_tls_scan.handle_target(target, ssl_valid, language)
     # Nmap scripts
     nmap_script_scan.handle_target(target, subdomains, language)
-    # Other
+    # Extra
     ffuf.handle_target(target, subdomains, language)
+    # Dispatcher
     bucket_finder.handle_target(target, subdomains, language)
     token_scan.handle_target(target, subdomains, language)
     css_scan.handle_target(target, subdomains, language)
     firebase_scan.handle_target(target, subdomains, language)
+    host_header_attack.handle_target(target, subdomains, language)
 
     return
 
@@ -98,6 +105,7 @@ def vuln_scan_single_task(target, language):
     token_scan.handle_single(target, language)
     css_scan.handle_single(target, language)
     firebase_scan.handle_single(target, language)
+    host_header_attack.handle_single(target, language)
     return
 
 # ------------------ Recon tasks ------------------ #
