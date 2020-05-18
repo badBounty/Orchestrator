@@ -22,7 +22,9 @@ def get_findings(target, language):
     vulnerabilities = mongo.get_vulns_with_language(target, language)
     for vul in vulnerabilities:
         default_dict[vul["vulnerability_name"]].append(vul["affected_resource"])
-    result = [{"title": k, "resourceAf": v} for k, v in default_dict.items()]
+        default_dict[vul["vulnerability_name"]].append(vul["extra_info"])
+        default_dict[vul["vulnerability_name"]].append(vul["image_string"])
+    result = [{"title": k, "resourceAf": v[0],"extra_info":v[1],"image_string":v[2]} for k, v in default_dict.items()]
     findings = result
     return findings
 

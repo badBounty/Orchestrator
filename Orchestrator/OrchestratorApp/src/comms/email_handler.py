@@ -8,8 +8,8 @@ def send_email(file_dir,missing_findings,email_to):
 	message+="The following findings were not found in the KB:\n"
 	for finding in missing_findings:
 		message+=finding['title']+'\n'
-		#if finding['extra_info']:
-			#message+='\t'+finding['extra_info']+'\n'
+		if finding['extra_info']:
+			message+='\t'+'EXTRA INFO: '+str(finding['extra_info'])+'\n'
 	email = EmailMessage("Orchestator: Vuls finded", message, os.getenv('EMAIL_USER'), [email_to])
 	email.attach_file(file_dir)
 	email.send()

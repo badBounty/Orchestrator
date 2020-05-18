@@ -294,16 +294,14 @@ def get_vulns_with_language(target, language):
 
 def get_specific_finding_info(finding, language):
     db = client.Orchestrator
-    #Finding encontrado en el target
-    complete_finding = db.vulnerabilities.find({'target_name':finding['resourceAf'][0],'vulnerability_name': finding['title'], 'language': language})
     #Finding Info KB
     finding_kb = db.observations.find({'TITLE': finding['title'], 'LANGUAGE': language})
     if finding_kb:
         for f_kb in finding_kb:
             finding_to_send = f_kb
             finding_to_send['resourceAf'] = finding['resourceAf']
-            finding_to_send['extra_info'] = complete_finding[0]['extra_info'] if 'extra_info' in complete_finding[0] else None
-            finding_to_send['image_string'] = complete_finding[0]['image_string'] if 'image_string' in complete_finding[0] else None
+            finding_to_send['extra_info'] = finding['extra_info']
+            finding_to_send['image_string'] = finding['image_string']
             return finding_to_send
     else:
         return None
