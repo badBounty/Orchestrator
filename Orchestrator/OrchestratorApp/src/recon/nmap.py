@@ -45,7 +45,7 @@ def run_nmap(target_name, subdomain):
     print('----------- TAKING NMAP SCREENSHOT --------')
     img_b64 = image_creator.create_image_from_file(PROJECT_DIR,PROJECT_DIR+ '/' + subdomain + '.nmap',subdomain)
     mongo.add_ports_to_subdomain(subdomain, port_info)
-    mongo.add_scan_screen_to_subdomain(subdomain,img_b64)
+    mongo.add_scan_screen_to_subdomain(subdomain, img_b64)
     try:
         os.remove(PROJECT_DIR + '/' + subdomain + '.xml')
         os.remove(PROJECT_DIR + '/' + subdomain + '.nmap')

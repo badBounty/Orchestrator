@@ -57,19 +57,25 @@ def add_vuln_to_mongo(target_name, scanned_url, scan_type, extra_info, language)
 
 
 def outdated_software(target_name, url_to_scan, language):
-
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     TOOL_DIR = ROOT_DIR + '/tools/nmap/nmap-vulners/vulners.nse'
 
     outdated_software_process = subprocess.run(
-        ['nmap', '-sV', '-Pn', '-vvv', '--top-ports=500', '--script='+TOOL_DIR, url_to_scan], capture_output=True
+        ['nmap', '-sV', '-Pn', '-vvv', '--top-ports=500', '--script=' + TOOL_DIR, url_to_scan], capture_output=True
     )
-    add_vuln_to_mongo(target_name, url_to_scan, 'outdated_software', str(outdated_software_process.stdout), language)
+    text = outdated_software_process.stdout.decode()
+    text = text.split('\n')
+
+    extra_info = list()
+    for line in text:
+        if 'CVE' in line:
+            extra_info.append(line)
+    if extra_info:
+        add_vuln_to_mongo(target_name, url_to_scan, 'outdated_software', extra_info, language)
     return
 
 
 def web_versions(target_name, url_to_scan, language):
-
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     http_jsonp_detection = ROOT_DIR + '/tools/nmap/web_versions/http-jsonp-detection.nse'
     http_open_redirect = ROOT_DIR + '/tools/nmap/web_versions/http-open-redirect.nse'
@@ -81,11 +87,36 @@ def web_versions(target_name, url_to_scan, language):
     http_passwd_subprocess = subprocess.run(
         ['nmap', '-sV', '-Pn', '-vvv', '--top-ports=500', '--script', http_passwd, '--script-args',
          'http-passwd.root=/test/', url_to_scan], capture_output=True)
-    add_vuln_to_mongo(target_name, url_to_scan, 'http_passwd', str(http_passwd_subprocess.stdout), language)
+    text_httpd_passwd = http_passwd_subprocess.stdout.decode()
+    text_httpd_passwd = text_httpd_passwd.split('\n')
+    extra_info_httpd_passwd = list()
+    for i in range(0, len(text_httpd_passwd)):
+        if 'Directory traversal found' in text_httpd_passwd[i]:
+            extra_info_httpd_passwd.append(text_httpd_passwd[i-1] + '\n' + text_httpd_passwd[i] + '\n' + text_httpd_passwd[i+1])
+    if extra_info_httpd_passwd:
+        add_vuln_to_mongo(target_name, url_to_scan, 'http_passwd', extra_info_httpd_passwd, language)
 
     web_versions_subprocess = subprocess.run(
         ['nmap', '-sV', '-Pn', '-vvv', '--top-ports=500', '--script',
-         http_jsonp_detection+','+http_open_redirect+','+http_vuln_cve2017_5638+','+http_vuln_cve2017_1001000,
+         http_jsonp_detection + ',' + http_open_redirect + ',' + http_vuln_cve2017_5638 + ',' + http_vuln_cve2017_1001000,
          url_to_scan], capture_output=True)
-    add_vuln_to_mongo(target_name, url_to_scan, 'web_versions', str(web_versions_subprocess.stdout), language)
+    text_web_versions = web_versions_subprocess.stdout.decode()
+    text_web_versions = text_web_versions.split('\n')
+
+    extra_info_web_versions = list()
+    for i in range(0, len(text_web_versions)):
+        if 'The following JSONP endpoints were detected' in text_web_versions[i]:
+            extra_info_web_versions.append(text_web_versions[i-1] + '\n' +
+                                           text_web_versions[i] + '\n' + text_web_versions[i+1])
+        if 'http-open-redirect' in text_web_versions[i]:
+            extra_info_web_versions.append(text_web_versions[i] + '\n' +
+                                           text_web_versions[i+1])
+        if 'http-vuln-cve2017-5638' in text_web_versions[i]:
+            extra_info_web_versions.append(text_web_versions[i] + '\n' +
+                                           text_web_versions[i+1] + '\n' + text_web_versions[i+2])
+        if 'http-vuln-cve2017-1001000' in text_web_versions[i]:
+            extra_info_web_versions.append(text_web_versions[i] + '\n' +
+                                           text_web_versions[i+1] + '\n' + text_web_versions[i+2])
+    if extra_info_web_versions:
+        add_vuln_to_mongo(target_name, url_to_scan, 'web_versions', extra_info_web_versions, language)
     return
