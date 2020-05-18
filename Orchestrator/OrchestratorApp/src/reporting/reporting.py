@@ -19,12 +19,19 @@ def create_report(client, language, report_type, selected_target,findings=None):
 
 def get_findings(target, language):
     default_dict = defaultdict(list)
+    default_dict_extra = defaultdict(list)
+    default_dict_img = defaultdict(list)
     vulnerabilities = mongo.get_vulns_with_language(target, language)
     for vul in vulnerabilities:
         default_dict[vul["vulnerability_name"]].append(vul["affected_resource"])
-        default_dict[vul["vulnerability_name"]].append(vul["extra_info"])
-        default_dict[vul["vulnerability_name"]].append(vul["image_string"])
-    result = [{"title": k, "resourceAf": v[0],"extra_info":v[1],"image_string":v[2]} for k, v in default_dict.items()]
+        default_dict_extra[vul["vulnerability_name"]].append(vul["extra_info"])
+        default_dict_img[vul["vulnerability_name"]].append(vul["image_string"])
+    result = [{"title": k, "resourceAf": v} for k, v in default_dict.items()]
+    result_extra = [{"title": k, "extra_info": v} for k, v in default_dict_extra.items()]
+    result_img = [{"title": k, "image_string": v} for k, v in default_dict_img.items()]
+    for r, re,ri in zip(result, result_extra, result_img):
+        r['extra_info'] = re['extra_info'][0]
+        r['image_string'] = ri['image_string'][0]
     findings = result
     return findings
 
