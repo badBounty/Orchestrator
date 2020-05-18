@@ -89,3 +89,24 @@ def web_versions(target_name, url_to_scan, language):
          url_to_scan], capture_output=True)
     add_vuln_to_mongo(target_name, url_to_scan, 'web_versions', str(web_versions_subprocess.stdout), language)
     return
+
+def ssh_ftp_brute_login(target_name,url_to_scan,language,is_ssh):
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    if is_ssh:
+        brute = ROOT_DIR + '/tools/nmap/nmap-vulners/ssh-brute.nse'
+        port = '-p22'
+        timeout = 'ssh-brute.timeout=5s'
+        end_name = '.ssh.brute'
+    else:
+        brute = ROOT_DIR + '/tools/nmap/nmap-vulners/ftp-brute.nse'
+        port = '-p21'
+        timeout = 'ftp-brute.timeout=5s'
+        end_name = '.ftp.brute'
+
+    users = ROOT_DIR + '/tools/usernames-shortlist-17.txt'
+    password = ROOT_DIR + '/tools/default-pass-13.txt'
+
+    ssh_brute_subprocess = subprocess.run(
+        ['nmap', port, '-vvv', '--script', brute, '--script-args',
+         'userdb='+users, 'passdb='+password, timeout, url_to_scan, '-oA '+target_name+end_name], capture_output=True)
+    return
