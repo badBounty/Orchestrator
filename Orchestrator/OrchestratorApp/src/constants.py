@@ -42,6 +42,9 @@ FIREBASE_ENGLISH = 'Firebase found open'
 OUTDATED_SOFTWARE_NMAP_ENGLISH = 'Outdated software nmap script'
 HTTP_PASSWD_NMAP_ENGLISH = 'Http passwd nmap script'
 WEB_VERSIONS_NMAP_ENGLISH = 'Web versions nmap script'
+# FTP #
+ANONYMOUS_ACCESS_FTP_ENGLISH = 'Anonymous access to FTP server'
+
 
 ### SPANISH VULNERABILITIES ###
 # HEADERS #
@@ -79,7 +82,8 @@ FIREBASE_SPANISH = 'Se encontro firebase abierta'
 OUTDATED_SOFTWARE_NMAP_SPANISH = 'Software desactualizado nmap script'
 HTTP_PASSWD_NMAP_SPANISH = 'Path traversal nmap script'
 WEB_VERSIONS_NMAP_SPANISH = 'Versiones web nmap script'
-
+# FTP #
+ANONYMOUS_ACCESS_FTP_SPANISH = 'Acceso anónimo de lectura a servidor FTP'
 
 ### REPORTING ###
 recursoAfectadoPlu_ES = "Recursos Afectados"

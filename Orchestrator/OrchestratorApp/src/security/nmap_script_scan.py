@@ -19,6 +19,8 @@ def handle_target(target, url_list, language):
         host = url['url_with_http'].split('/')[2]
         outdated_software(url['target'], host, language)
         web_versions(url['target'], host, language)
+        ssh_ftp_brute_login(url,host,language,True)#SHH
+        ssh_ftp_brute_login(url,host,language,False)#FTP
     print('------------------- NMAP SCRIPT TARGET SCAN FINISHED -------------------')
     return
 
@@ -30,6 +32,8 @@ def handle_single(url, language):
     host = url.split('/')[2]
     outdated_software(url, host, language)
     web_versions(url, host, language)
+    ssh_ftp_brute_login(url,host,language,True)#SHH
+    ssh_ftp_brute_login(url,host,language,False)#FTP
     print('------------------- NMAP_SCRIPT SCAN FINISHED -------------------')
     return
 
@@ -44,6 +48,8 @@ def add_vuln_to_mongo(target_name, scanned_url, scan_type, extra_info, language)
             vuln_name = constants.HTTP_PASSWD_NMAP_ENGLISH
         elif scan_type == 'web_versions':
             vuln_name = constants.WEB_VERSIONS_NMAP_ENGLISH
+        elif scan_type == 'ftp_anonymous':
+            vuln_name = constants.WEB_VERSIONS_NMAP_ENGLISH
     elif language == constants.LANGUAGE_SPANISH:
         if scan_type == 'outdated_software':
             vuln_name = constants.OUTDATED_SOFTWARE_NMAP_SPANISH
@@ -51,6 +57,8 @@ def add_vuln_to_mongo(target_name, scanned_url, scan_type, extra_info, language)
             vuln_name = constants.HTTP_PASSWD_NMAP_SPANISH
         elif scan_type == 'web_versions':
             vuln_name = constants.WEB_VERSIONS_NMAP_SPANISH
+        elif scan_type == 'ftp_anonymous':
+            vuln_name = constants.ANONYMOUS_ACCESS_FTP_SPANISH
 
     mongo.add_vulnerability(target_name, scanned_url,
                             vuln_name, timestamp, language, extra_info)
@@ -153,13 +161,17 @@ def ftp_anon_login(target_name,url_to_scan,language):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     end_name = '.ftp.anon'
     anonynomus_subprocess = subprocess.run(
-        ['nmap','-Pn', '-sV', '-p21', '-vvv', '--script ftp-anon', '--script-args', 
-            url_to_scan, '-oA', target_name+end_name])
-
+        ['nmap','-Pn', '-sV', '-p21', '-vvv', '--script', 'ftp-anon',  url_to_scan, '-oA', target_name+end_name])
     with open(ROOT_DIR + '/' + target_name+end_name + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()
     json_data = json.dumps(my_dict)
     json_data = json.loads(json_data)
-    print(json_data)
+    try:
+        message = json_data['nmaprun']['host']['ports']['port']['script']['@output']
+        if "Anonymous FTP login allowed" in message:
+            add_vuln_to_mongo(target_name, url_to_scan, name, "ftp_anonymous",message, language)   
+    except KeyError:
+        message = None
+
     return
