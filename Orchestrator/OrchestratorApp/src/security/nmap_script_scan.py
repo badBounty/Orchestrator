@@ -50,6 +50,10 @@ def add_vuln_to_mongo(target_name, scanned_url, scan_type, extra_info, language)
             vuln_name = constants.WEB_VERSIONS_NMAP_ENGLISH
         elif scan_type == 'ftp_anonymous':
             vuln_name = constants.WEB_VERSIONS_NMAP_ENGLISH
+        elif scan_type == 'ssh_credentials':
+            vuln_name = constants.DEFAULT_CREDENTIALS_ENGLISH
+        elif scan_type == "ftp_credentials":
+            vuln_name = constants.CREDENTIALS_ACCESS_FTP_ENGLISH
     elif language == constants.LANGUAGE_SPANISH:
         if scan_type == 'outdated_software':
             vuln_name = constants.OUTDATED_SOFTWARE_NMAP_SPANISH
@@ -59,7 +63,10 @@ def add_vuln_to_mongo(target_name, scanned_url, scan_type, extra_info, language)
             vuln_name = constants.WEB_VERSIONS_NMAP_SPANISH
         elif scan_type == 'ftp_anonymous':
             vuln_name = constants.ANONYMOUS_ACCESS_FTP_SPANISH
-
+        elif scan_type == 'ssh_credentials':
+            vuln_name = constants.DEFAULT_CREDENTIALS_SPANISH
+        elif scan_type == "ftp_credentials":
+            vuln_name = constants.DEFAULT_CREDENTIALS_SPANISH
     mongo.add_vulnerability(target_name, scanned_url,
                             vuln_name, timestamp, language, extra_info)
     return
@@ -155,6 +162,19 @@ def ssh_ftp_brute_login(target_name,url_to_scan,language,is_ssh):
     xml_file.close()
     json_data = json.dumps(my_dict)
     json_data = json.loads(json_data)
+    try:
+        message = json_data['nmaprun']['host']['ports']['port']['script']['@output']
+        if "Valid credentials" in message:
+            name = "ssh_credentials" if is_ssh else "ftp_credentials"
+            add_vuln_to_mongo(target_name, url_to_scan, name, name,message, language)
+    except KeyError:
+        message = None
+    try:
+        os.remove(ROOT_DIR + '/' + target_name+end_name + '.xml')
+        os.remove(ROOT_DIR + '/' + target_name+end_name + '.nmap')
+        os.remove(ROOT_DIR + '/' + target_name+end_name + '.gnmap')
+    except FileNotFoundError:
+        pass
     return
 
 def ftp_anon_login(target_name,url_to_scan,language):
@@ -173,5 +193,11 @@ def ftp_anon_login(target_name,url_to_scan,language):
             add_vuln_to_mongo(target_name, url_to_scan, name, "ftp_anonymous",message, language)   
     except KeyError:
         message = None
+    try:
+        os.remove(ROOT_DIR + '/' + target_name+end_name + '.xml')
+        os.remove(ROOT_DIR + '/' + target_name+end_name + '.nmap')
+        os.remove(ROOT_DIR + '/' + target_name+end_name + '.gnmap')
+    except FileNotFoundError:
+        pass
 
     return

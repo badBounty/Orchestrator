@@ -44,8 +44,9 @@ HTTP_PASSWD_NMAP_ENGLISH = 'Http passwd nmap script'
 WEB_VERSIONS_NMAP_ENGLISH = 'Web versions nmap script'
 # FTP #
 ANONYMOUS_ACCESS_FTP_ENGLISH = 'Anonymous access to FTP server'
-
-
+CREDENTIALS_ACCESS_FTP_ENGLISH = 'Access to FTP server with default credentials'
+# SSH #
+DEFAULT_CREDENTIALS_ENGLISH = 'Default credentials in use'
 ### SPANISH VULNERABILITIES ###
 # HEADERS #
 INVALID_VALUE_ON_HEADER_SPANISH = 'Inadecuada configuración de encabezados de seguridad'
@@ -83,7 +84,9 @@ OUTDATED_SOFTWARE_NMAP_SPANISH = 'Software desactualizado nmap script'
 HTTP_PASSWD_NMAP_SPANISH = 'Path traversal nmap script'
 WEB_VERSIONS_NMAP_SPANISH = 'Versiones web nmap script'
 # FTP #
-ANONYMOUS_ACCESS_FTP_SPANISH = 'Acceso anónimo de lectura a servidor FTP'
+ANONYMOUS_ACCESS_FTP_SPANISH = 'Permisos de escritura en servidor FTP en forma anónima'
+# SSH #TODO ESTO POR AHORA COORDINAR EL NOMBRE CORRECTO DESPUES
+DEFAULT_CREDENTIALS_SPANISH = 'Acceso administrativo mediante usuarios por defecto'
 
 ### REPORTING ###
 recursoAfectadoPlu_ES = "Recursos Afectados"
