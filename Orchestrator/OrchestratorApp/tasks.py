@@ -36,27 +36,27 @@ def vuln_scan_with_email_notification(email, url_to_scan, language, report_type)
 def recon_and_vuln_scan_task(target, language):
     print('Started recon and scan against target ' + target + ' language ' + language)
     recon.run_recon(target)
-    subdomains = mongo.get_target_alive_subdomains(target)
-    nmap.start_nmap(subdomains)
-    aquatone.start_aquatone(subdomains)
+    subdomains_plain = mongo.get_target_alive_subdomains(target)
+    nmap.start_nmap(subdomains_plain)
+    aquatone.start_aquatone(subdomains_plain)
 
-    subdomains = mongo.get_responsive_http_resources(target)
+    subdomains_http = mongo.get_responsive_http_resources(target)
     ssl_valid = mongo.get_ssl_scannable_resources(target)
-    header_scan.handle_target(target, subdomains, language)
-    http_method_scan.handle_target(target, subdomains, language)
-    cors_scan.handle_target(target, subdomains, language)
-    #libraries_scan.handle_target(target, subdomains, language)
+    header_scan.handle_target(target, subdomains_http, language)
+    http_method_scan.handle_target(target, subdomains_http, language)
+    cors_scan.handle_target(target, subdomains_http, language)
+    #libraries_scan.handle_target(target, subdomains_http, language)
     ssl_tls_scan.handle_target(target, ssl_valid, language)
     # Nmap script
-    nmap_script_scan.handle_target(target, subdomains, language)
+    nmap_script_scan.handle_target(target, subdomains_http, language)
     # Other
-    ffuf.handle_target(target, subdomains, language)
+    ffuf.handle_target(target, subdomains_http, language)
     # Dispatcher
-    bucket_finder.handle_target(target, subdomains, language)
-    token_scan.handle_target(target, subdomains, language)
-    css_scan.handle_target(target, subdomains, language)
-    firebase_scan.handle_target(target, subdomains, language)
-    host_header_attack.handle_target(target, subdomains, language)
+    bucket_finder.handle_target(target, subdomains_http, language)
+    token_scan.handle_target(target, subdomains_http, language)
+    css_scan.handle_target(target, subdomains_http, language)
+    firebase_scan.handle_target(target, subdomains_http, language)
+    host_header_attack.handle_target(target, subdomains_http, language)
 
     ssl_tls_scan.handle_target(target, ssl_valid, language)
 
@@ -66,24 +66,24 @@ def recon_and_vuln_scan_task(target, language):
 # ------------------ Vulneability scans ------------------ #
 @shared_task
 def vuln_scan_target_task(target, language):
-    subdomains = mongo.get_responsive_http_resources(target)
+    subdomains_http = mongo.get_responsive_http_resources(target)
     ssl_valid = mongo.get_ssl_scannable_resources(target)
     # Baseline
-    header_scan.handle_target(target, subdomains, language)
-    http_method_scan.handle_target(target, subdomains, language)
-    cors_scan.handle_target(target, subdomains, language)
+    header_scan.handle_target(target, subdomains_http, language)
+    http_method_scan.handle_target(target, subdomains_http, language)
+    cors_scan.handle_target(target, subdomains_http, language)
     #libraries_scan.handle_target(target, subdomains, language)
     ssl_tls_scan.handle_target(target, ssl_valid, language)
     # Nmap scripts
-    nmap_script_scan.handle_target(target, subdomains, language)
+    nmap_script_scan.handle_target(target, subdomains_http, language)
     # Extra
-    ffuf.handle_target(target, subdomains, language)
+    ffuf.handle_target(target, subdomains_http, language)
     # Dispatcher
-    bucket_finder.handle_target(target, subdomains, language)
-    token_scan.handle_target(target, subdomains, language)
-    css_scan.handle_target(target, subdomains, language)
-    firebase_scan.handle_target(target, subdomains, language)
-    host_header_attack.handle_target(target, subdomains, language)
+    bucket_finder.handle_target(target, subdomains_http, language)
+    token_scan.handle_target(target, subdomains_http, language)
+    css_scan.handle_target(target, subdomains_http, language)
+    firebase_scan.handle_target(target, subdomains_http, language)
+    host_header_attack.handle_target(target, subdomains_http, language)
 
     return
 
