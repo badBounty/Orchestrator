@@ -24,6 +24,6 @@ def create_new_issue(vuln_name, description, attachment_path=None, attachment_na
     issue.priority_id = 3  # [1: Informational, 2: Low, 3: Medium, 4: High, 5: Critical]
     issue.assigned_to_id = 17  # Id de la asignacion, Orchestrator es 17
     issue.watcher_user_ids = [17]  # Ids de los watchers, Orchestrator es 17
-    if attachment_path:
+    if attachment_path is not None:
         issue.uploads = [{'path': attachment_path, 'filename': attachment_name}]
     issue.save()
