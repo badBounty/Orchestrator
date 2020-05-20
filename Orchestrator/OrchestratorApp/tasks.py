@@ -25,7 +25,7 @@ def sleepy(duration):
 # ------------------ Scan with email ------------------ #
 @shared_task
 def vuln_scan_with_email_notification(email, url_to_scan, language, report_type):
-    vuln_scan_single_task(url_to_scan, language)
+    #vuln_scan_single_task(url_to_scan, language)
     vulns = mongo.get_vulns_with_language(url_to_scan, language)
     file_dir, missing_findings = reporting.create_report("", language, report_type, url_to_scan, vulns)
     email_handler.send_email(file_dir, missing_findings, email)
