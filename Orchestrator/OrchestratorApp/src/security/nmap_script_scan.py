@@ -8,6 +8,7 @@ from ..slack import slack_sender
 from ..comms import image_creator
 from .. import constants
 from ..mongo import mongo
+from ..redmine import redmine
 
 
 def handle_target(target, url_list, language):
@@ -72,6 +73,8 @@ def add_vuln_to_mongo(target_name, scanned_url, scan_type, extra_info, language)
             vuln_name = constants.DEFAULT_CREDENTIALS_SPANISH
         elif scan_type == "ftp_credentials":
             vuln_name = constants.DEFAULT_CREDENTIALS_SPANISH
+
+    redmine.create_new_issue(vuln_name, extra_info)
     mongo.add_vulnerability(target_name, scanned_url,
                             vuln_name, timestamp, language, extra_info)
     return
