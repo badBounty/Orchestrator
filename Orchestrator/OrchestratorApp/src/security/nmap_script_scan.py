@@ -1,6 +1,7 @@
 import subprocess
 import os
 import xmltodict
+import json
 from datetime import datetime
 
 from ..slack import slack_sender
@@ -21,6 +22,7 @@ def handle_target(target, url_list, language):
         web_versions(url['target'], host, language)
         ssh_ftp_brute_login(url,host,language,True)#SHH
         ssh_ftp_brute_login(url,host,language,False)#FTP
+        ftp_anon_login(url,host,language)#FTP ANON
     print('------------------- NMAP SCRIPT TARGET SCAN FINISHED -------------------')
     return
 
@@ -30,10 +32,13 @@ def handle_single(url, language):
     slack_sender.send_simple_message("Nmap scripts started against %s" % url)
     # We receive the url with http/https, we will get only the host so nmap works
     host = url.split('/')[2]
-    outdated_software(url, host, language)
-    web_versions(url, host, language)
+    #outdated_software(url, host, language)
+    #web_versions(url, host, language)
+    print('------------------- NMAP SSH FTP BRUTE FORCE START -------------------')
     ssh_ftp_brute_login(url,host,language,True)#SHH
     ssh_ftp_brute_login(url,host,language,False)#FTP
+    ftp_anon_login(url,host,language)#FTP ANON
+    print('------------------- NMAP SSH FTP BRUTE FORCE DONE -------------------')
     print('------------------- NMAP_SCRIPT SCAN FINISHED -------------------')
     return
 
@@ -49,7 +54,7 @@ def add_vuln_to_mongo(target_name, scanned_url, scan_type, extra_info, language)
         elif scan_type == 'web_versions':
             vuln_name = constants.WEB_VERSIONS_NMAP_ENGLISH
         elif scan_type == 'ftp_anonymous':
-            vuln_name = constants.WEB_VERSIONS_NMAP_ENGLISH
+            vuln_name = constants.ANONYMOUS_ACCESS_FTP_ENGLISH
         elif scan_type == 'ssh_credentials':
             vuln_name = constants.DEFAULT_CREDENTIALS_ENGLISH
         elif scan_type == "ftp_credentials":
@@ -142,22 +147,22 @@ def ssh_ftp_brute_login(target_name,url_to_scan,language,is_ssh):
     if is_ssh:
         brute = ROOT_DIR + '/tools/nmap/nmap-vulners/ssh-brute.nse'
         port = '-p22'
-        timeout = 'ssh-brute.timeout=5s'
+        timeout = 'timeout=5s'
         end_name = '.ssh.brute'
     else:
         brute = ROOT_DIR + '/tools/nmap/nmap-vulners/ftp-brute.nse'
         port = '-p21'
-        timeout = 'ftp-brute.timeout=5s'
+        timeout = 'timeout=5s'
         end_name = '.ftp.brute'
 
     users = ROOT_DIR + '/tools/usernames-shortlist.txt'
     password = ROOT_DIR + '/tools/default-pass.txt'
-
-    ssh_brute_subprocess = subprocess.run(
+    output_dir = ROOT_DIR + '/tools_output/'+url_to_scan+end_name
+    brute_subprocess = subprocess.run(
         ['nmap','-Pn', '-sV', port, '-vvv', '--script', brute, '--script-args',
-         'userdb='+users, 'passdb='+password, timeout, url_to_scan, '-oA '+target_name+end_name], capture_output=True)
-    
-    with open(ROOT_DIR + '/' + target_name+end_name + '.xml') as xml_file:
+         'userdb='+users+','+'passdb='+password+','+timeout, url_to_scan, '-oA', output_dir])
+    #print(brute_subprocess)
+    with open(output_dir + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()
     json_data = json.dumps(my_dict)
@@ -166,13 +171,13 @@ def ssh_ftp_brute_login(target_name,url_to_scan,language,is_ssh):
         message = json_data['nmaprun']['host']['ports']['port']['script']['@output']
         if "Valid credentials" in message:
             name = "ssh_credentials" if is_ssh else "ftp_credentials"
-            add_vuln_to_mongo(target_name, url_to_scan, name, name,message, language)
+            add_vuln_to_mongo(target_name, url_to_scan, name,message, language)
     except KeyError:
         message = None
     try:
-        os.remove(ROOT_DIR + '/' + target_name+end_name + '.xml')
-        os.remove(ROOT_DIR + '/' + target_name+end_name + '.nmap')
-        os.remove(ROOT_DIR + '/' + target_name+end_name + '.gnmap')
+        os.remove(output_dir + '.xml')
+        os.remove(output_dir + '.nmap')
+        os.remove(output_dir + '.gnmap')
     except FileNotFoundError:
         pass
     return
@@ -180,9 +185,10 @@ def ssh_ftp_brute_login(target_name,url_to_scan,language,is_ssh):
 def ftp_anon_login(target_name,url_to_scan,language):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     end_name = '.ftp.anon'
+    output_dir = ROOT_DIR + '/tools_output/'+url_to_scan+end_name
     anonynomus_subprocess = subprocess.run(
-        ['nmap','-Pn', '-sV', '-p21', '-vvv', '--script', 'ftp-anon',  url_to_scan, '-oA', target_name+end_name])
-    with open(ROOT_DIR + '/' + target_name+end_name + '.xml') as xml_file:
+        ['nmap','-Pn', '-sV', '-p21', '-vvv', '--script', 'ftp-anon',  url_to_scan, '-oA', output_dir])
+    with open(output_dir + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()
     json_data = json.dumps(my_dict)
@@ -190,13 +196,13 @@ def ftp_anon_login(target_name,url_to_scan,language):
     try:
         message = json_data['nmaprun']['host']['ports']['port']['script']['@output']
         if "Anonymous FTP login allowed" in message:
-            add_vuln_to_mongo(target_name, url_to_scan, name, "ftp_anonymous",message, language)   
+            add_vuln_to_mongo(target_name, url_to_scan, "ftp_anonymous",message, language)   
     except KeyError:
         message = None
     try:
-        os.remove(ROOT_DIR + '/' + target_name+end_name + '.xml')
-        os.remove(ROOT_DIR + '/' + target_name+end_name + '.nmap')
-        os.remove(ROOT_DIR + '/' + target_name+end_name + '.gnmap')
+        os.remove(output_dir + '.xml')
+        os.remove(output_dir + '.nmap')
+        os.remove(output_dir + '.gnmap')
     except FileNotFoundError:
         pass
 

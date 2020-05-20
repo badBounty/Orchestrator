@@ -2,7 +2,6 @@ root
 admin
 test
 guest
-anonymous
 info
 adm
 mysql
