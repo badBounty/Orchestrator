@@ -6,6 +6,7 @@ from datetime import datetime
 from ..slack import slack_sender
 from .. import constants
 from ..mongo import mongo
+from ..redmine import redmine
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -40,6 +41,8 @@ def add_vulnerability(target, scanned_url, firebase_name, language):
     elif language == constants.LANGUAGE_SPANISH:
         vuln_name = constants.FIREBASE_SPANISH
         extra_to_send = 'Firebase name %s' % firebase_name
+
+    redmine.create_new_issue(vuln_name, constants.REDMINE_FIREBASE % (firebase_name, scanned_url))
     mongo.add_vulnerability(target, scanned_url, vuln_name, timestamp, language, extra_to_send)
 
 

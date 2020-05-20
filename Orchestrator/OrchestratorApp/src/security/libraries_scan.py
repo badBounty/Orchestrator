@@ -4,6 +4,7 @@ from ...__init__ import WAPPALIZE_KEY
 from .. import constants
 from ..slack import slack_sender
 from ..mongo import mongo
+from ..redmine import redmine
 from datetime import datetime
 
 endpoint = 'https://api.wappalyzer.com/lookup/v1/?url='
@@ -53,6 +54,7 @@ def add_libraries_vulnerability(target_name, scanned_url, language, libraries):
         finding_name = constants.OUTDATED_3RD_LIBRARIES_ENGLISH
     else:
         finding_name = constants.OUTDATED_3RD_LIBRARIES_SPANISH
+    redmine.create_new_issue(finding_name, constants.REDMINE_OUTDATED_3RD_LIBRARIES % (scanned_url, str(libraries)))
     mongo.add_vulnerability(target_name, scanned_url, finding_name, timestamp, language, str(libraries))
 
 

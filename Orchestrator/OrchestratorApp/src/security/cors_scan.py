@@ -3,6 +3,7 @@ from ..mongo import mongo
 from datetime import datetime
 from .. import constants
 from ..slack import slack_sender
+from ..redmine import redmine
 import os
 import subprocess
 import json
@@ -62,10 +63,14 @@ def handle_single(url, language):
 def add_vulnerability(target_name, language, vuln):
     timestamp = datetime.now()
     if language == constants.LANGUAGE_ENGLISH:
+        redmine.create_new_issue(constants.CORS_ENGLISH,
+                                 constants.REDMINE_CORS % (vuln['url'], vuln['type'], vuln['origin']))
         mongo.add_vulnerability(target_name, vuln['url'],
                                 constants.CORS_ENGLISH,
                                 timestamp, language, 'Found CORS %s with origin %s' % (vuln['type'], vuln['origin']))
     elif language == constants.LANGUAGE_SPANISH:
+        redmine.create_new_issue(constants.CORS_SPANISH,
+                                 constants.REDMINE_CORS % (vuln['url'], vuln['type'], vuln['origin']))
         mongo.add_vulnerability(target_name, vuln['url'],
                                 constants.CORS_SPANISH,
                                 timestamp, language, 'Se encontro CORS %s usando origin %s' % (vuln['type'], vuln['origin']))

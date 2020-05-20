@@ -6,6 +6,7 @@ from ..utils import utils
 from .. import constants
 from ..mongo import mongo
 from ..slack import slack_sender
+from ..redmine import redmine
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -47,6 +48,7 @@ def add_vulnerability_to_mongo(target, scanned_url, css_url, language, extra_inf
         elif extra_info == 'Status':
             extra_to_send = 'El archivo %s no devolvio codigo 200' % css_url
 
+    redmine.create_new_issue(vuln_name, constants.REDMINE_CSS % (scanned_url, extra_to_send))
     mongo.add_vulnerability(target, scanned_url, vuln_name, timestamp, language, extra_to_send)
 
 
