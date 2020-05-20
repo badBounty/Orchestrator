@@ -4,6 +4,7 @@ from ..comms import image_creator
 from datetime import datetime
 from .. import constants
 from ..slack import slack_sender
+from ..redmine import redmine
 
 
 def handle_target(target, url_list, language):
@@ -45,42 +46,58 @@ def check_header_value(header_to_scan, value_received):
 
 def add_header_value_vulnerability(target_name, scanned_url, timestamp, header, language,img_b64):
     vuln_name = None
+    redmine_description = None
     if language == constants.LANGUAGE_ENGLISH:
         if header == 'Strict-Transport-Security':
             vuln_name = constants.HSTS_ENGLISH
+            redmine_description = constants.REDMINE_HSTS
         elif header == 'x-frame-options':
             vuln_name = constants.X_FRAME_OPTIONS_INVALID_ENGLISH
+            redmine_description = constants.REDMINE_X_FRAME_OPTIONS_INVALID
         else:
             vuln_name = constants.INVALID_VALUE_ON_HEADER_ENGLISH
+            redmine_description = constants.REDMINE_INVALID_VALUE_ON_HEADER
     if language == constants.LANGUAGE_SPANISH:
         if header == 'Strict-Transport-Security':
             vuln_name = constants.HSTS_SPANISH
+            redmine_description = constants.REDMINE_HSTS
         elif header == 'x-frame-options':
             vuln_name = constants.X_FRAME_OPTIONS_INVALID_SPANISH
+            redmine_description = constants.REDMINE_X_FRAME_OPTIONS_INVALID
         else:
             vuln_name = constants.INVALID_VALUE_ON_HEADER_SPANISH
+            redmine_description = constants.REDMINE_INVALID_VALUE_ON_HEADER
 
+    redmine.create_new_issue(vuln_name, redmine_description % scanned_url)
     mongo.add_vulnerability(target_name, scanned_url,vuln_name, timestamp, language,None,img_b64)
 
 
 def add_header_missing_vulnerability(target_name, scanned_url, timestamp, header, language,img_b64):
     vuln_name = None
+    redmine_description = None
     if language == constants.LANGUAGE_ENGLISH:
         if header == 'Strict-Transport-Security':
             vuln_name = constants.HSTS_ENGLISH
+            redmine_description = constants.REDMINE_HSTS
         elif header == 'x-frame-options':
             vuln_name = constants.X_FRAME_OPTIONS_NOT_PRESENT_ENGLISH
+            redmine_description = constants.REDMINE_X_FRAME_OPTIONS_NOT_PRESENT
         else:
             vuln_name = constants.HEADER_NOT_FOUND_ENGLISH
+            redmine_destription = constants.REDMINE_HEADER_NOT_FOUND
     if language == constants.LANGUAGE_SPANISH:
         if header == 'Strict-Transport-Security':
             vuln_name = constants.HSTS_SPANISH
+            redmine_description = constants.REDMINE_HSTS
         elif header == 'x-frame-options':
             vuln_name = constants.X_FRAME_OPTIONS_NOT_PRESENT_SPANISH
+            redmine_description = constants.REDMINE_X_FRAME_OPTIONS_NOT_PRESENT
         else:
             vuln_name = constants.HEADER_NOT_FOUND_SPANISH
+            redmine_description = constants.REDMINE_HEADER_NOT_FOUND
 
-    mongo.add_vulnerability(target_name, scanned_url,vuln_name, timestamp, language,None,img_b64)
+    redmine.create_new_issue(vuln_name, redmine_description % scanned_url)
+    mongo.add_vulnerability(target_name, scanned_url, vuln_name, timestamp, language,None,img_b64)
 
 
 def scan_target(target_name, url_to_scan, language):

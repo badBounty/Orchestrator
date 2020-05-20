@@ -2,6 +2,7 @@ import requests
 from ..mongo import mongo
 from .. import constants
 from ..slack import slack_sender
+from ..redmine import redmine
 from datetime import datetime
 
 
@@ -27,10 +28,12 @@ def handle_single(url, language):
 
 def add_vulnerability(target_name, scanned_url, timestamp, language):
     if language == constants.LANGUAGE_ENGLISH:
+        redmine.create_new_issue(constants.UNSECURE_METHOD_ENGLISH, constants.REDMINE_UNSECURE_METHOD % scanned_url)
         mongo.add_vulnerability(target_name, scanned_url,
                                 constants.UNSECURE_METHOD_ENGLISH,
                                 timestamp, language)
     if language == constants.LANGUAGE_SPANISH:
+        redmine.create_new_issue(constants.UNSECURE_METHOD_SPANISH, constants.REDMINE_UNSECURE_METHOD % scanned_url)
         mongo.add_vulnerability(target_name, scanned_url,
                                 constants.UNSECURE_METHOD_SPANISH,
                                 timestamp, language)

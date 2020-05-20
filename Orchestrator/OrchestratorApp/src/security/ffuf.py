@@ -5,6 +5,7 @@ from datetime import datetime
 from ..mongo import mongo
 from .. import constants
 from ..slack import slack_sender
+from ..redmine import redmine
 
 
 def cleanup(path):
@@ -37,10 +38,14 @@ def handle_single(url, language):
 def add_vulnerability(target_name, affected_resource, extra_info, language):
     timestamp = datetime.now()
     if language == constants.LANGUAGE_ENGLISH:
+        redmine.create_new_issue(constants.ENDPOINT_ENGLISH,
+                                 constants.REDMINE_ENDPOINT % (affected_resource, extra_info))
         mongo.add_vulnerability(target_name, affected_resource,
                                 constants.ENDPOINT_ENGLISH,
                                 timestamp, language, extra_info)
     elif language == constants.LANGUAGE_SPANISH:
+        redmine.create_new_issue(constants.ENDPOINT_SPANISH,
+                                 constants.REDMINE_ENDPOINT % (affected_resource, extra_info))
         mongo.add_vulnerability(target_name, affected_resource,
                                 constants.ENDPOINT_SPANISH,
                                 timestamp, language, extra_info)

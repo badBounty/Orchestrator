@@ -8,6 +8,7 @@ from ..slack import slack_sender
 from ..utils import utils
 from .. import constants
 from ..mongo import mongo
+from ..redmine import redmine
 
 regions = ['us-east-2', 'us-east-1', 'us-west-1', 'us-west-2', 'ap-east-1', 'ap-south-1', 'ap-northeast-3',
            'ap-northeast-2', 'ap-southeast-1', 'ap-southeast-2', 'ap-northeast-1', 'ca-central-1', 'cn-north-1',
@@ -76,6 +77,7 @@ def add_vulnerability_to_mongo(target, scanned_url, bucket_found_url, vulnerabil
         elif vulnerability == 'cprm':
             vuln_name = constants.BUCKET_CPRM_SPANISH
 
+    redmine.create_new_issue(vuln_name, constants.REDMINE_BUCKET % (bucket_name, bucket_found_url))
     mongo.add_vulnerability(target, scanned_url, vuln_name,
                             timestamp, language, 'Bucket ' + bucket_name + ' found at ' + bucket_found_url)
     return

@@ -6,6 +6,7 @@ from datetime import datetime
 from .. import constants
 from ..mongo import mongo
 from ..slack import slack_sender
+from ..redmine import redmine
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -38,6 +39,7 @@ def add_vulnerability_to_mongo(target, scanned_url, language, extra_info):
     elif language == constants.LANGUAGE_SPANISH:
         vuln_name = constants.HOST_HEADER_ATTACK_SPANISH
 
+    redmine.create_new_issue(vuln_name, constants.REDMINE_HOST_HEADER_ATTACK % scanned_url)
     mongo.add_vulnerability(target, scanned_url, vuln_name, timestamp, language, extra_info)
     return
 

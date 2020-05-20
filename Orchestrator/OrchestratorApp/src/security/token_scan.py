@@ -8,6 +8,7 @@ from ..slack import slack_sender
 from ..utils import utils
 from ..mongo import mongo
 from .. import constants
+from ..redmine import redmine
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -40,6 +41,7 @@ def add_token_found_vuln(target, scanned_url, javascript_file, language, extra_i
     elif language == constants.LANGUAGE_SPANISH:
         vuln_name = constants.SENSITIVE_INFO_SPANISH
 
+    redmine.create_new_issue(vuln_name, constants.REDMINE_SENSITIVE_INFO % (javascript_file, extra_info))
     mongo.add_vulnerability(target, scanned_url, vuln_name,
                             timestamp, language, 'Found at ' + javascript_file + '\n' + extra_info)
 

@@ -3,6 +3,7 @@ import xmltodict
 from ..mongo import mongo
 from .. import constants
 from ..slack import slack_sender
+from ..redmine import redmine
 from datetime import datetime
 import subprocess
 import os
@@ -58,10 +59,12 @@ def cleanup(path):
 
 def add_vulnerability(target_name, scanned_url, timestamp, language):
     if language == constants.LANGUAGE_ENGLISH:
+        redmine.create_new_issue(constants.SSL_TLS_ENGLISH, constants.REDMINE_SSL_TLS % scanned_url)
         mongo.add_vulnerability(target_name, scanned_url,
                                 constants.SSL_TLS_ENGLISH,
                                 timestamp, language)
     if language == constants.LANGUAGE_SPANISH:
+        redmine.create_new_issue(constants.SSL_TLS_SPANISH, constants.REDMINE_SSL_TLS % scanned_url)
         mongo.add_vulnerability(target_name, scanned_url,
                                 constants.SSL_TLS_SPANISH,
                                 timestamp, language)

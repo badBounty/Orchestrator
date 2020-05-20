@@ -100,7 +100,7 @@ def web_versions(target_name, url_to_scan, language):
         ['nmap', '-sV', '-Pn', '-vvv', '--top-ports=500', '--script',
          http_jsonp_detection + ',' + http_open_redirect + ',' + http_vuln_cve2017_5638 + ',' + http_vuln_cve2017_1001000,
          url_to_scan], capture_output=True)
-    text_web_versions = web_versions_subprocess.stdout.decode()
+    text_web_versions = str(web_versions_subprocess.stdout.decode())
     text_web_versions = text_web_versions.split('\n')
 
     extra_info_web_versions = list()
