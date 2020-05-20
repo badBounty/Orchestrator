@@ -84,7 +84,7 @@ def add_header_missing_vulnerability(target_name, scanned_url, timestamp, header
             redmine_description = constants.REDMINE_X_FRAME_OPTIONS_NOT_PRESENT
         else:
             vuln_name = constants.HEADER_NOT_FOUND_ENGLISH
-            redmine_destription = constants.REDMINE_HEADER_NOT_FOUND
+            redmine_description = constants.REDMINE_HEADER_NOT_FOUND
     if language == constants.LANGUAGE_SPANISH:
         if header == 'Strict-Transport-Security':
             vuln_name = constants.HSTS_SPANISH
