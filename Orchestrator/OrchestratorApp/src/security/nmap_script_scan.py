@@ -148,12 +148,12 @@ def web_versions(target_name, url_to_scan, language):
 def ssh_ftp_brute_login(target_name,url_to_scan,language,is_ssh):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     if is_ssh:
-        brute = ROOT_DIR + '/tools/nmap/nmap-vulners/ssh-brute.nse'
+        brute = ROOT_DIR + '/tools/nmap/server_versions/ssh-brute.nse'
         port = '-p22'
         timeout = 'timeout=5s'
         end_name = '.ssh.brute'
     else:
-        brute = ROOT_DIR + '/tools/nmap/nmap-vulners/ftp-brute.nse'
+        brute = ROOT_DIR + '/tools/nmap/server_versions/ftp-brute.nse'
         port = '-p21'
         timeout = 'timeout=5s'
         end_name = '.ftp.brute'
