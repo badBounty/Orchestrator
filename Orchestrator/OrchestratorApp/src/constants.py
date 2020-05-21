@@ -27,9 +27,9 @@ ENDPOINT_ENGLISH = 'Vulnerable endpoints were found'
 # BUCKETS #
 BUCKET_LS_ENGLISH = 'Bucket with ls allowed found'
 BUCKET_NF_ENGLISH = 'Bucket is called but does not exist'
-BUCKET_CPRM_ENGLISH = 'Bucket with copy remove allowed fund'
+BUCKET_CPRM_ENGLISH = 'Bucket with copy remove allowed found'
 # SENSITIVE INFO #
-SENSITIVE_INFO_ENGLISH = 'Sensitive information was found'
+TOKEN_SENSITIVE_INFO_ENGLISH = 'Token information disclosure was found'
 # CSS #
 CSS_ENGLISH = 'Possible css injection found'
 # FIREBASE #
@@ -69,7 +69,7 @@ BUCKET_LS_SPANISH = 'Bucket con listado disponible encontrado'
 BUCKET_NF_SPANISH = 'Bucket fue invocado pero no existe'
 BUCKET_CPRM_SPANISH = 'Bucket con copia y borrado encontrado'
 # SENSITIVE INFO #
-SENSITIVE_INFO_SPANISH = 'Se encontro informacion sensible'
+TOKEN_SENSITIVE_INFO_SPANISH = 'Token con informacion sensible encontrado'
 # CSS #
 CSS_SPANISH = 'Posible inyeccion css'
 # FIREBASE #
