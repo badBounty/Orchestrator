@@ -33,8 +33,8 @@ def handle_single(url, language):
     slack_sender.send_simple_message("Nmap scripts started against %s" % url)
     # We receive the url with http/https, we will get only the host so nmap works
     host = url.split('/')[2]
-    #outdated_software(url, host, language)
-    #web_versions(url, host, language)
+    outdated_software(url, host, language)
+    web_versions(url, host, language)
     print('------------------- NMAP SSH FTP BRUTE FORCE START -------------------')
     ssh_ftp_brute_login(url,host,language,True)#SHH
     ssh_ftp_brute_login(url,host,language,False)#FTP
@@ -44,7 +44,7 @@ def handle_single(url, language):
     return
 
 
-def add_vuln_to_mongo(target_name, scanned_url, scan_type, extra_info, language):
+def add_vuln_to_mongo(target_name, scanned_url, scan_type, extra_info, language,img_str=None):
     timestamp = datetime.now()
     vuln_name = ""
     if language == constants.LANGUAGE_ENGLISH:
@@ -76,7 +76,7 @@ def add_vuln_to_mongo(target_name, scanned_url, scan_type, extra_info, language)
 
     redmine.create_new_issue(vuln_name, extra_info)
     mongo.add_vulnerability(target_name, scanned_url,
-                            vuln_name, timestamp, language, extra_info)
+                            vuln_name, timestamp, language, extra_info,img_str)
     return
 
 
@@ -148,12 +148,12 @@ def web_versions(target_name, url_to_scan, language):
 def ssh_ftp_brute_login(target_name,url_to_scan,language,is_ssh):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     if is_ssh:
-        brute = ROOT_DIR + '/tools/nmap/nmap-vulners/ssh-brute.nse'
+        brute = ROOT_DIR + '/tools/nmap/server_versions/ssh-brute.nse'
         port = '-p22'
         timeout = 'timeout=5s'
         end_name = '.ssh.brute'
     else:
-        brute = ROOT_DIR + '/tools/nmap/nmap-vulners/ftp-brute.nse'
+        brute = ROOT_DIR + '/tools/nmap/server_versions/ftp-brute.nse'
         port = '-p21'
         timeout = 'timeout=5s'
         end_name = '.ftp.brute'
@@ -174,7 +174,8 @@ def ssh_ftp_brute_login(target_name,url_to_scan,language,is_ssh):
         message = json_data['nmaprun']['host']['ports']['port']['script']['@output']
         if "Valid credentials" in message:
             name = "ssh_credentials" if is_ssh else "ftp_credentials"
-            add_vuln_to_mongo(target_name, url_to_scan, name,message, language)
+            img_str = image_creator.create_image_from_file(output_dir + '.nmap')
+            add_vuln_to_mongo(target_name, url_to_scan, name,message, language,img_str)
     except KeyError:
         message = None
     try:
@@ -199,7 +200,8 @@ def ftp_anon_login(target_name,url_to_scan,language):
     try:
         message = json_data['nmaprun']['host']['ports']['port']['script']['@output']
         if "Anonymous FTP login allowed" in message:
-            add_vuln_to_mongo(target_name, url_to_scan, "ftp_anonymous",message, language)   
+            img_str = image_creator.create_image_from_file(output_dir + '.nmap')
+            add_vuln_to_mongo(target_name, url_to_scan, "ftp_anonymous",message, language,img_str)   
     except KeyError:
         message = None
     try:
