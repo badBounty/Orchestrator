@@ -15,7 +15,8 @@ def get_project_names():
 
 
 def create_new_issue(vuln_name, description, project_name, attachment_path=None, attachment_name=None):
-
+    if project_name == 'no_project':
+        return
     issue = redmine.issue.new()
     issue.project_id = project_name             # orchestator-test-proj ?
     issue.subject = vuln_name                   # Nombre de la obs
