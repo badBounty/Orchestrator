@@ -65,7 +65,7 @@ def show_project_vulns(request, target_name):
         return response
     return render(request, 'Orchestrator/single_vulns_view.html', {'object_list': resources})
 
-
+'''
 def baseline_scan_view(request):
     target = mongo.get_targets()
     if request.method == 'POST':
@@ -81,7 +81,7 @@ def baseline_scan_view(request):
             return redirect('/')
     form = BaselineScanForm()
     return render(request, 'Orchestrator/baseline_targets_view.html', {'object_list': target, 'form': form})
-
+'''
 
 ### SLACK ###
 @csrf_exempt
@@ -125,7 +125,9 @@ def email_scan_view(request):
             target = form.cleaned_data['target']
             language = form.cleaned_data['selected_language']
             report_type = form.cleaned_data['report_type']
-            vuln_scan_handler.handle_scan_with_email_notification(email, target, language, report_type)
+            redmine_project_name = form.cleaned_data['redmine_project']
+            vuln_scan_handler.handle_scan_with_email_notification(email, target, language,
+                                                                  report_type, redmine_project_name)
             return JsonResponse({"Message":"You will recive and email soon...very soon"})
     form = EmailForm()
     return render(request, 'Orchestrator/single_with_email_view.html', {'form': form})

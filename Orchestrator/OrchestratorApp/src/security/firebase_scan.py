@@ -23,27 +23,27 @@ def handle_target(target, url_list, language):
     return
 
 
-def handle_single(url, language):
+def handle_single(scan_info):
     print('------------------- FIREBASE SINGLE SCAN STARTING -------------------')
-    slack_sender.send_simple_message("Firebase scan started against %s" % url)
-    scan_target(url, url, language)
+    slack_sender.send_simple_message("Firebase scan started against %s" % scan_info['url_to_scan'])
+    scan_target(scan_info, scan_info['url_to_scan'])
     print('------------------- FIREBASE SINGLE SCAN FINISHED -------------------')
     return
 
 
-def add_vulnerability(target, scanned_url, firebase_name, language):
+def add_vulnerability(scan_info, scanned_url, firebase_name):
     timestamp = datetime.now()
     vuln_name = ""
     extra_to_send = ""
-    if language == constants.LANGUAGE_ENGLISH:
+    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
         vuln_name = constants.FIREBASE_ENGLISH
         extra_to_send = 'Firebase name %s' % firebase_name
-    elif language == constants.LANGUAGE_SPANISH:
+    elif scan_info['language'] == constants.LANGUAGE_SPANISH:
         vuln_name = constants.FIREBASE_SPANISH
         extra_to_send = 'Firebase name %s' % firebase_name
 
-    redmine.create_new_issue(vuln_name, constants.REDMINE_FIREBASE % (firebase_name, scanned_url))
-    mongo.add_vulnerability(target, scanned_url, vuln_name, timestamp, language, extra_to_send)
+    redmine.create_new_issue(vuln_name, constants.REDMINE_FIREBASE % (firebase_name, scanned_url), scan_info['redmine_project'])
+    mongo.add_vulnerability(scan_info['target'], scanned_url, vuln_name, timestamp, scan_info['language'], extra_to_send)
 
 
 def filter_invalids(some_list):
@@ -55,7 +55,7 @@ def filter_invalids(some_list):
     return res
 
 
-def scan_target(target_name, url_to_scan, language):
+def scan_target(scan_info, url_to_scan):
     try:
         response = requests.get(url_to_scan, verify=False, timeout=3)
     except Exception as e:
@@ -83,4 +83,4 @@ def scan_target(target_name, url_to_scan, language):
             continue
         if firebase_response.status_code == 200:
             slack_sender.send_simple_vuln('Found open firebase %s at %s' % (firebase, url_to_scan))
-            add_vulnerability(target_name, url_to_scan, firebase, language)
+            add_vulnerability(scan_info, url_to_scan, firebase)

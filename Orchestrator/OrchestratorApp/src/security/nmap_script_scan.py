@@ -29,25 +29,28 @@ def handle_target(target, url_list, language):
     return
 
 
-def handle_single(url, language):
+def handle_single(scan_info):
     print('------------------- NMAP SCRIPT SCAN STARTING -------------------')
+    url = scan_info['url_to_scan']
     slack_sender.send_simple_message("Nmap scripts started against %s" % url)
     # We receive the url with http/https, we will get only the host so nmap works
     host = url.split('/')[2]
-    outdated_software(url, host, language)
-    web_versions(url, host, language)
-    ssh_ftp_brute_login(url,host,language,True)#SHH
-    ssh_ftp_brute_login(url,host,language,False)#FTP
-    ftp_anon_login(url,host,language)#FTP ANON
-    default_account(url,host,language)#Default creds in web console
+    outdated_software(scan_info, host)
+    web_versions(scan_info, host)
+    print('------------------- NMAP SSH FTP BRUTE FORCE START -------------------')
+    ssh_ftp_brute_login(scan_info, host, True)#SHH
+    ssh_ftp_brute_login(scan_info, host, False)#FTP
+    ftp_anon_login(scan_info, host)#FTP ANON
+    print('------------------- NMAP SSH FTP BRUTE FORCE DONE -------------------')
+    default_account(scan_info,host)#Default creds in web console
     print('------------------- NMAP_SCRIPT SCAN FINISHED -------------------')
     return
 
 
-def add_vuln_to_mongo(target_name, scanned_url, scan_type, extra_info, language,img_str=None):
+def add_vuln_to_mongo(scan_info, scanned_url, scan_type, extra_info, img_str=None):
     timestamp = datetime.now()
     vuln_name = ""
-    if language == constants.LANGUAGE_ENGLISH:
+    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
         if scan_type == 'outdated_software':
             vuln_name = constants.OUTDATED_SOFTWARE_NMAP_ENGLISH
         elif scan_type == 'http_passwd':
@@ -62,7 +65,7 @@ def add_vuln_to_mongo(target_name, scanned_url, scan_type, extra_info, language,
             vuln_name = constants.CREDENTIALS_ACCESS_FTP_ENGLISH
         elif scan_type == "default_creds":
             vuln_name = constants.DEFAULT_CREDENTIALS_ENGLISH
-    elif language == constants.LANGUAGE_SPANISH:
+    elif scan_info['language'] == constants.LANGUAGE_SPANISH:
         if scan_type == 'outdated_software':
             vuln_name = constants.OUTDATED_SOFTWARE_NMAP_SPANISH
         elif scan_type == 'http_passwd':
@@ -77,13 +80,13 @@ def add_vuln_to_mongo(target_name, scanned_url, scan_type, extra_info, language,
             vuln_name = constants.DEFAULT_CREDENTIALS_SPANISH
         elif scan_type == "default_creds":
             vuln_name = constants.DEFAULT_CREDENTIALS_SPANISH
-    #redmine.create_new_issue(vuln_name, extra_info)
-    mongo.add_vulnerability(target_name, scanned_url,
-                            vuln_name, timestamp, language, extra_info,img_str)
+    redmine.create_new_issue(vuln_name, extra_info, scan_info['redmine_project'])
+    mongo.add_vulnerability(scan_info['target'], scanned_url,
+                            vuln_name, timestamp, scan_info['language'], extra_info,img_str)
     return
 
 
-def outdated_software(target_name, url_to_scan, language):
+def outdated_software(scan_info, url_to_scan):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     TOOL_DIR = ROOT_DIR + '/tools/nmap/nmap-vulners/vulners.nse'
 
@@ -98,11 +101,11 @@ def outdated_software(target_name, url_to_scan, language):
         if 'CVE' in line:
             extra_info.append(line)
     if extra_info:
-        add_vuln_to_mongo(target_name, url_to_scan, 'outdated_software', extra_info, language)
+        add_vuln_to_mongo(scan_info, url_to_scan, 'outdated_software', extra_info)
     return
 
 
-def web_versions(target_name, url_to_scan, language):
+def web_versions(scan_info, url_to_scan):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     http_jsonp_detection = ROOT_DIR + '/tools/nmap/web_versions/http-jsonp-detection.nse'
     http_open_redirect = ROOT_DIR + '/tools/nmap/web_versions/http-open-redirect.nse'
@@ -121,7 +124,7 @@ def web_versions(target_name, url_to_scan, language):
         if 'Directory traversal found' in text_httpd_passwd[i]:
             extra_info_httpd_passwd.append(text_httpd_passwd[i-1] + '\n' + text_httpd_passwd[i] + '\n' + text_httpd_passwd[i+1])
     if extra_info_httpd_passwd:
-        add_vuln_to_mongo(target_name, url_to_scan, 'http_passwd', extra_info_httpd_passwd, language)
+        add_vuln_to_mongo(scan_info, url_to_scan, 'http_passwd', extra_info_httpd_passwd)
 
     web_versions_subprocess = subprocess.run(
         ['nmap', '-sV', '-Pn', '-vvv', '--top-ports=500', '--script',
@@ -145,10 +148,11 @@ def web_versions(target_name, url_to_scan, language):
             extra_info_web_versions.append(text_web_versions[i] + '\n' +
                                            text_web_versions[i+1] + '\n' + text_web_versions[i+2])
     if extra_info_web_versions:
-        add_vuln_to_mongo(target_name, url_to_scan, 'web_versions', extra_info_web_versions, language)
+        add_vuln_to_mongo(scan_info, url_to_scan, 'web_versions', extra_info_web_versions)
     return
 
-def ssh_ftp_brute_login(target_name,url_to_scan,language,is_ssh):
+
+def ssh_ftp_brute_login(scan_info, url_to_scan, is_ssh):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     if is_ssh:
         brute = ROOT_DIR + '/tools/nmap/server_versions/ssh-brute.nse'
@@ -165,9 +169,8 @@ def ssh_ftp_brute_login(target_name,url_to_scan,language,is_ssh):
     password = ROOT_DIR + '/tools/default-pass.txt'
     output_dir = ROOT_DIR + '/tools_output/'+url_to_scan+end_name
     brute_subprocess = subprocess.run(
-        ['nmap','-Pn', '-sV', port, '-vvv', '--script', brute, '--script-args',
+        ['nmap', '-Pn', '-sV', port, '-vvv', '--script', brute, '--script-args',
          'userdb='+users+','+'passdb='+password+','+timeout, url_to_scan, '-oA', output_dir])
-    #print(brute_subprocess)
     with open(output_dir + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()
@@ -178,7 +181,7 @@ def ssh_ftp_brute_login(target_name,url_to_scan,language,is_ssh):
         if "Valid credentials" in message:
             name = "ssh_credentials" if is_ssh else "ftp_credentials"
             img_str = image_creator.create_image_from_file(output_dir + '.nmap')
-            add_vuln_to_mongo(target_name, url_to_scan, name,message, language,img_str)
+            add_vuln_to_mongo(scan_info, url_to_scan, name, message, img_str)
     except KeyError:
         message = None
     try:
@@ -189,12 +192,13 @@ def ssh_ftp_brute_login(target_name,url_to_scan,language,is_ssh):
         pass
     return
 
-def ftp_anon_login(target_name,url_to_scan,language):
+
+def ftp_anon_login(scan_info,url_to_scan):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     end_name = '.ftp.anon'
     output_dir = ROOT_DIR + '/tools_output/'+url_to_scan+end_name
     anonynomus_subprocess = subprocess.run(
-        ['nmap','-Pn', '-sV', '-p21', '-vvv', '--script', 'ftp-anon',  url_to_scan, '-oA', output_dir])
+        ['nmap', '-Pn', '-sV', '-p21', '-vvv', '--script', 'ftp-anon',  url_to_scan, '-oA', output_dir])
     with open(output_dir + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()
@@ -204,7 +208,7 @@ def ftp_anon_login(target_name,url_to_scan,language):
         message = json_data['nmaprun']['host']['ports']['port']['script']['@output']
         if "Anonymous FTP login allowed" in message:
             img_str = image_creator.create_image_from_file(output_dir + '.nmap')
-            add_vuln_to_mongo(target_name, url_to_scan, "ftp_anonymous",message, language,img_str)   
+            add_vuln_to_mongo(scan_info, url_to_scan, "ftp_anonymous", message, img_str)
     except KeyError:
         message = None
     try:
@@ -255,7 +259,7 @@ def http_errors(target_name,url_to_scan,language):
         redmine.create_new_issue(vuln_name, message)
     return
 
-def default_account(target_name,url_to_scan,language):
+def default_account(scan_info,url_to_scan):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     arg_fingerprint_dir = ROOT_DIR+'/tools/http-default-accounts-fingerprints-nndefaccts.lua'
     script_to_copy = ROOT_DIR+'/tools/nmap/web_versions/http-default-accounts.nse'
@@ -295,5 +299,5 @@ def default_account(target_name,url_to_scan,language):
         pass
     if message:
         img_str = image_creator.create_image_from_string(message)
-        add_vuln_to_mongo(target_name, url_to_scan, "default_creds",message, language,img_str)
+        add_vuln_to_mongo(scan_info, url_to_scan, "default_creds",message,img_str)
     return

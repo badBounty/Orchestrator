@@ -23,28 +23,28 @@ def handle_target(target, url_list, language):
     return
 
 
-def handle_single(url, language):
+def handle_single(scan_info):
     print('------------------- HOST HEADER ATTACK SCAN STARTING -------------------')
-    slack_sender.send_simple_message("Host header attack scan started against %s" % url)
-    scan_target(url, url, language)
+    slack_sender.send_simple_message("Host header attack scan started against %s" % scan_info['url_to_scan'])
+    scan_target(scan_info, scan_info['url_to_scan'])
     print('------------------- HOST HEADER ATTACK SCAN FINISHED -------------------')
     return
 
 
-def add_vulnerability_to_mongo(target, scanned_url, language, extra_info):
+def add_vulnerability_to_mongo(scan_info, scanned_url, extra_info):
     timestamp = datetime.now()
     vuln_name = ""
-    if language == constants.LANGUAGE_ENGLISH:
+    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
         vuln_name = constants.HOST_HEADER_ATTACK_ENGLISH
-    elif language == constants.LANGUAGE_SPANISH:
+    elif scan_info['language'] == constants.LANGUAGE_SPANISH:
         vuln_name = constants.HOST_HEADER_ATTACK_SPANISH
 
-    redmine.create_new_issue(vuln_name, constants.REDMINE_HOST_HEADER_ATTACK % scanned_url)
-    mongo.add_vulnerability(target, scanned_url, vuln_name, timestamp, language, extra_info)
+    redmine.create_new_issue(vuln_name, constants.REDMINE_HOST_HEADER_ATTACK % scanned_url, scan_info['redmine_url'])
+    mongo.add_vulnerability(scan_info['target'], scanned_url, vuln_name, timestamp, scan_info['language'], extra_info)
     return
 
 
-def scan_target(target_name, url_to_scan, language):
+def scan_target(scan_info, url_to_scan):
     try:
         # Sends the request to test if it's vulnerable to a Host Header Attack
         response = requests.get(url_to_scan, verify=False, headers={'Host': 'test.com'}, timeout=3)
@@ -80,5 +80,5 @@ def scan_target(target_name, url_to_scan, language):
     if host_header_attack == 1:
         slack_sender.send_simple_message(
             "Host header attack possible at url %s" % url_to_scan)
-        add_vulnerability_to_mongo(target_name, url_to_scan, language, 'Found at url %s' % url_to_scan)
+        add_vulnerability_to_mongo(scan_info, url_to_scan, 'Found at url %s' % url_to_scan)
 

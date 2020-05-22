@@ -39,20 +39,20 @@ def handle_target(target, url_list, language):
     return
 
 
-def handle_single(url, language):
+def handle_single(scan_info):
     print('------------------- CORS SCAN STARTING -------------------')
-    slack_sender.send_simple_message("CORS scan started against %s" % url)
+    slack_sender.send_simple_message("CORS scan started against %s" % scan_info['url_to_scan'])
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
     # Put urls in a single file
-    only_host = url.split('/')[2]
+    only_host = scan_info['url_to_scan'].split('/')[2]
     FILE_WITH_URL = ROOT_DIR + '/tools_output/' + only_host + '.txt'
     cleanup(FILE_WITH_URL)
     with open(FILE_WITH_URL, 'w') as f:
-        f.write("%s\n" % url)
+        f.write("%s\n" % scan_info['url_to_scan'])
 
     # Call scan target
-    scan_target(only_host, url, FILE_WITH_URL, language)
+    scan_target(only_host, scan_info, FILE_WITH_URL)
 
     # Delete all created files
     cleanup(FILE_WITH_URL)
@@ -60,23 +60,25 @@ def handle_single(url, language):
     return
 
 
-def add_vulnerability(target_name, language, vuln):
+def add_vulnerability(scan_info, vuln):
     timestamp = datetime.now()
-    if language == constants.LANGUAGE_ENGLISH:
+    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
         redmine.create_new_issue(constants.CORS_ENGLISH,
-                                 constants.REDMINE_CORS % (vuln['url'], vuln['type'], vuln['origin']))
-        mongo.add_vulnerability(target_name, vuln['url'],
+                                 constants.REDMINE_CORS % (vuln['url'], vuln['type'], vuln['origin']),
+                                 scan_info['redmine_project'])
+        mongo.add_vulnerability(scan_info['target'], vuln['url'],
                                 constants.CORS_ENGLISH,
-                                timestamp, language, 'Found CORS %s with origin %s' % (vuln['type'], vuln['origin']))
-    elif language == constants.LANGUAGE_SPANISH:
+                                timestamp, scan_info['language'], 'Found CORS %s with origin %s' % (vuln['type'], vuln['origin']))
+    elif scan_info['language'] == constants.LANGUAGE_SPANISH:
         redmine.create_new_issue(constants.CORS_SPANISH,
-                                 constants.REDMINE_CORS % (vuln['url'], vuln['type'], vuln['origin']))
-        mongo.add_vulnerability(target_name, vuln['url'],
+                                 constants.REDMINE_CORS % (vuln['url'], vuln['type'],vuln['origin']),
+                                 scan_info['redmine_project'])
+        mongo.add_vulnerability(scan_info['target'], vuln['url'],
                                 constants.CORS_SPANISH,
-                                timestamp, language, 'Se encontro CORS %s usando origin %s' % (vuln['type'], vuln['origin']))
+                                timestamp, scan_info['language'], 'Se encontro CORS %s usando origin %s' % (vuln['type'], vuln['origin']))
 
 
-def scan_target(target_name, plain_url, file_name, language):
+def scan_target(target_name, scan_info, file_name):
 
     # Call the tool with the previous file
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -94,8 +96,8 @@ def scan_target(target_name, plain_url, file_name, language):
         return
 
     for vuln in vulns:
-        slack_sender.send_simple_vuln("CORS (%s) vulnerability found at %s" % (vuln['type'], plain_url))
-        add_vulnerability(plain_url, language, vuln)
+        slack_sender.send_simple_vuln("CORS (%s) vulnerability found at %s" % (vuln['type'], scan_info['url_to_scan']))
+        add_vulnerability(scan_info, vuln)
 
     cleanup(FILE_WITH_JSON_RESULT)
     return

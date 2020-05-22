@@ -23,36 +23,36 @@ def handle_target(target, url_list, language):
     return
 
 
-def handle_single(url, language):
+def handle_single(scan_info):
     print('------------------- CSS SINGLE SCAN STARTING -------------------')
-    slack_sender.send_simple_message("CSS scan started against %s" % url)
-    scan_target(url, url, language)
+    slack_sender.send_simple_message("CSS scan started against %s" % scan_info['url_to_scan'])
+    scan_target(scan_info, scan_info['url_to_scan'])
     print('------------------- CSS SINGLE SCAN FINISHED -------------------')
     return
 
 
-def add_vulnerability_to_mongo(target, scanned_url, css_url, language, extra_info):
+def add_vulnerability_to_mongo(scan_info, scanned_url, css_url, extra_info):
     timestamp = datetime.now()
     extra_to_send = ""
     vuln_name = ""
-    if language == constants.LANGUAGE_ENGLISH:
+    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
         vuln_name = constants.CSS_ENGLISH
         if extra_info == 'Access':
             extra_to_send = 'File could not be accessed %s' % css_url
         elif extra_info == 'Status':
             extra_to_send = 'File did %s not return status 200' % css_url
-    elif language == constants.LANGUAGE_SPANISH:
+    elif scan_info['language'] == constants.LANGUAGE_SPANISH:
         vuln_name = constants.CSS_SPANISH
         if extra_info == 'Access':
             extra_to_send = 'No se pudo acceder al archivo %s' % css_url
         elif extra_info == 'Status':
             extra_to_send = 'El archivo %s no devolvio codigo 200' % css_url
 
-    redmine.create_new_issue(vuln_name, constants.REDMINE_CSS % (scanned_url, extra_to_send))
-    mongo.add_vulnerability(target, scanned_url, vuln_name, timestamp, language, extra_to_send)
+    redmine.create_new_issue(vuln_name, constants.REDMINE_CSS % (scanned_url, extra_to_send), scan_info['redmine_project'])
+    mongo.add_vulnerability(scan_info['target'], scanned_url, vuln_name, timestamp, scan_info['language'], extra_to_send)
 
 
-def scan_target(target_name, url_to_scan, language):
+def scan_target(scan_info, url_to_scan):
     # We take every .css file from our linkfinder utils
     css_files_found = utils.get_css_files_linkfinder(url_to_scan)
     print(str(len(css_files_found)) + ' css files found')
@@ -70,13 +70,13 @@ def scan_target(target_name, url_to_scan, language):
                 slack_sender.send_simple_message(
                     "Possible css injection found at %s from %s. File could not be accessed"
                     % (css_file, url_to_scan))
-                add_vulnerability_to_mongo(target_name, url_to_scan, css_file, language, 'Access')
+                add_vulnerability_to_mongo(scan_info, url_to_scan, css_file, 'Access')
 
         if response.status_code != 200:
             if url_split[2] != host_split[2]:
                 slack_sender.send_simple_message(
                     "Possible css injection found at %s from %s. File did not return 200"
                     % (css_file, url_to_scan))
-                add_vulnerability_to_mongo(target_name, url_to_scan, css_file, language, 'Status')
+                add_vulnerability_to_mongo(scan_info, url_to_scan, css_file, 'Status')
 
     return

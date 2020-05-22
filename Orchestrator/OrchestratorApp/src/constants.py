@@ -6,6 +6,9 @@ CONSTANTS.PY
 LANGUAGE_ENGLISH = 'eng'
 LANGUAGE_SPANISH = 'spa'
 
+### GENERAL ###
+BURP_SCAN = 'Burp scan output'
+
 ### ENGLISH VULNERABILITIES ###
 # HEADERS #
 INVALID_VALUE_ON_HEADER_ENGLISH = 'Insecure HTTP Response Header Configuration'
@@ -120,6 +123,8 @@ REDMINE_IIS = 'IIS Microsoft files and directories enumeration found at %s'
 REDMINE_OUTDATED_SOFTWARE_NMAP = 'Outdated software nmap script'
 REDMINE_HTTP_PASSWD_NMAP = 'Http passwd nmap script'
 REDMINE_WEB_VERSIONS_NMAP = 'Web versions nmap script'
+# BURP #
+REDMINE_BURP_SCAN = 'Burp scan ran against %s'
 
 
 ### REPORTING ###

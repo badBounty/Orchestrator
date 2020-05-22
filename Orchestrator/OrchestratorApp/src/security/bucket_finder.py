@@ -30,10 +30,10 @@ def handle_target(target, url_list, language):
     return
 
 
-def handle_single(url, language):
+def handle_single(scan_information):
     print('------------------- S3BUCKET SINGLE SCAN STARTING -------------------')
-    slack_sender.send_simple_message("Bucket finder scan started against %s" % url)
-    scan_target(url, url, language)
+    slack_sender.send_simple_message("Bucket finder scan started against %s" % scan_information['target'])
+    scan_target(scan_information, scan_information['url_to_scan'])
     print('------------------- S3BUCKET SINGLE SCAN FINISHED -------------------')
     return
 
@@ -47,29 +47,31 @@ def filter_invalids(some_list):
     return res
 
 
-def scan_target(target_name, url_to_scan, language):
+def scan_target(scan_information, url_to_scan):
     # We first search for buckets inside the html code
-    get_buckets(target_name, url_to_scan, url_to_scan, language)
+    get_buckets(scan_information, url_to_scan)
     # We now scan javascript files
     javascript_files_found = utils.get_js_files_linkfinder(url_to_scan)
     print(str(len(javascript_files_found)) + ' javascript files found')
     for javascript in javascript_files_found:
-        get_buckets(target_name, url_to_scan, javascript, language)
+        get_buckets(scan_information, javascript)
     return
 
+# target: tesla.com, url_to_scan: vpn.tesla.com, javascript: un_javascript
 
-def add_vulnerability_to_mongo(target, scanned_url, bucket_found_url, vulnerability, bucket_name, language):
+
+def add_vulnerability_to_mongo(scanned_url, vulnerability, bucket_name, scan_info):
     timestamp = datetime.now()
     vuln_name = None
 
-    if language == constants.LANGUAGE_ENGLISH:
+    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
         if vulnerability == 'ls':
             vuln_name = constants.BUCKET_LS_ENGLISH
         elif vulnerability == 'nf':
             vuln_name = constants.BUCKET_NF_ENGLISH
         elif vulnerability == 'cprm':
             vuln_name = constants.BUCKET_CPRM_ENGLISH
-    elif language == constants.LANGUAGE_SPANISH:
+    elif scan_info['language'] == constants.LANGUAGE_SPANISH:
         if vulnerability == 'ls':
             vuln_name = constants.BUCKET_LS_SPANISH
         elif vulnerability == 'nf':
@@ -77,14 +79,14 @@ def add_vulnerability_to_mongo(target, scanned_url, bucket_found_url, vulnerabil
         elif vulnerability == 'cprm':
             vuln_name = constants.BUCKET_CPRM_SPANISH
 
-    redmine.create_new_issue(vuln_name, constants.REDMINE_BUCKET % (bucket_name, bucket_found_url))
-    mongo.add_vulnerability(target, scanned_url, vuln_name,
-                            timestamp, language, 'Bucket ' + bucket_name + ' found at ' + bucket_found_url)
+    redmine.create_new_issue(vuln_name, constants.REDMINE_BUCKET % (bucket_name, scanned_url), scan_info['redmine_project'])
+    mongo.add_vulnerability(scan_info['target'], scan_info['url_to_scan'], vuln_name,
+                            timestamp, scan_info['language'], 'Bucket ' + bucket_name + ' found at ' + scanned_url)
     return
 
 
 # Bucket that allows ls
-def get_ls_buckets(bucket_list, target, sub_url, url_being_scanned, language):
+def get_ls_buckets(bucket_list, scanned_url, scan_information):
     ls_allowed_buckets = []
     does_not_exist_buckets = []
     for bucket in bucket_list:
@@ -92,38 +94,35 @@ def get_ls_buckets(bucket_list, target, sub_url, url_being_scanned, language):
             continue
         try:
             output = subprocess.check_output('aws s3 ls s3://' + bucket, shell=True, stderr=subprocess.STDOUT)
-            slack_sender.send_simple_vuln('Bucket ' + bucket + ' found at ' + url_being_scanned + ' with ls allowed')
-            add_vulnerability_to_mongo(target, sub_url, url_being_scanned, 'ls',
-                                       bucket, language)
+            slack_sender.send_simple_vuln('Bucket ' + bucket + ' found at ' + scanned_url + ' with ls allowed')
+            add_vulnerability_to_mongo(scanned_url, 'ls', bucket, scan_information)
             ls_allowed_buckets.append(bucket)
         except subprocess.CalledProcessError as e:
             if 'does not exist' in e.output.decode():
                 slack_sender.send_simple_vuln(
-                    'Bucket ' + bucket + ' found at ' + url_being_scanned + ' being used but does not exist')
-                add_vulnerability_to_mongo(target, sub_url, url_being_scanned, 'nf',
-                                           bucket, language)
+                    'Bucket ' + bucket + ' found at ' + scanned_url + ' being used but does not exist')
+                add_vulnerability_to_mongo(scanned_url, 'nf', bucket, scan_information)
                 does_not_exist_buckets.append(bucket)
             continue
     return ls_allowed_buckets, does_not_exist_buckets
 
 
 # Buckets that allow copy and remove
-def get_cprm_buckets(bucket_list, target, sub_url, url_being_scanned, language):
+def get_cprm_buckets(bucket_list, scanned_url, scan_information):
     cprm_allowed_buckets = []
     for bucket in bucket_list:
         try:
             output = subprocess.check_output('aws s3 cp test.txt s3://' + bucket, shell=True, stderr=subprocess.DEVNULL)
             subprocess.check_output('aws s3 rm s3://' + bucket + '/test.txt', shell=True)
-            slack_sender.send_simple_vuln('Bucket ' + bucket + ' found at ' + url_being_scanned + ' with cprm allowed')
-            add_vulnerability_to_mongo(target, sub_url, url_being_scanned, 'cprm',
-                                       bucket, language)
+            slack_sender.send_simple_vuln('Bucket ' + bucket + ' found at ' + scanned_url + ' with cprm allowed')
+            add_vulnerability_to_mongo(scanned_url, 'cprm', bucket, scan_information)
             cprm_allowed_buckets.append(bucket)
         except subprocess.CalledProcessError as e:
             continue
     return cprm_allowed_buckets
 
 
-def get_buckets(target_name, from_url, url_to_scan, language):
+def get_buckets(scan_information, url_to_scan):
     try:
         response = requests.get(url_to_scan, verify=False, timeout=3)
     except requests.exceptions.ConnectionError:
@@ -178,7 +177,7 @@ def get_buckets(target_name, from_url, url_to_scan, language):
         bucket_list[i] = bucket_list[i].replace('/', '')
 
     # We now have to check the buckets
-    ls_allowed, does_not_exist = get_ls_buckets(bucket_list, target_name, from_url, url_to_scan, language)
-    cprm_allowed = get_cprm_buckets(bucket_list, target_name, from_url, url_to_scan, language)
+    ls_allowed, does_not_exist = get_ls_buckets(bucket_list, url_to_scan, scan_information)
+    cprm_allowed = get_cprm_buckets(bucket_list, url_to_scan, scan_information)
     access_denied = list(set(bucket_list) - set(ls_allowed) - set(cprm_allowed) - set(does_not_exist))
 
