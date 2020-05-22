@@ -101,7 +101,7 @@ def vuln_scan_single_task(target, language, redmine_project):
         'redmine_project': redmine_project
     }
     # Baseline
-    #header_scan.handle_single(scan_information)
+    header_scan.handle_single(scan_information)
     http_method_scan.handle_single(scan_information)
     cors_scan.handle_single(scan_information)
     libraries_scan.handle_single(scan_information)
