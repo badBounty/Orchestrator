@@ -19,10 +19,10 @@ def handle_target(target, url_list, language):
     return
 
 
-def handle_single(url, language):
+def handle_single(scan_info):
     print('------------------- SINGLE HEADER SCAN STARTING -------------------')
-    slack_sender.send_simple_message("Header scan started against %s" % url)
-    scan_target(url, url, language)
+    slack_sender.send_simple_message("Header scan started against %s" % scan_info['url_to_scan'])
+    scan_target(scan_info, scan_info['url_to_scan'])
     print('------------------- SINGLE HEADER SCAN FINISHED -------------------')
     return
 
@@ -44,10 +44,10 @@ def check_header_value(header_to_scan, value_received):
     return True
 
 
-def add_header_value_vulnerability(target_name, scanned_url, timestamp, header, language,img_b64):
+def add_header_value_vulnerability(scan_info, scanned_url, timestamp, header, img_b64):
     vuln_name = None
     redmine_description = None
-    if language == constants.LANGUAGE_ENGLISH:
+    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
         if header == 'Strict-Transport-Security':
             vuln_name = constants.HSTS_ENGLISH
             redmine_description = constants.REDMINE_HSTS
@@ -57,7 +57,7 @@ def add_header_value_vulnerability(target_name, scanned_url, timestamp, header, 
         else:
             vuln_name = constants.INVALID_VALUE_ON_HEADER_ENGLISH
             redmine_description = constants.REDMINE_INVALID_VALUE_ON_HEADER
-    if language == constants.LANGUAGE_SPANISH:
+    if scan_info['language'] == constants.LANGUAGE_SPANISH:
         if header == 'Strict-Transport-Security':
             vuln_name = constants.HSTS_SPANISH
             redmine_description = constants.REDMINE_HSTS
@@ -69,14 +69,14 @@ def add_header_value_vulnerability(target_name, scanned_url, timestamp, header, 
             redmine_description = constants.REDMINE_INVALID_VALUE_ON_HEADER
 
     # vuln = new Vulnerability('Insecure header configuration')
-    redmine.create_new_issue(vuln_name, redmine_description % scanned_url)
-    mongo.add_vulnerability(target_name, scanned_url,vuln_name, timestamp, language,None,img_b64)
+    redmine.create_new_issue(vuln_name, redmine_description % scanned_url, scan_info['redmine_project'])
+    mongo.add_vulnerability(scan_info['target'], scanned_url,vuln_name, timestamp, scan_info['language'], None, img_b64)
 
 
-def add_header_missing_vulnerability(target_name, scanned_url, timestamp, header, language,img_b64):
+def add_header_missing_vulnerability(scan_info, scanned_url, timestamp, header, img_b64):
     vuln_name = None
     redmine_description = None
-    if language == constants.LANGUAGE_ENGLISH:
+    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
         if header == 'Strict-Transport-Security':
             vuln_name = constants.HSTS_ENGLISH
             redmine_description = constants.REDMINE_HSTS
@@ -86,7 +86,7 @@ def add_header_missing_vulnerability(target_name, scanned_url, timestamp, header
         else:
             vuln_name = constants.HEADER_NOT_FOUND_ENGLISH
             redmine_description = constants.REDMINE_HEADER_NOT_FOUND
-    if language == constants.LANGUAGE_SPANISH:
+    if scan_info['language'] == constants.LANGUAGE_SPANISH:
         if header == 'Strict-Transport-Security':
             vuln_name = constants.HSTS_SPANISH
             redmine_description = constants.REDMINE_HSTS
@@ -97,11 +97,11 @@ def add_header_missing_vulnerability(target_name, scanned_url, timestamp, header
             vuln_name = constants.HEADER_NOT_FOUND_SPANISH
             redmine_description = constants.REDMINE_HEADER_NOT_FOUND
 
-    redmine.create_new_issue(vuln_name, redmine_description % scanned_url)
-    mongo.add_vulnerability(target_name, scanned_url, vuln_name, timestamp, language,None,img_b64)
+    redmine.create_new_issue(vuln_name, redmine_description % scanned_url, scan_info['redmine_project'])
+    mongo.add_vulnerability(scan_info['target'], scanned_url, vuln_name, timestamp, scan_info['language'], None, img_b64)
 
 
-def scan_target(target_name, url_to_scan, language):
+def scan_target(scan_info, url_to_scan):
     try:
         response = requests.get(url_to_scan)
         print('------------- SAVING RESPONSE TO IMAGE -----------------')
@@ -128,13 +128,13 @@ def scan_target(target_name, url_to_scan, language):
                         # No header differenciation, so we do this for now
                         if not reported:
                             timestamp = datetime.now()
-                            add_header_value_vulnerability(target_name, url_to_scan, timestamp, header, language, img_b64)
+                            add_header_value_vulnerability(scan_info, url_to_scan, timestamp, header, img_b64)
                             reported = True
             except KeyError:
                 slack_sender.send_simple_vuln("Header %s was not found at %s"
                                               % (header, url_to_scan))
                 if not reported:
                     timestamp = datetime.now()
-                    add_header_missing_vulnerability(target_name, url_to_scan, timestamp, header, language, img_b64)
+                    add_header_missing_vulnerability(scan_info, url_to_scan, timestamp, header, img_b64)
                     reported = True
     return

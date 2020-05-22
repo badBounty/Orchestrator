@@ -35,5 +35,8 @@ def send_simple_message(message):
 
 
 def send_simple_vuln(message):
-    slack_web_client.chat_postMessage(channel="#orchestrator_vulns", text=str(message))
+    try:
+        slack_web_client.chat_postMessage(channel="#orchestrator_vulns", text=str(message))
+    except Exception:
+        return
     return

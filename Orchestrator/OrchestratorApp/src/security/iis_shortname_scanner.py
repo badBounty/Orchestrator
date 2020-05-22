@@ -6,6 +6,7 @@ from ..slack import slack_sender
 from ..redmine import redmine
 from .. import constants
 
+
 def handle_target(target, url_list, language):
     print('------------------- IIS SHORTNAME SCAN STARTING -------------------')
     print('Found ' + str(len(url_list)) + ' targets to scan')
@@ -16,14 +17,15 @@ def handle_target(target, url_list, language):
     return
 
 
-def handle_single(url, language):
+def handle_single(scan_info):
     print('------------------- IIS SHORTNAME SCAN STARTING -------------------')
-    slack_sender.send_simple_message("IIS ShortName Scanner scan started against %s" % url)
-    scan_target(url, url, language)
+    slack_sender.send_simple_message("IIS ShortName Scanner scan started against %s" % scan_info['url_to_scan'])
+    scan_target(scan_info, scan_info['url_to_scan'])
     print('------------------- IIS SHORTNAME SCAN FINISHED -------------------')
     return
 
-def scan_target(target_name, url_to_scan, language):
+
+def scan_target(scan_info, url_to_scan):
     resp = requests.get(url_to_scan)
     try:
         if 'IIS' in resp.headers['Server']:
@@ -36,10 +38,10 @@ def scan_target(target_name, url_to_scan, language):
             if "NOT VULNERABLE" not in message:
                 img_str = image_creator.create_image_from_string(message)
                 timestamp = datetime.now()
-                vuln_name = constants.IIS_SHORTNAME_MICROSOFT_ENGLISH if 'eng' == language else constants.IIS_SHORTNAME_MICROSOFT_SPANISH
+                vuln_name = constants.IIS_SHORTNAME_MICROSOFT_ENGLISH if 'eng' == scan_info['language'] else constants.IIS_SHORTNAME_MICROSOFT_SPANISH
                 redmine_description = constants.REDMINE_IIS
-                redmine.create_new_issue(vuln_name, redmine_description % url_to_scan)
-                mongo.add_vulnerability(target_name, url_to_scan,vuln_name, timestamp, language, message,img_str)
+                redmine.create_new_issue(vuln_name, redmine_description % url_to_scan, scan_info['redmine_url'])
+                mongo.add_vulnerability(scan_info['target'], url_to_scan,vuln_name, timestamp, scan_info['language'], message,img_str)
     except KeyError:
         print("No server header was found")
         

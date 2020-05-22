@@ -18,28 +18,30 @@ def handle_target(target, url_list, language):
     return
 
 
-def handle_single(url, language):
+def handle_single(scan_info):
     print('------------------- SINGLE HTTP METHOD SCAN STARTING -------------------')
-    slack_sender.send_simple_message("HTTP method scan started against %s" % url)
-    scan_target(url, url, language)
+    slack_sender.send_simple_message("HTTP method scan started against %s" % scan_info['url_to_scan'])
+    scan_target(scan_info, scan_info['url_to_scan'])
     print('------------------- SINGLE HTTP METHOD SCAN FINISHED -------------------')
     return
 
 
-def add_vulnerability(target_name, scanned_url, timestamp, language):
-    if language == constants.LANGUAGE_ENGLISH:
-        redmine.create_new_issue(constants.UNSECURE_METHOD_ENGLISH, constants.REDMINE_UNSECURE_METHOD % scanned_url)
-        mongo.add_vulnerability(target_name, scanned_url,
+def add_vulnerability(scan_info, scanned_url, timestamp):
+    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
+        redmine.create_new_issue(constants.UNSECURE_METHOD_ENGLISH, constants.REDMINE_UNSECURE_METHOD % scanned_url,
+                                 scan_info['redmine_project'])
+        mongo.add_vulnerability(scan_info['target'], scanned_url,
                                 constants.UNSECURE_METHOD_ENGLISH,
-                                timestamp, language)
-    if language == constants.LANGUAGE_SPANISH:
-        redmine.create_new_issue(constants.UNSECURE_METHOD_SPANISH, constants.REDMINE_UNSECURE_METHOD % scanned_url)
-        mongo.add_vulnerability(target_name, scanned_url,
+                                timestamp, scan_info['language'])
+    if scan_info['language'] == constants.LANGUAGE_SPANISH:
+        redmine.create_new_issue(constants.UNSECURE_METHOD_SPANISH, constants.REDMINE_UNSECURE_METHOD % scanned_url,
+                                 scan_info['redmine_project'])
+        mongo.add_vulnerability(scan_info['target'], scanned_url,
                                 constants.UNSECURE_METHOD_SPANISH,
-                                timestamp, language)
+                                timestamp, scan_info['language'])
 
 
-def scan_target(target_name, url_to_scan, language):
+def scan_target(scan_info, url_to_scan):
     responses = list()
     try:
         put_response = requests.put(url_to_scan, data={'key': 'value'})
@@ -61,4 +63,4 @@ def scan_target(target_name, url_to_scan, language):
     if res:
         slack_sender.send_simple_vuln("Extensive http methods found on %s"
                                       % url_to_scan)
-        add_vulnerability(target_name, url_to_scan, timestamp, language)
+        add_vulnerability(scan_info, url_to_scan, timestamp)

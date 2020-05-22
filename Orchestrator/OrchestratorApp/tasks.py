@@ -94,25 +94,31 @@ def vuln_scan_target_task(target, language):
 
 @shared_task
 def vuln_scan_single_task(target, language, redmine_project):
+    scan_information = {
+        'target': target,
+        'url_to_scan': target,
+        'language': language,
+        'redmine_project': redmine_project
+    }
     # Baseline
-    header_scan.handle_single(target, language)
-    http_method_scan.handle_single(target, language)
-    cors_scan.handle_single(target, language)
-    libraries_scan.handle_single(target, language)
-    ssl_tls_scan.handle_single(target, language)
+    #header_scan.handle_single(scan_information)
+    http_method_scan.handle_single(scan_information)
+    cors_scan.handle_single(scan_information)
+    libraries_scan.handle_single(scan_information)
+    ssl_tls_scan.handle_single(scan_information)
     # Extra
-    ffuf.handle_single(target, language)
-    burp_scan.handle_single(target, language)
+    ffuf.handle_single(scan_information)
+    burp_scan.handle_single(scan_information)
     # Nmap scripts
-    nmap_script_scan.handle_single(target, language)
+    nmap_script_scan.handle_single(scan_information)
     # IIS shortname checker
-    iis_shortname_scanner.handle_single(target, language)
+    iis_shortname_scanner.handle_single(scan_information)
     # Dispatcher
-    bucket_finder.handle_single(target, language)
-    token_scan.handle_single(target, language)
-    css_scan.handle_single(target, language)
-    firebase_scan.handle_single(target, language)
-    host_header_attack.handle_single(target, language)
+    bucket_finder.handle_single(scan_information)
+    token_scan.handle_single(scan_information)
+    css_scan.handle_single(scan_information)
+    firebase_scan.handle_single(scan_information)
+    host_header_attack.handle_single(scan_information)
     return
 
 # ------------------ Recon tasks ------------------ #

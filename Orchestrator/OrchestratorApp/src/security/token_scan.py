@@ -25,37 +25,38 @@ def handle_target(target, url_list, language):
     return
 
 
-def handle_single(url, language):
+def handle_single(scan_info):
     print('------------------- TOKEN FINDER SINGLE SCAN STARTING -------------------')
-    slack_sender.send_simple_message("Token finder scan started against %s" % url)
-    scan_target(url, url, language)
+    slack_sender.send_simple_message("Token finder scan started against %s" % scan_info['url_to_scan'])
+    scan_target(scan_info, scan_info['url_to_scan'])
     print('------------------- TOKEN FINDER SINGLE SCAN FINISHED -------------------')
     return
 
 
-def add_token_found_vuln(target, scanned_url, javascript_file, language, extra_info):
+def add_token_found_vuln(scan_info, scanned_url, javascript_file, extra_info):
     timestamp = datetime.now()
     vuln_name = None
-    if language == constants.LANGUAGE_ENGLISH:
+    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
         vuln_name = constants.TOKEN_SENSITIVE_INFO_ENGLISH
-    elif language == constants.LANGUAGE_SPANISH:
+    elif scan_info['language'] == constants.LANGUAGE_SPANISH:
         vuln_name = constants.TOKEN_SENSITIVE_INFO_SPANISH
 
-    redmine.create_new_issue(vuln_name, constants.REDMINE_SENSITIVE_INFO % (javascript_file, extra_info))
-    mongo.add_vulnerability(target, scanned_url, vuln_name,
-                            timestamp, language, 'Found at ' + javascript_file + '\n' + extra_info)
+    redmine.create_new_issue(vuln_name, constants.REDMINE_SENSITIVE_INFO % (javascript_file, extra_info),
+                             scan_info['redmine_project'])
+    mongo.add_vulnerability(scan_info['target'], scanned_url, vuln_name,
+                            timestamp, scan_info['language'], 'Found at ' + javascript_file + '\n' + extra_info)
 
 
-def scan_target(target, url_for_scanning, language):
+def scan_target(scan_info, url_for_scanning):
     # We scan javascript files
     javascript_files_found = utils.get_js_files_linkfinder(url_for_scanning)
     print(str(len(javascript_files_found)) + ' javascript files found')
     for javascript in javascript_files_found:
-        scan_for_tokens(target, url_for_scanning, javascript, language)
+        scan_for_tokens(scan_info, url_for_scanning, javascript)
     return
 
 
-def scan_for_tokens(target, scanned_url, javascript, language):
+def scan_for_tokens(scan_info, scanned_url, javascript):
     try:
         response = requests.get(javascript, verify=False, timeout=3)
     except Exception:
@@ -215,6 +216,6 @@ def scan_for_tokens(target, scanned_url, javascript, language):
                 for ind_token in token['list']:
                     extra_info = extra_info + token['keyword'] + ": " + ind_token + "\n"
         slack_sender.send_simple_vuln('Tokens were found at %s from %s:\n %s' % (javascript, scanned_url, extra_info))
-        add_token_found_vuln(target, scanned_url, javascript, language, extra_info)
+        add_token_found_vuln(scan_info, scanned_url, javascript, extra_info)
 
     return

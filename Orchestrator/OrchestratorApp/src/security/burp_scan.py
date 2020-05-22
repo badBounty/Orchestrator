@@ -39,24 +39,25 @@ def handle_target(target, url_list, language):
     return
 
 
-def handle_single(url, language):
+def handle_single(scan_information):
     print('------------------- BURP SINGLE SCAN STARTING -------------------')
-    slack_sender.send_simple_message("Burp scan started against %s" % url)
-    scan_target(url, url, language)
+    slack_sender.send_simple_message("Burp scan started against %s" % scan_information['url_to_scan'])
+    scan_target(scan_information, scan_information['url_to-scan'])
     print('------------------- BURP SINGLE SCAN FINISHED -------------------')
     return
 
 
-def add_vulnerability(target, scanned_url, language, extra_info, file_dir, file_name):
+def add_vulnerability(scan_info, scanned_url, extra_info, file_dir, file_name):
     timestamp = datetime.now()
     vulnerability = constants.BURP_SCAN
 
-    redmine.create_new_issue(vulnerability, constants.REDMINE_BURP_SCAN % scanned_url, file_dir, file_name)
-    mongo.add_vulnerability(target, scanned_url, vulnerability,
-                            timestamp, language, extra_info)
+    redmine.create_new_issue(vulnerability, constants.REDMINE_BURP_SCAN % scanned_url, scan_info['redmine_project'],
+                             file_dir, file_name)
+    mongo.add_vulnerability(scan_info['target'], scanned_url, vulnerability,
+                            timestamp, scan_info['language'], extra_info)
 
 
-def scan_target(target_name, url_to_scan, language):
+def scan_target(scan_info, url_to_scan):
     header = {'accept': '*/*'}
 
     subprocess.run(['curl', '-k', '-x', 'http://127.0.0.1:8080', '-L', url_to_scan],
@@ -94,7 +95,7 @@ def scan_target(target_name, url_to_scan, language):
 
     download_response = requests.get(download_report % url_to_scan, headers=header)
     open(OUTPUT_DIR, 'wb').write(download_response.content)
-    add_vulnerability(target_name, url_to_scan, language, download_response.content,
+    add_vulnerability(scan_info, url_to_scan, download_response.content,
                       OUTPUT_DIR, 'burp_result.xml')
     try:
         os.remove(OUTPUT_DIR)

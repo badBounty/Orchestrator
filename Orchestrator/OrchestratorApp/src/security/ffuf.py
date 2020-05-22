@@ -27,31 +27,31 @@ def handle_target(target, url_list, language):
     return
 
 
-def handle_single(url, language):
+def handle_single(scan_info):
     print('------------------- FFUF SCAN STARTING -------------------')
-    slack_sender.send_simple_message("Directory bruteforce scan started against %s" % url)
-    scan_target(url, url, language)
+    slack_sender.send_simple_message("Directory bruteforce scan started against %s" % scan_info['url_to_scan'])
+    scan_target(scan_info, scan_info['url_to_scan'])
     print('------------------- FFUF SCAN FINISHED -------------------')
     return
 
 
-def add_vulnerability(target_name, affected_resource, extra_info, language):
+def add_vulnerability(scan_info, affected_resource, extra_info):
     timestamp = datetime.now()
-    if language == constants.LANGUAGE_ENGLISH:
+    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
         redmine.create_new_issue(constants.ENDPOINT_ENGLISH,
-                                 constants.REDMINE_ENDPOINT % (affected_resource, extra_info))
-        mongo.add_vulnerability(target_name, affected_resource,
+                                 constants.REDMINE_ENDPOINT % (affected_resource, extra_info), scan_info['redmine_project'])
+        mongo.add_vulnerability(scan_info['target'], affected_resource,
                                 constants.ENDPOINT_ENGLISH,
-                                timestamp, language, extra_info)
-    elif language == constants.LANGUAGE_SPANISH:
+                                timestamp, scan_info['language'], extra_info)
+    elif scan_info['language'] == constants.LANGUAGE_SPANISH:
         redmine.create_new_issue(constants.ENDPOINT_SPANISH,
-                                 constants.REDMINE_ENDPOINT % (affected_resource, extra_info))
-        mongo.add_vulnerability(target_name, affected_resource,
+                                 constants.REDMINE_ENDPOINT % (affected_resource, extra_info), scan_info['redmine_project'])
+        mongo.add_vulnerability(scan_info['target'], affected_resource,
                                 constants.ENDPOINT_SPANISH,
-                                timestamp, language, extra_info)
+                                timestamp, scan_info['language'], extra_info)
 
 
-def scan_target(target_name, url_with_http, language):
+def scan_target(scan_info, url_with_http):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     TOOL_DIR = ROOT_DIR + '/tools/ffuf'
     WORDLIST_DIR = ROOT_DIR + '/tools/ffuf_wordlist.txt'
@@ -80,7 +80,7 @@ def scan_target(target_name, url_with_http, language):
 
     if one_found:
         #slack_sender.send_simple_vuln("The following endpoints were found at %s:\n %s"% (url_with_http, extra_info_message))
-        add_vulnerability(target_name, url_with_http, extra_info_message, language)
+        add_vulnerability(scan_info, url_with_http, extra_info_message)
 
     cleanup(JSON_RESULT)
     return

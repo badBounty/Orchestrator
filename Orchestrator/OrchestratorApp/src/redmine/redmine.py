@@ -14,10 +14,10 @@ def get_project_names():
     return project_names
 
 
-def create_new_issue(vuln_name, description, attachment_path=None, attachment_name=None):
+def create_new_issue(vuln_name, description, project_name, attachment_path=None, attachment_name=None):
 
     issue = redmine.issue.new()
-    issue.project_id = 'orchestator-test-proj'  # orchestator-test-proj ?
+    issue.project_id = project_name             # orchestator-test-proj ?
     issue.subject = vuln_name                   # Nombre de la obs
     issue.tracker_id = 0                        # [0,1,2: Finding, 3:Consulta, 4: Notificacion de estado]
     issue.description = description             # Descripcion
