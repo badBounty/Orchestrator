@@ -306,6 +306,7 @@ def get_specific_finding_info(finding, language):
     else:
         return None
 
+
 def find_last_version_of_librarie(name):
     db = client.Orchestrator
     librarie = db.libraries_versions.find({'name':name})
