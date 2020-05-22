@@ -24,6 +24,7 @@ def handle_target(target, url_list, language):
         ssh_ftp_brute_login(url,host,language,True)#SHH
         ssh_ftp_brute_login(url,host,language,False)#FTP
         ftp_anon_login(url,host,language)#FTP ANON
+        default_account(url,host,language)#Default creds in web console
     print('------------------- NMAP SCRIPT TARGET SCAN FINISHED -------------------')
     return
 
@@ -33,13 +34,13 @@ def handle_single(url, language):
     slack_sender.send_simple_message("Nmap scripts started against %s" % url)
     # We receive the url with http/https, we will get only the host so nmap works
     host = url.split('/')[2]
-    outdated_software(url, host, language)
-    web_versions(url, host, language)
+    #outdated_software(url, host, language)
+    #web_versions(url, host, language)
     print('------------------- NMAP SSH FTP BRUTE FORCE START -------------------')
-    ssh_ftp_brute_login(url,host,language,True)#SHH
-    ssh_ftp_brute_login(url,host,language,False)#FTP
-    ftp_anon_login(url,host,language)#FTP ANON
-    print('------------------- NMAP SSH FTP BRUTE FORCE DONE -------------------')
+    #ssh_ftp_brute_login(url,host,language,True)#SHH
+    #ssh_ftp_brute_login(url,host,language,False)#FTP
+    #ftp_anon_login(url,host,language)#FTP ANON
+    default_account(url,host,language)#Default creds in web console
     print('------------------- NMAP_SCRIPT SCAN FINISHED -------------------')
     return
 
@@ -60,6 +61,8 @@ def add_vuln_to_mongo(target_name, scanned_url, scan_type, extra_info, language,
             vuln_name = constants.DEFAULT_CREDENTIALS_ENGLISH
         elif scan_type == "ftp_credentials":
             vuln_name = constants.CREDENTIALS_ACCESS_FTP_ENGLISH
+        elif scan_type == "default_creds":
+            vuln_name = constants.DEFAULT_CREDENTIALS_ENGLISH
     elif language == constants.LANGUAGE_SPANISH:
         if scan_type == 'outdated_software':
             vuln_name = constants.OUTDATED_SOFTWARE_NMAP_SPANISH
@@ -73,8 +76,9 @@ def add_vuln_to_mongo(target_name, scanned_url, scan_type, extra_info, language,
             vuln_name = constants.DEFAULT_CREDENTIALS_SPANISH
         elif scan_type == "ftp_credentials":
             vuln_name = constants.DEFAULT_CREDENTIALS_SPANISH
-
-    redmine.create_new_issue(vuln_name, extra_info)
+        elif scan_type == "default_creds":
+            vuln_name = constants.DEFAULT_CREDENTIALS_SPANISH
+    #redmine.create_new_issue(vuln_name, extra_info)
     mongo.add_vulnerability(target_name, scanned_url,
                             vuln_name, timestamp, language, extra_info,img_str)
     return
@@ -211,4 +215,87 @@ def ftp_anon_login(target_name,url_to_scan,language):
     except FileNotFoundError:
         pass
 
+    return
+
+def http_errors(target_name,url_to_scan,language):
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    end_name = '.htttp.errors'
+    output_dir = ROOT_DIR + '/tools_output/'+url_to_scan+end_name
+    port_list = '-p 80,81,443,591,2082,2087,2095,2096,3000,8000,8001,8008,8080,8083,8443,8834,8888 '
+    http_subprocess = subprocess.run(
+        ['nmap','-Pn', '-sV', port_list, '-vvv', '--script', ' http-errors ',  url_to_scan, '-oA', output_dir],capture_output=True)
+    with open(output_dir + '.xml') as xml_file:
+        my_dict = xmltodict.parse(xml_file.read())
+    xml_file.close()
+    json_data = json.dumps(my_dict)
+    json_data = json.loads(json_data)
+    ports = json_data['nmaprun']['host']['ports']['port']
+    message = ""
+    for p in ports:
+        pid = p['@portid']
+        if p['state']['@state'] == 'open':
+            if type(p['script']) == 'dict':
+                o = p['script']['@output']
+                if "Error Code:" in o:
+                    message +=o
+            else:
+                for o in p['script']:
+                    try:
+                        if "Error Code:" in o['@output']:
+                            message +=o['@output']
+                    except TypeError:
+                        pass
+    try:
+        os.remove(output_dir + '.xml')
+        os.remove(output_dir + '.nmap')
+        os.remove(output_dir + '.gnmap')
+    except FileNotFoundError:
+        pass
+    if message:
+        vuln_name = constants.POSSIBLE_ERROR_PAGES_ENGLISH if language == "eng" else constants.POSSIBLE_ERROR_PAGES_SPANISH
+        redmine.create_new_issue(vuln_name, message)
+    return
+
+def default_account(target_name,url_to_scan,language):
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    arg_fingerprint_dir = ROOT_DIR+'/tools/http-default-accounts-fingerprints-nndefaccts.lua'
+    script_to_copy = ROOT_DIR+'/tools/nmap/web_versions/http-default-accounts.nse'
+    script_to_launch = ROOT_DIR+'/tools/nmap/web_versions/'+url_to_scan+'.hda.nse'
+    end_name = '.http.def.acc'
+    output_dir = ROOT_DIR + '/tools_output/'+url_to_scan+end_name
+    ports = '80,81,443,591,2082,2087,2095,2096,3000,8000,8001,8008,8080,8083,8443,8834,8888'
+    message=""
+    #ACA ABRIMOS EL SCRIPT Y MODIFICAMOS LA INFORMACION QUE NECESITAMOS
+    with open(script_to_copy,'r') as script_edit:
+        list_of_lines = script_edit.readlines()
+    list_of_lines[108] = 'portrule = shortport.port_or_service( {'+ports+'}, {"http", "https"}, "tcp", "open")'
+    with open(script_to_launch,'w') as script_edit:
+        script_edit.writelines(list_of_lines)
+
+    da_subprocess = subprocess.run(
+        ['nmap','-Pn', '-sV', '-p'+ports, '--script', script_to_launch, '--script-args','http-default-accounts.fingerprintfile='+arg_fingerprint_dir,  url_to_scan, '-oA', output_dir],capture_output=True)   
+    with open(output_dir+ '.xml') as xml_file:
+            my_dict = xmltodict.parse(xml_file.read())
+    xml_file.close()
+    json_data = json.dumps(my_dict)
+    json_data = json.loads(json_data)
+    for port in json_data['nmaprun']['host']['ports']['port']:
+        try:
+            for scp in port['script']:
+                if isinstance(scp, dict):
+                    if "] at /" in scp['@output']:
+                        message+=scp['@output']
+        except KeyError:
+            pass
+    try:
+        os.remove(output_dir + '.xml')
+        os.remove(output_dir + '.nmap')
+        os.remove(output_dir + '.gnmap')
+        os.remove(script_to_launch)
+    except FileNotFoundError:
+        pass
+    print(message)
+    if message:
+        img_str = image_creator.create_image_from_string(message)
+        add_vuln_to_mongo(target_name, url_to_scan, "default_creds",message, language,img_str)
     return

@@ -45,6 +45,8 @@ CREDENTIALS_ACCESS_FTP_ENGLISH = 'Access to FTP server with default credentials'
 DEFAULT_CREDENTIALS_ENGLISH = 'Default credentials in use'
 # IIS SHORTNAME #
 IIS_SHORTNAME_MICROSOFT_ENGLISH = 'Microsoft short name directory and file enumeration'
+# ERROR PAGES #
+POSSIBLE_ERROR_PAGES_ENGLISH = 'Possible information disclosure within system error messages'
 
 ### SPANISH VULNERABILITIES ###
 # HEADERS #
@@ -84,7 +86,8 @@ ANONYMOUS_ACCESS_FTP_SPANISH = 'Permisos de escritura en servidor FTP en forma a
 DEFAULT_CREDENTIALS_SPANISH = 'Acceso administrativo mediante usuarios por defecto'
 # IIS SHORTNAME #
 IIS_SHORTNAME_MICROSOFT_SPANISH = 'Enumeración de nombres cortos de archivos y directorios de Microsoft'
-
+# ERROR PAGES #
+POSSIBLE_ERROR_PAGES_SPANISH = 'Posible inadecuado manejo de errores'
 ### REDMINE DESCRIPTIONS ###
 # HEADERS #
 REDMINE_INVALID_VALUE_ON_HEADER = 'Header/s found with invalid value at %s'
