@@ -42,7 +42,7 @@ def handle_target(target, url_list, language):
 def handle_single(scan_information):
     print('------------------- BURP SINGLE SCAN STARTING -------------------')
     slack_sender.send_simple_message("Burp scan started against %s" % scan_information['url_to_scan'])
-    scan_target(scan_information, scan_information['url_to-scan'])
+    scan_target(scan_information, scan_information['url_to_scan'])
     print('------------------- BURP SINGLE SCAN FINISHED -------------------')
     return
 
