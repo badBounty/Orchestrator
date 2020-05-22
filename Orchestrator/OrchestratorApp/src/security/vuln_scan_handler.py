@@ -11,6 +11,6 @@ def handle_url_baseline_security_scan(single_url, language):
     return
 
 
-def handle_scan_with_email_notification(email, single_url, language,report_type):
-    vuln_scan_with_email_notification.delay(email, single_url, language,report_type)
+def handle_scan_with_email_notification(email, single_url, language, report_type, redmine_project):
+    vuln_scan_with_email_notification.delay(email, single_url, language, report_type, redmine_project)
     return

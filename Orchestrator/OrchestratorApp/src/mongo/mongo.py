@@ -181,6 +181,7 @@ def add_ports_to_subdomain(subdomain, port_list):
             'extra_nmap': 'None'}})
         return
 
+
 def add_scan_screen_to_subdomain(subdomain,img_b64):
     db = client.Orchestrator
     subdomain = db.resources.find_one({'name': subdomain})
@@ -195,6 +196,7 @@ def add_urls_to_subdomain(subdomain, has_urls, url_list):
         'responsive_urls': url_list}})
 
     return
+
 
 def add_images_to_subdomain(subdomain, http_image, https_image):
     db = client.Orchestrator

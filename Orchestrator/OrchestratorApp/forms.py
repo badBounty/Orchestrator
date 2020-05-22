@@ -2,6 +2,7 @@ from django.forms import ModelForm
 from django import forms
 from .src.mongo import mongo
 from .src import constants
+from .src.redmine import redmine
 
 LANGUAGE_CHOICES = [
     (constants.LANGUAGE_ENGLISH, 'English'),
@@ -50,3 +51,5 @@ class EmailForm(forms.Form):
     target = forms.CharField(label='Target(Single URL)', max_length=50, required=False)
     report_type = forms.CharField(label='Select report type', widget=forms.Select(choices=REPORT_CHOICES))
     selected_language = forms.CharField(label='Select language', widget=forms.Select(choices=LANGUAGE_CHOICES))
+    REDMINE_PROJ_CHOICES = redmine.get_project_names()
+    redmine_project = forms.CharField(label='Redmine project', widget = forms.Select(choices=REDMINE_PROJ_CHOICES))

@@ -10,7 +10,8 @@ def get_project_names():
     projects = redmine.project.all()
     project_names = list()
     for project in projects:
-        project_names.append(project.name)
+        project_names.append((project.identifier, project.name))
+    return project_names
 
 
 def create_new_issue(vuln_name, description, attachment_path=None, attachment_name=None):
