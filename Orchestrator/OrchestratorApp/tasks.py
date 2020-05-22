@@ -102,7 +102,7 @@ def vuln_scan_single_task(target, language):
     libraries_scan.handle_single(target, language)
     ssl_tls_scan.handle_single(target, language)
     # Extra
-    ffuf.handle_single(target, language)
+    fuf.handle_single(target, language)
     # Nmap scripts
     nmap_script_scan.handle_single(target, language)
     # IIS shortname checker

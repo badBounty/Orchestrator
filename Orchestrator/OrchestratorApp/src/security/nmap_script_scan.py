@@ -34,12 +34,11 @@ def handle_single(url, language):
     slack_sender.send_simple_message("Nmap scripts started against %s" % url)
     # We receive the url with http/https, we will get only the host so nmap works
     host = url.split('/')[2]
-    #outdated_software(url, host, language)
-    #web_versions(url, host, language)
-    print('------------------- NMAP SSH FTP BRUTE FORCE START -------------------')
-    #ssh_ftp_brute_login(url,host,language,True)#SHH
-    #ssh_ftp_brute_login(url,host,language,False)#FTP
-    #ftp_anon_login(url,host,language)#FTP ANON
+    outdated_software(url, host, language)
+    web_versions(url, host, language)
+    ssh_ftp_brute_login(url,host,language,True)#SHH
+    ssh_ftp_brute_login(url,host,language,False)#FTP
+    ftp_anon_login(url,host,language)#FTP ANON
     default_account(url,host,language)#Default creds in web console
     print('------------------- NMAP_SCRIPT SCAN FINISHED -------------------')
     return
@@ -294,7 +293,6 @@ def default_account(target_name,url_to_scan,language):
         os.remove(script_to_launch)
     except FileNotFoundError:
         pass
-    print(message)
     if message:
         img_str = image_creator.create_image_from_string(message)
         add_vuln_to_mongo(target_name, url_to_scan, "default_creds",message, language,img_str)
