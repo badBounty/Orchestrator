@@ -27,9 +27,9 @@ ENDPOINT_ENGLISH = 'Vulnerable endpoints were found'
 # BUCKETS #
 BUCKET_LS_ENGLISH = 'Bucket with ls allowed found'
 BUCKET_NF_ENGLISH = 'Bucket is called but does not exist'
-BUCKET_CPRM_ENGLISH = 'Bucket with copy remove allowed fund'
+BUCKET_CPRM_ENGLISH = 'Bucket with copy remove allowed found'
 # SENSITIVE INFO #
-SENSITIVE_INFO_ENGLISH = 'Sensitive information was found'
+TOKEN_SENSITIVE_INFO_ENGLISH = 'Token information disclosure was found'
 # CSS #
 CSS_ENGLISH = 'Possible css injection found'
 # FIREBASE #
@@ -43,6 +43,8 @@ ANONYMOUS_ACCESS_FTP_ENGLISH = 'Anonymous access to FTP server'
 CREDENTIALS_ACCESS_FTP_ENGLISH = 'Access to FTP server with default credentials'
 # SSH #
 DEFAULT_CREDENTIALS_ENGLISH = 'Default credentials in use'
+# IIS SHORTNAME #
+IIS_SHORTNAME_MICROSOFT_ENGLISH = 'Microsoft short name directory and file enumeration'
 
 ### SPANISH VULNERABILITIES ###
 # HEADERS #
@@ -67,7 +69,7 @@ BUCKET_LS_SPANISH = 'Bucket con listado disponible encontrado'
 BUCKET_NF_SPANISH = 'Bucket fue invocado pero no existe'
 BUCKET_CPRM_SPANISH = 'Bucket con copia y borrado encontrado'
 # SENSITIVE INFO #
-SENSITIVE_INFO_SPANISH = 'Se encontro informacion sensible'
+TOKEN_SENSITIVE_INFO_SPANISH = 'Token con informacion sensible encontrado'
 # CSS #
 CSS_SPANISH = 'Posible inyeccion css'
 # FIREBASE #
@@ -80,6 +82,8 @@ WEB_VERSIONS_NMAP_SPANISH = 'Vulnerabilidades de versiones web encontradas'
 ANONYMOUS_ACCESS_FTP_SPANISH = 'Permisos de escritura en servidor FTP en forma anónima'
 # SSH #TODO ESTO POR AHORA COORDINAR EL NOMBRE CORRECTO DESPUES
 DEFAULT_CREDENTIALS_SPANISH = 'Acceso administrativo mediante usuarios por defecto'
+# IIS SHORTNAME #
+IIS_SHORTNAME_MICROSOFT_SPANISH = 'Enumeración de nombres cortos de archivos y directorios de Microsoft'
 
 ### REDMINE DESCRIPTIONS ###
 # HEADERS #
@@ -107,6 +111,8 @@ REDMINE_SENSITIVE_INFO = 'Found at %s \n %s'
 REDMINE_CSS = 'Found at %s. %s'
 # FIREBASE #
 REDMINE_FIREBASE = 'Firebase %s found open at %s'
+# IIS SHORTNAME #
+REDMINE_IIS = 'IIS Microsoft files and directories enumeration found at %s'
 # NMAP #
 REDMINE_OUTDATED_SOFTWARE_NMAP = 'Outdated software nmap script'
 REDMINE_HTTP_PASSWD_NMAP = 'Http passwd nmap script'

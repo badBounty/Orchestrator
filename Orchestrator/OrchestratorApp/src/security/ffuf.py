@@ -75,12 +75,11 @@ def scan_target(target_name, url_with_http, language):
     extra_info_message = ""
     for vuln in vulns:
         if vuln['status'] in valid_codes:
-            extra_info_message = extra_info_message + "%s\n", vuln['input']['FUZZ']
+            extra_info_message = extra_info_message + "%s\n"% vuln['input']['FUZZ']
             one_found = True
 
     if one_found:
-        slack_sender.send_simple_vuln("The following endpoints were found at %s:\n %s"
-                                    % (url_with_http, extra_info_message))
+        #slack_sender.send_simple_vuln("The following endpoints were found at %s:\n %s"% (url_with_http, extra_info_message))
         add_vulnerability(target_name, url_with_http, extra_info_message, language)
 
     cleanup(JSON_RESULT)
