@@ -108,7 +108,6 @@ def vuln_scan_single_task(target, language, redmine_project):
     ssl_tls_scan.handle_single(scan_information)
     # Extra
     ffuf.handle_single(scan_information)
-    burp_scan.handle_single(scan_information)
     # Nmap scripts
     nmap_script_scan.handle_single(scan_information)
     # IIS shortname checker
@@ -119,6 +118,7 @@ def vuln_scan_single_task(target, language, redmine_project):
     css_scan.handle_single(scan_information)
     firebase_scan.handle_single(scan_information)
     host_header_attack.handle_single(scan_information)
+    burp_scan.handle_single(scan_information)
     return
 
 # ------------------ Recon tasks ------------------ #
