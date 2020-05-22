@@ -6,6 +6,9 @@ CONSTANTS.PY
 LANGUAGE_ENGLISH = 'eng'
 LANGUAGE_SPANISH = 'spa'
 
+### GENERAL ###
+BURP_SCAN = 'Burp scan output'
+
 ### ENGLISH VULNERABILITIES ###
 # HEADERS #
 INVALID_VALUE_ON_HEADER_ENGLISH = 'Insecure HTTP Response Header Configuration'
@@ -27,9 +30,9 @@ ENDPOINT_ENGLISH = 'Vulnerable endpoints were found'
 # BUCKETS #
 BUCKET_LS_ENGLISH = 'Bucket with ls allowed found'
 BUCKET_NF_ENGLISH = 'Bucket is called but does not exist'
-BUCKET_CPRM_ENGLISH = 'Bucket with copy remove allowed fund'
+BUCKET_CPRM_ENGLISH = 'Bucket with copy remove allowed found'
 # SENSITIVE INFO #
-SENSITIVE_INFO_ENGLISH = 'Sensitive information was found'
+TOKEN_SENSITIVE_INFO_ENGLISH = 'Token information disclosure was found'
 # CSS #
 CSS_ENGLISH = 'Possible css injection found'
 # FIREBASE #
@@ -69,7 +72,7 @@ BUCKET_LS_SPANISH = 'Bucket con listado disponible encontrado'
 BUCKET_NF_SPANISH = 'Bucket fue invocado pero no existe'
 BUCKET_CPRM_SPANISH = 'Bucket con copia y borrado encontrado'
 # SENSITIVE INFO #
-SENSITIVE_INFO_SPANISH = 'Se encontro informacion sensible'
+TOKEN_SENSITIVE_INFO_SPANISH = 'Token con informacion sensible encontrado'
 # CSS #
 CSS_SPANISH = 'Posible inyeccion css'
 # FIREBASE #
@@ -117,6 +120,8 @@ REDMINE_IIS = 'IIS Microsoft files and directories enumeration found at %s'
 REDMINE_OUTDATED_SOFTWARE_NMAP = 'Outdated software nmap script'
 REDMINE_HTTP_PASSWD_NMAP = 'Http passwd nmap script'
 REDMINE_WEB_VERSIONS_NMAP = 'Web versions nmap script'
+# BURP #
+REDMINE_BURP_SCAN = 'Burp scan ran against %s'
 
 
 ### REPORTING ###

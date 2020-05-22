@@ -37,9 +37,9 @@ def add_token_found_vuln(target, scanned_url, javascript_file, language, extra_i
     timestamp = datetime.now()
     vuln_name = None
     if language == constants.LANGUAGE_ENGLISH:
-        vuln_name = constants.SENSITIVE_INFO_ENGLISH
+        vuln_name = constants.TOKEN_SENSITIVE_INFO_ENGLISH
     elif language == constants.LANGUAGE_SPANISH:
-        vuln_name = constants.SENSITIVE_INFO_SPANISH
+        vuln_name = constants.TOKEN_SENSITIVE_INFO_SPANISH
 
     redmine.create_new_issue(vuln_name, constants.REDMINE_SENSITIVE_INFO % (javascript_file, extra_info))
     mongo.add_vulnerability(target, scanned_url, vuln_name,

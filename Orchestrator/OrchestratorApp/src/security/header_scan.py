@@ -68,6 +68,7 @@ def add_header_value_vulnerability(target_name, scanned_url, timestamp, header, 
             vuln_name = constants.INVALID_VALUE_ON_HEADER_SPANISH
             redmine_description = constants.REDMINE_INVALID_VALUE_ON_HEADER
 
+    # vuln = new Vulnerability('Insecure header configuration')
     redmine.create_new_issue(vuln_name, redmine_description % scanned_url)
     mongo.add_vulnerability(target_name, scanned_url,vuln_name, timestamp, language,None,img_b64)
 
