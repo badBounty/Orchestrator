@@ -276,7 +276,8 @@ def default_account(scan_info,url_to_scan):
         script_edit.writelines(list_of_lines)
 
     da_subprocess = subprocess.run(
-        ['nmap','-Pn', '-sV', '-p'+ports, '--script', script_to_launch, '--script-args','http-default-accounts.fingerprintfile='+arg_fingerprint_dir,  url_to_scan, '-oA', output_dir],capture_output=True)   
+        ['nmap','-Pn', '-sV', '-p'+ports,'-vvv', '--script', script_to_launch, '--script-args','http-default-accounts.fingerprintfile='+arg_fingerprint_dir,  url_to_scan, '-oA', output_dir],capture_output=True)   
+
     with open(output_dir+ '.xml') as xml_file:
             my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()
@@ -290,6 +291,10 @@ def default_account(scan_info,url_to_scan):
                         message+=scp['@output']
         except KeyError:
             pass
+    print(message)
+    if message:
+        img_str = image_creator.create_image_from_string(message)
+        add_vuln_to_mongo(scan_info, url_to_scan, "default_creds",message,img_str)
     try:
         os.remove(output_dir + '.xml')
         os.remove(output_dir + '.nmap')
@@ -297,7 +302,5 @@ def default_account(scan_info,url_to_scan):
         os.remove(script_to_launch)
     except FileNotFoundError:
         pass
-    if message:
-        img_str = image_creator.create_image_from_string(message)
-        add_vuln_to_mongo(scan_info, url_to_scan, "default_creds",message,img_str)
+
     return
