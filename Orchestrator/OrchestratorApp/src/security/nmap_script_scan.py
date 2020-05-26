@@ -19,11 +19,15 @@ def handle_target(target, url_list, language):
     for url in url_list:
         print('Scanning ' + url['url_with_http'])
         host = url['url_with_http'].split('/')[2]
+        print('Outdated software')
         outdated_software(url['target'], host, language)
+        print('Web versions')
         web_versions(url['target'], host, language)
+        print('SSH FTP Bruteforce')
         ssh_ftp_brute_login(url,host,language,True)#SHH
         ssh_ftp_brute_login(url,host,language,False)#FTP
         ftp_anon_login(url,host,language)#FTP ANON
+        print('Default accounts')
         default_account(url,host,language)#Default creds in web console
     print('------------------- NMAP SCRIPT TARGET SCAN FINISHED -------------------')
     return
@@ -35,13 +39,15 @@ def handle_single(scan_info):
     slack_sender.send_simple_message("Nmap scripts started against %s" % url)
     # We receive the url with http/https, we will get only the host so nmap works
     host = url.split('/')[2]
+    print('------------------- NMAP OUTDATED SOFTWARE -------------------')
     outdated_software(scan_info, host)
+    print('------------------- NMAP WEB VERSIONS -------------------')
     web_versions(scan_info, host)
-    print('------------------- NMAP SSH FTP BRUTE FORCE START -------------------')
+    print('------------------- NMAP SSH FTP BRUTE FORCE -------------------')
     ssh_ftp_brute_login(scan_info, host, True)#SHH
     ssh_ftp_brute_login(scan_info, host, False)#FTP
     ftp_anon_login(scan_info, host)#FTP ANON
-    print('------------------- NMAP SSH FTP BRUTE FORCE DONE -------------------')
+    print('------------------- NMAP DEFAULT ACCOUNTS -------------------')
     default_account(scan_info,host)#Default creds in web console
     print('------------------- NMAP_SCRIPT SCAN FINISHED -------------------')
     return
