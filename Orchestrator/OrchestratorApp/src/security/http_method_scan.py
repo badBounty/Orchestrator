@@ -58,9 +58,14 @@ def scan_target(scan_info, url_to_scan):
     options_response = requests.options(url_to_scan)
     responses.append({'method': 'OPTIONS', 'response': options_response})
 
-    res = any(response['response'].status_code == 200 for response in responses)
+    extensive_methods = False
+    message = "\n"
+    for response in responses:
+        if response['response'].status_code == 200:
+            extensive_methods = True
+            message = message + "Method " + response['method'] + " found." + "\n"
     timestamp = datetime.now()
-    if res:
-        slack_sender.send_simple_vuln("Extensive http methods found on %s"
-                                      % url_to_scan)
+    if extensive_methods:
+        slack_sender.send_simple_vuln("Extensive http methods found on %s, %s"
+                                      % (url_to_scan, message))
         add_vulnerability(scan_info, url_to_scan, timestamp)

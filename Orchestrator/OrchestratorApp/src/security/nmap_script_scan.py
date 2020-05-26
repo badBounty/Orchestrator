@@ -24,11 +24,11 @@ def handle_target(target, url_list, language):
         print('Web versions')
         web_versions(url['target'], host, language)
         print('SSH FTP Bruteforce')
-        ssh_ftp_brute_login(url,host,language,True)#SHH
-        ssh_ftp_brute_login(url,host,language,False)#FTP
-        ftp_anon_login(url,host,language)#FTP ANON
+        ssh_ftp_brute_login(url,host, language, True) # SHH
+        ssh_ftp_brute_login(url,host, language, False) # FTP
+        ftp_anon_login(url,host, language) # FTP ANON
         print('Default accounts')
-        default_account(url,host,language)#Default creds in web console
+        default_account(url,host, language) # Default creds in web console
     print('------------------- NMAP SCRIPT TARGET SCAN FINISHED -------------------')
     return
 
@@ -86,9 +86,11 @@ def add_vuln_to_mongo(scan_info, scanned_url, scan_type, extra_info, img_str=Non
             vuln_name = constants.DEFAULT_CREDENTIALS_SPANISH
         elif scan_type == "default_creds":
             vuln_name = constants.DEFAULT_CREDENTIALS_SPANISH
+
+    slack_sender.send_simple_vuln("Nmap " + scan_type + " script found: \n" + str(extra_info))
     redmine.create_new_issue(vuln_name, extra_info, scan_info['redmine_project'])
     mongo.add_vulnerability(scan_info['target'], scanned_url,
-                            vuln_name, timestamp, scan_info['language'], extra_info,img_str)
+                            vuln_name, timestamp, scan_info['language'], extra_info, img_str)
     return
 
 
