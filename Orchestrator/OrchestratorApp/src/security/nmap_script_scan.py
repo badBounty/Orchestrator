@@ -19,12 +19,16 @@ def handle_target(target, url_list, language):
     for url in url_list:
         print('Scanning ' + url['url_with_http'])
         host = url['url_with_http'].split('/')[2]
+        print('Outdated software')
         outdated_software(url['target'], host, language)
+        print('Web versions')
         web_versions(url['target'], host, language)
-        ssh_ftp_brute_login(url,host,language,True)#SHH
-        ssh_ftp_brute_login(url,host,language,False)#FTP
-        ftp_anon_login(url,host,language)#FTP ANON
-        default_account(url,host,language)#Default creds in web console
+        print('SSH FTP Bruteforce')
+        ssh_ftp_brute_login(url,host, language, True) # SHH
+        ssh_ftp_brute_login(url,host, language, False) # FTP
+        ftp_anon_login(url,host, language) # FTP ANON
+        print('Default accounts')
+        default_account(url,host, language) # Default creds in web console
     print('------------------- NMAP SCRIPT TARGET SCAN FINISHED -------------------')
     return
 
@@ -35,14 +39,17 @@ def handle_single(scan_info):
     slack_sender.send_simple_message("Nmap scripts started against %s" % url)
     # We receive the url with http/https, we will get only the host so nmap works
     host = url.split('/')[2]
+    print('------------------- NMAP OUTDATED SOFTWARE -------------------')
     outdated_software(scan_info, host)
+    print('------------------- NMAP WEB VERSIONS -------------------')
     web_versions(scan_info, host)
-    print('------------------- NMAP SSH FTP BRUTE FORCE START -------------------')
-    ssh_ftp_brute_login(scan_info, host, True)#SHH
-    ssh_ftp_brute_login(scan_info, host, False)#FTP
-    ftp_anon_login(scan_info, host)#FTP ANON
-    print('------------------- NMAP SSH FTP BRUTE FORCE DONE -------------------')
-    default_account(scan_info,host)#Default creds in web console
+    if scan_info['invasive_scans']:
+        print('------------------- NMAP SSH FTP BRUTE FORCE -------------------')
+        ssh_ftp_brute_login(scan_info, host, True)#SHH
+        ssh_ftp_brute_login(scan_info, host, False)#FTP
+        ftp_anon_login(scan_info, host)#FTP ANON
+        print('------------------- NMAP DEFAULT ACCOUNTS -------------------')
+        default_account(scan_info,host)#Default creds in web console
     print('------------------- NMAP_SCRIPT SCAN FINISHED -------------------')
     return
 
@@ -80,9 +87,11 @@ def add_vuln_to_mongo(scan_info, scanned_url, scan_type, extra_info, img_str=Non
             vuln_name = constants.DEFAULT_CREDENTIALS_SPANISH
         elif scan_type == "default_creds":
             vuln_name = constants.DEFAULT_CREDENTIALS_SPANISH
+
+    slack_sender.send_simple_vuln("Nmap " + scan_type + " script found: \n" + str(extra_info))
     redmine.create_new_issue(vuln_name, extra_info, scan_info['redmine_project'])
     mongo.add_vulnerability(scan_info['target'], scanned_url,
-                            vuln_name, timestamp, scan_info['language'], extra_info,img_str)
+                            vuln_name, timestamp, scan_info['language'], extra_info, img_str)
     return
 
 

@@ -49,11 +49,14 @@ def filter_invalids(some_list):
 
 def scan_target(scan_information, url_to_scan):
     # We first search for buckets inside the html code
+    print('Scanning html file...')
     get_buckets(scan_information, url_to_scan)
     # We now scan javascript files
+    print('Searching for javascript files..')
     javascript_files_found = utils.get_js_files_linkfinder(url_to_scan)
     print(str(len(javascript_files_found)) + ' javascript files found')
     for javascript in javascript_files_found:
+        print('Scanning %s', javascript)
         get_buckets(scan_information, javascript)
     return
 

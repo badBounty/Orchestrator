@@ -53,4 +53,7 @@ class EmailForm(forms.Form):
     selected_language = forms.CharField(label='Select language', widget=forms.Select(choices=LANGUAGE_CHOICES))
     REDMINE_PROJ_CHOICES = redmine.get_project_names()
     REDMINE_PROJ_CHOICES.append(('no_project', 'No upload'))
-    redmine_project = forms.CharField(label='Redmine project', widget = forms.Select(choices=REDMINE_PROJ_CHOICES))
+    redmine_project = forms.CharField(label='Redmine project', widget=forms.Select(choices=REDMINE_PROJ_CHOICES))
+
+    use_active_modules = forms.BooleanField(required=False, initial=True, label='Invasive modules',
+                                            help_text= "Enables intrusive nmap scripts (SSH/FTP/Default login)")

@@ -79,7 +79,7 @@ def scan_target(scan_info, url_with_http):
             one_found = True
 
     if one_found:
-        #slack_sender.send_simple_vuln("The following endpoints were found at %s:\n %s"% (url_with_http, extra_info_message))
+        slack_sender.send_simple_vuln("The following endpoints were found at %s:\n %s"% (url_with_http, extra_info_message))
         add_vulnerability(scan_info, url_with_http, extra_info_message)
 
     cleanup(JSON_RESULT)

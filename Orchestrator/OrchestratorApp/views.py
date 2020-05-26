@@ -126,8 +126,10 @@ def email_scan_view(request):
             language = form.cleaned_data['selected_language']
             report_type = form.cleaned_data['report_type']
             redmine_project_name = form.cleaned_data['redmine_project']
+            active_modules = form.cleaned_data['use_active_modules']
             vuln_scan_handler.handle_scan_with_email_notification(email, target, language,
-                                                                  report_type, redmine_project_name)
-            return JsonResponse({"Message":"You will recive and email soon...very soon"})
+                                                                  report_type, redmine_project_name,
+                                                                  active_modules)
+            return redirect('/')
     form = EmailForm()
     return render(request, 'Orchestrator/single_with_email_view.html', {'form': form})
