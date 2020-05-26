@@ -54,10 +54,12 @@ def add_vulnerability_to_mongo(scan_info, scanned_url, css_url, extra_info):
 
 def scan_target(scan_info, url_to_scan):
     # We take every .css file from our linkfinder utils
+    print('Searching for css files...')
     css_files_found = utils.get_css_files_linkfinder(url_to_scan)
     print(str(len(css_files_found)) + ' css files found')
 
     for css_file in css_files_found:
+        print('Scanning %s', css_file)
         url_split = css_file.split('/')
         host_split = url_to_scan.split('/')
 
