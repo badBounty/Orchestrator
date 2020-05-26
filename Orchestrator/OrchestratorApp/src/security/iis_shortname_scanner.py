@@ -26,7 +26,10 @@ def handle_single(scan_info):
 
 
 def scan_target(scan_info, url_to_scan):
-    resp = requests.get(url_to_scan)
+    try:
+        resp = requests.get(url_to_scan)
+    except Exception:
+        return
     try:
         if 'IIS' in resp.headers['Server']:
             ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
