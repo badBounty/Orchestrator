@@ -95,6 +95,7 @@ def scan_target(scan_info, url_to_scan):
 
     download_response = requests.get(download_report % url_to_scan, headers=header)
     open(OUTPUT_DIR, 'wb').write(download_response.content)
+    slack_sender.send_file(OUTPUT_DIR, 'burp_result.xml')
     add_vulnerability(scan_info, url_to_scan, download_response.content,
                       OUTPUT_DIR, 'burp_result.xml')
     try:
