@@ -154,15 +154,15 @@ def web_versions(scan_info, url_to_scan):
 
 def ssh_ftp_brute_login(scan_info, url_to_scan, is_ssh):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    timeout = 'timeout=5s'
+    time_limit = '30' #seconds
     if is_ssh:
         brute = ROOT_DIR + '/tools/nmap/server_versions/ssh-brute.nse'
         port = '-p22'
-        timeout = 'timeout=5s'
         end_name = '.ssh.brute'
     else:
         brute = ROOT_DIR + '/tools/nmap/server_versions/ftp-brute.nse'
         port = '-p21'
-        timeout = 'timeout=5s'
         end_name = '.ftp.brute'
 
     users = ROOT_DIR + '/tools/usernames-shortlist.txt'
@@ -170,7 +170,7 @@ def ssh_ftp_brute_login(scan_info, url_to_scan, is_ssh):
     output_dir = ROOT_DIR + '/tools_output/'+url_to_scan+end_name
     brute_subprocess = subprocess.run(
         ['nmap', '-Pn', '-sV', port, '-vvv', '--script', brute, '--script-args',
-         'userdb='+users+','+'passdb='+password+','+timeout, url_to_scan, '-oA', output_dir])
+         'userdb='+users+','+'passdb='+password+','+timeout+','+'brute.delay='+time_limit+','+'brute.retries=1,brute.guesses=4', url_to_scan, '-oA', output_dir])
     with open(output_dir + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()

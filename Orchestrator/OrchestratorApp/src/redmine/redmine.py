@@ -28,4 +28,10 @@ def create_new_issue(vuln_name, description, project_name, attachment_path=None,
     issue.watcher_user_ids = [17]               # Ids de los watchers, Orchestrator es 17
     if attachment_path is not None:
         issue.uploads = [{'path': attachment_path, 'filename': attachment_name}]
-    issue.save()
+    try:
+        issue.save()
+    except Exception as e:
+        print("ERROR SAVING THE ISSUE - SHOWING FULL ERROR:\n")
+        print(e)
+        print("CONTINUING WITH THE SCAN")
+        pass
