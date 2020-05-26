@@ -24,8 +24,8 @@ def sleepy(duration):
 
 # ------------------ Scan with email ------------------ #
 @shared_task
-def vuln_scan_with_email_notification(email, url_to_scan, language, report_type, redmine_project):
-    vuln_scan_single_task(url_to_scan, language, redmine_project)
+def vuln_scan_with_email_notification(email, url_to_scan, language, report_type, redmine_project, invasive_scans):
+    vuln_scan_single_task(url_to_scan, language, redmine_project, invasive_scans)
     vulns = mongo.get_vulns_with_language(url_to_scan, language)
     file_dir, missing_findings = reporting.create_report("", language, report_type, url_to_scan, vulns)
     email_handler.send_email(file_dir, missing_findings, email)
@@ -67,7 +67,7 @@ def recon_and_vuln_scan_task(target, language):
 
 # ------------------ Vulneability scans ------------------ #
 @shared_task
-def vuln_scan_target_task(target, language):
+def vuln_scan_target_task(target, language, invasive_scans):
     subdomains_http = mongo.get_responsive_http_resources(target)
     ssl_valid = mongo.get_ssl_scannable_resources(target)
     # Baseline
@@ -77,7 +77,8 @@ def vuln_scan_target_task(target, language):
     #libraries_scan.handle_target(target, subdomains, language)
     ssl_tls_scan.handle_target(target, ssl_valid, language)
     # Nmap scripts
-    nmap_script_scan.handle_target(target, subdomains_http, language)
+    if invasive_scans:
+        nmap_script_scan.handle_target(target, subdomains_http, language)
     # IIS shortname checker
     iis_shortname_scanner.handle_target(target,subdomains_http, language)
     # Extra
