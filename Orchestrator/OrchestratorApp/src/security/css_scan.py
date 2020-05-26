@@ -59,7 +59,7 @@ def scan_target(scan_info, url_to_scan):
     print(str(len(css_files_found)) + ' css files found')
 
     for css_file in css_files_found:
-        print('Scanning %s', css_file)
+        print('Scanning %s' % css_file)
         url_split = css_file.split('/')
         host_split = url_to_scan.split('/')
 

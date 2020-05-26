@@ -53,7 +53,7 @@ def scan_target(scan_info, url_for_scanning):
     javascript_files_found = utils.get_js_files_linkfinder(url_for_scanning)
     print(str(len(javascript_files_found)) + ' javascript files found')
     for javascript in javascript_files_found:
-        print('Scanning %s', javascript)
+        print('Scanning %s' % javascript)
         scan_for_tokens(scan_info, url_for_scanning, javascript)
     return
 
