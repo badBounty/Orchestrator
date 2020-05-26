@@ -1,6 +1,4 @@
 from ...__init__ import slack_web_client
-import slack
-import io
 
 
 def send_new_domain_found_message(domain_name, ip):
@@ -42,15 +40,3 @@ def send_simple_vuln(message):
     except Exception:
         return
     return
-
-
-def send_file(file_path, file_name):
-    with open(file_path, 'rb') as f:
-        slack.api_call(
-            "files.upload",
-            channels='#orchestrator_vulns',
-            filename=file_name,
-            title='Burp result',
-            initial_comment='Burp result',
-            file=io.BytesIO(f.read())
-        )
