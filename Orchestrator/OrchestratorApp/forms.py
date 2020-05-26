@@ -55,4 +55,5 @@ class EmailForm(forms.Form):
     REDMINE_PROJ_CHOICES.append(('no_project', 'No upload'))
     redmine_project = forms.CharField(label='Redmine project', widget=forms.Select(choices=REDMINE_PROJ_CHOICES))
 
-    use_active_modules = forms.BooleanField(required=False, initial=True, label='Invasive modules')
+    use_active_modules = forms.BooleanField(required=False, initial=True, label='Invasive modules',
+                                            help_text= "Enables intrusive nmap scripts (SSH/FTP/Default login)")
