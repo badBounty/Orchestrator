@@ -24,8 +24,8 @@ def sleepy(duration):
 
 # ------------------ Scan with email ------------------ #
 @shared_task
-def vuln_scan_with_email_notification(email, url_to_scan, language, report_type, redmine_project):
-    vuln_scan_single_task(url_to_scan, language, redmine_project)
+def vuln_scan_with_email_notification(email, url_to_scan, language, report_type, redmine_project, invasive_scans):
+    vuln_scan_single_task(url_to_scan, language, redmine_project, invasive_scans)
     vulns = mongo.get_vulns_with_language(url_to_scan, language)
     #file_dir, missing_findings = reporting.create_report("", language, report_type, url_to_scan, vulns)
     #email_handler.send_email(file_dir, missing_findings, email)
@@ -93,12 +93,13 @@ def vuln_scan_target_task(target, language):
 
 
 @shared_task
-def vuln_scan_single_task(target, language, redmine_project):
+def vuln_scan_single_task(target, language, redmine_project, invasive_scans):
     scan_information = {
         'target': target,
         'url_to_scan': target,
         'language': language,
-        'redmine_project': redmine_project
+        'redmine_project': redmine_project,
+        'invasive_scans': invasive_scans
     }
     # Baseline
     header_scan.handle_single(scan_information)
