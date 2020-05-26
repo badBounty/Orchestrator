@@ -21,9 +21,15 @@ def get_js_files_linkfinder(url):
     output = str(output).split('\\n')
 
     js_files = list()
+    missing_host = list()
     for found in output:
         if 'http' in found and '.js' in found and 'Running' not in found:
             js_files.append(found)
+        elif '.js' in found and found[0] != '/' and 'Running' not in found:
+            missing_host.append(found)
+
+    for new_url in missing_host:
+        js_files.append(url + '/' + new_url)
     return js_files
 
 
