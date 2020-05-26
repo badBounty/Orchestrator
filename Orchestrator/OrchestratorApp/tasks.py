@@ -67,7 +67,7 @@ def recon_and_vuln_scan_task(target, language):
 
 # ------------------ Vulneability scans ------------------ #
 @shared_task
-def vuln_scan_target_task(target, language, invasive_scans):
+def vuln_scan_target_task(target, language):
     subdomains_http = mongo.get_responsive_http_resources(target)
     ssl_valid = mongo.get_ssl_scannable_resources(target)
     # Baseline
@@ -77,8 +77,7 @@ def vuln_scan_target_task(target, language, invasive_scans):
     #libraries_scan.handle_target(target, subdomains, language)
     ssl_tls_scan.handle_target(target, ssl_valid, language)
     # Nmap scripts
-    if invasive_scans:
-        nmap_script_scan.handle_target(target, subdomains_http, language)
+    nmap_script_scan.handle_target(target, subdomains_http, language)
     # IIS shortname checker
     iis_shortname_scanner.handle_target(target,subdomains_http, language)
     # Extra
@@ -94,12 +93,13 @@ def vuln_scan_target_task(target, language, invasive_scans):
 
 
 @shared_task
-def vuln_scan_single_task(target, language, redmine_project):
+def vuln_scan_single_task(target, language, redmine_project, invasive_scans):
     scan_information = {
         'target': target,
         'url_to_scan': target,
         'language': language,
-        'redmine_project': redmine_project
+        'redmine_project': redmine_project,
+        'invasive_scans': invasive_scans
     }
     # Baseline
     header_scan.handle_single(scan_information)
