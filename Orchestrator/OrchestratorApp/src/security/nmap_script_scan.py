@@ -10,6 +10,14 @@ from .. import constants
 from ..mongo import mongo
 from ..redmine import redmine
 
+def cleanup(path):
+    try:
+        os.remove(output_dir + '.xml')
+        os.remove(output_dir + '.nmap')
+        os.remove(output_dir + '.gnmap')
+    except FileNotFoundError:
+        pass
+    return
 
 def handle_target(target, url_list, language):
     print('------------------- NMAP SCRIPT TARGET SCAN STARTING -------------------')
@@ -40,9 +48,9 @@ def handle_single(scan_info):
     # We receive the url with http/https, we will get only the host so nmap works
     host = url.split('/')[2]
     print('------------------- NMAP OUTDATED SOFTWARE -------------------')
-    outdated_software(scan_info, host)
+    #outdated_software(scan_info, host)
     print('------------------- NMAP WEB VERSIONS -------------------')
-    web_versions(scan_info, host)
+    #web_versions(scan_info, host)
     if scan_info['invasive_scans']:
         print('------------------- NMAP SSH FTP BRUTE FORCE -------------------')
         ssh_ftp_brute_login(scan_info, host, True)#SHH
@@ -173,13 +181,13 @@ def ssh_ftp_brute_login(scan_info, url_to_scan, is_ssh):
         brute = ROOT_DIR + '/tools/nmap/server_versions/ftp-brute.nse'
         port = '-p21'
         end_name = '.ftp.brute'
-
     users = ROOT_DIR + '/tools/usernames-shortlist.txt'
     password = ROOT_DIR + '/tools/default-pass.txt'
     output_dir = ROOT_DIR + '/tools_output/'+url_to_scan+end_name
     brute_subprocess = subprocess.run(
         ['nmap', '-Pn', '-sV', port, '-vvv', '--script', brute, '--script-args',
-         'userdb='+users+','+'passdb='+password+','+timeout+','+'brute.delay='+time_limit+','+'brute.retries=1,brute.guesses=4', url_to_scan, '-oA', output_dir])
+         'userdb='+users+','+'passdb='+password+','+timeout+','+'brute.delay='+time_limit+','+'brute.retries=1,brute.guesses=4', '-oA', output_dir,url_to_scan])
+    cleanup(output_dir)
     with open(output_dir + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()

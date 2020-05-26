@@ -56,7 +56,7 @@ def scan_target(scan_information, url_to_scan):
     javascript_files_found = utils.get_js_files_linkfinder(url_to_scan)
     print(str(len(javascript_files_found)) + ' javascript files found')
     for javascript in javascript_files_found:
-        print('Scanning %s', javascript)
+        print('Scanning %s' % javascript)
         get_buckets(scan_information, javascript)
     return
 
