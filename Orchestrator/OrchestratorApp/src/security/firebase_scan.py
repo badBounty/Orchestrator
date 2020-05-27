@@ -42,7 +42,8 @@ def add_vulnerability(scan_info, scanned_url, firebase_name):
         vuln_name = constants.FIREBASE_SPANISH
         extra_to_send = 'Firebase name %s' % firebase_name
 
-    redmine.create_new_issue(vuln_name, constants.REDMINE_FIREBASE % (firebase_name, scanned_url), scan_info['redmine_project'])
+    redmine.create_new_issue(vuln_name, constants.REDMINE_FIREBASE % (firebase_name, scanned_url),
+                             scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
     mongo.add_vulnerability(scan_info['target'], scanned_url, vuln_name, timestamp, scan_info['language'], extra_to_send)
 
 

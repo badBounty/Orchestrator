@@ -52,7 +52,7 @@ def add_vulnerability(scan_info, scanned_url, extra_info, file_dir, file_name):
     vulnerability = constants.BURP_SCAN
 
     redmine.create_new_issue(vulnerability, constants.REDMINE_BURP_SCAN % scanned_url, scan_info['redmine_project'],
-                             file_dir, file_name)
+                             scan_info['assigned_users'], scan_info['watchers'], file_dir, file_name)
     mongo.add_vulnerability(scan_info['target'], scanned_url, vulnerability,
                             timestamp, scan_info['language'], extra_info)
 

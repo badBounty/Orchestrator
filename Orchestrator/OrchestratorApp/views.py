@@ -121,15 +121,7 @@ def email_scan_view(request):
     if request.method == 'POST':
         form = EmailForm(request.POST)
         if form.is_valid():
-            email = form.cleaned_data['email']
-            target = form.cleaned_data['target']
-            language = form.cleaned_data['selected_language']
-            report_type = form.cleaned_data['report_type']
-            redmine_project_name = form.cleaned_data['redmine_project']
-            active_modules = form.cleaned_data['use_active_modules']
-            vuln_scan_handler.handle_scan_with_email_notification(email, target, language,
-                                                                  report_type, redmine_project_name,
-                                                                  active_modules)
+            vuln_scan_handler.handle_scan_with_email_notification(form.cleaned_data)
             return redirect('/')
     form = EmailForm()
     return render(request, 'Orchestrator/single_with_email_view.html', {'form': form})

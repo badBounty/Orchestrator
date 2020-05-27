@@ -61,13 +61,13 @@ def cleanup(path):
 def add_vulnerability(scan_info, scanned_url, timestamp):
     if scan_info['language'] == constants.LANGUAGE_ENGLISH:
         redmine.create_new_issue(constants.SSL_TLS_ENGLISH, constants.REDMINE_SSL_TLS % scanned_url,
-                                 scan_info['redmine_project'])
+                                 scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
         mongo.add_vulnerability(scan_info['target'], scanned_url,
                                 constants.SSL_TLS_ENGLISH,
                                 timestamp, scan_info['language'])
     if scan_info['language'] == constants.LANGUAGE_SPANISH:
         redmine.create_new_issue(constants.SSL_TLS_SPANISH, constants.REDMINE_SSL_TLS % scanned_url,
-                                 scan_info['redmine_project'])
+                                 scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
         mongo.add_vulnerability(scan_info['target'], scanned_url,
                                 constants.SSL_TLS_SPANISH,
                                 timestamp, scan_info['language'])

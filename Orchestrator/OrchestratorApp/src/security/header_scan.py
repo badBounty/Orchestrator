@@ -69,7 +69,8 @@ def add_header_value_vulnerability(scan_info, scanned_url, timestamp, header, im
             redmine_description = constants.REDMINE_INVALID_VALUE_ON_HEADER
 
     # vuln = new Vulnerability('Insecure header configuration')
-    redmine.create_new_issue(vuln_name, redmine_description % scanned_url, scan_info['redmine_project'])
+    redmine.create_new_issue(vuln_name, redmine_description % scanned_url,
+                             scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
     mongo.add_vulnerability(scan_info['target'], scanned_url,vuln_name, timestamp, scan_info['language'], None, img_b64)
 
 
@@ -97,7 +98,7 @@ def add_header_missing_vulnerability(scan_info, scanned_url, timestamp, header, 
             vuln_name = constants.HEADER_NOT_FOUND_SPANISH
             redmine_description = constants.REDMINE_HEADER_NOT_FOUND
 
-    redmine.create_new_issue(vuln_name, redmine_description % scanned_url, scan_info['redmine_project'])
+    redmine.create_new_issue(vuln_name, redmine_description % scanned_url, scan_info['redmine_project'], scan_info['watchers'])
     mongo.add_vulnerability(scan_info['target'], scanned_url, vuln_name, timestamp, scan_info['language'], None, img_b64)
 
 

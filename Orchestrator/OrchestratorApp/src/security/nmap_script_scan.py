@@ -97,7 +97,7 @@ def add_vuln_to_mongo(scan_info, scanned_url, scan_type, extra_info, img_str=Non
             vuln_name = constants.DEFAULT_CREDENTIALS_SPANISH
 
     slack_sender.send_simple_vuln("Nmap " + scan_type + " script found: \n" + str(extra_info))
-    redmine.create_new_issue(vuln_name, extra_info, scan_info['redmine_project'])
+    redmine.create_new_issue(vuln_name, extra_info, scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
     mongo.add_vulnerability(scan_info['target'], scanned_url,
                             vuln_name, timestamp, scan_info['language'], extra_info, img_str)
     return
@@ -139,7 +139,7 @@ def web_versions(scan_info, url_to_scan):
     extra_info_httpd_passwd = list()
     for i in range(0, len(text_httpd_passwd)):
         if 'Directory traversal found' in text_httpd_passwd[i]:
-            extra_info_httpd_passwd.append(text_httpd_passwd[i-1] + '\n' + text_httpd_passwd[i] + '\n' + text_httpd_passwd[i+1])
+            extra_info_httpd_passwd.append(text_httpd_passwd[i-1] + " \n " + text_httpd_passwd[i] + " \n " + text_httpd_passwd[i+1])
     if extra_info_httpd_passwd:
         add_vuln_to_mongo(scan_info, url_to_scan, 'http_passwd', extra_info_httpd_passwd)
 
@@ -152,18 +152,18 @@ def web_versions(scan_info, url_to_scan):
 
     extra_info_web_versions = list()
     for i in range(0, len(text_web_versions)):
-        if 'The following JSONP endpoints were detected' in text_web_versions[i]:
-            extra_info_web_versions.append(text_web_versions[i-1] + '\n' +
-                                           text_web_versions[i] + '\n' + text_web_versions[i+1])
-        if 'http-open-redirect' in text_web_versions[i]:
-            extra_info_web_versions.append(text_web_versions[i] + '\n' +
+        if 'The following JSONP endpoints were detected' in text_web_versions[i] and 'ERROR' not in text_web_versions[i]:
+            extra_info_web_versions.append(text_web_versions[i-1] + " \n " +
+                                           text_web_versions[i] + " \n " + text_web_versions[i+1])
+        if 'http-open-redirect' in text_web_versions[i] and 'ERROR' not in text_web_versions[i]:
+            extra_info_web_versions.append(text_web_versions[i] + " \n " +
                                            text_web_versions[i+1])
-        if 'http-vuln-cve2017-5638' in text_web_versions[i]:
-            extra_info_web_versions.append(text_web_versions[i] + '\n' +
-                                           text_web_versions[i+1] + '\n' + text_web_versions[i+2])
-        if 'http-vuln-cve2017-1001000' in text_web_versions[i]:
-            extra_info_web_versions.append(text_web_versions[i] + '\n' +
-                                           text_web_versions[i+1] + '\n' + text_web_versions[i+2])
+        if 'http-vuln-cve2017-5638' in text_web_versions[i] and 'ERROR' not in text_web_versions[i]:
+            extra_info_web_versions.append(text_web_versions[i] + " \n " +
+                                           text_web_versions[i+1] + " \n " + text_web_versions[i+2])
+        if 'http-vuln-cve2017-1001000' in text_web_versions[i] and 'ERROR' not in text_web_versions[i]:
+            extra_info_web_versions.append(text_web_versions[i] + " \n " +
+                                           text_web_versions[i+1] + " \n " + text_web_versions[i+2])
     if extra_info_web_versions:
         add_vuln_to_mongo(scan_info, url_to_scan, 'web_versions', extra_info_web_versions)
     return
@@ -228,6 +228,7 @@ def ftp_anon_login(scan_info,url_to_scan):
     cleanup(output_dir)
     return
 
+
 def http_errors(target_name,url_to_scan,language):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     end_name = '.htttp.errors'
@@ -262,6 +263,7 @@ def http_errors(target_name,url_to_scan,language):
         vuln_name = constants.POSSIBLE_ERROR_PAGES_ENGLISH if language == "eng" else constants.POSSIBLE_ERROR_PAGES_SPANISH
         redmine.create_new_issue(vuln_name, message)
     return
+
 
 def default_account(scan_info,url_to_scan):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -302,6 +304,6 @@ def default_account(scan_info,url_to_scan):
     print(message)
     if message:
         img_str = image_creator.create_image_from_string(message)
-        add_vuln_to_mongo(scan_info, url_to_scan, "default_creds",message,img_str)
+        add_vuln_to_mongo(scan_info, url_to_scan, "default_creds", message, img_str)
     cleanup(output_dir)
     return

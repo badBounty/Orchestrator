@@ -55,7 +55,7 @@ def add_libraries_vulnerability(scan_info, scanned_url, libraries, message):
     else:
         finding_name = constants.OUTDATED_3RD_LIBRARIES_SPANISH
     redmine.create_new_issue(finding_name, constants.REDMINE_OUTDATED_3RD_LIBRARIES % (scanned_url, str(message)),
-                             scan_info['redmine_project'])
+                             scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
     mongo.add_vulnerability(scan_info['target'], scanned_url, finding_name, timestamp, scan_info['language'], str(libraries))
 
 

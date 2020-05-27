@@ -1,8 +1,10 @@
 from pymongo import MongoClient
 import os
+import urllib3
 from slack import WebClient
 from redminelib import Redmine
 
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Connections
 MONGO_CLIENT = os.getenv('MONGO_CLIENT')

@@ -39,13 +39,15 @@ def add_vulnerability(scan_info, affected_resource, extra_info):
     timestamp = datetime.now()
     if scan_info['language'] == constants.LANGUAGE_ENGLISH:
         redmine.create_new_issue(constants.ENDPOINT_ENGLISH,
-                                 constants.REDMINE_ENDPOINT % (affected_resource, extra_info), scan_info['redmine_project'])
+                                 constants.REDMINE_ENDPOINT % (affected_resource, extra_info),
+                                 scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
         mongo.add_vulnerability(scan_info['target'], affected_resource,
                                 constants.ENDPOINT_ENGLISH,
                                 timestamp, scan_info['language'], extra_info)
     elif scan_info['language'] == constants.LANGUAGE_SPANISH:
         redmine.create_new_issue(constants.ENDPOINT_SPANISH,
-                                 constants.REDMINE_ENDPOINT % (affected_resource, extra_info), scan_info['redmine_project'])
+                                 constants.REDMINE_ENDPOINT % (affected_resource, extra_info),
+                                 scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
         mongo.add_vulnerability(scan_info['target'], affected_resource,
                                 constants.ENDPOINT_SPANISH,
                                 timestamp, scan_info['language'], extra_info)

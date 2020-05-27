@@ -42,7 +42,7 @@ def add_token_found_vuln(scan_info, scanned_url, javascript_file, extra_info):
         vuln_name = constants.TOKEN_SENSITIVE_INFO_SPANISH
 
     redmine.create_new_issue(vuln_name, constants.REDMINE_SENSITIVE_INFO % (javascript_file, extra_info),
-                             scan_info['redmine_project'])
+                             scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
     mongo.add_vulnerability(scan_info['target'], scanned_url, vuln_name,
                             timestamp, scan_info['language'], 'Found at ' + javascript_file + '\n' + extra_info)
 
