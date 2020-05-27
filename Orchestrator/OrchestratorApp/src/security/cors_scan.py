@@ -65,14 +65,14 @@ def add_vulnerability(scan_info, vuln):
     if scan_info['language'] == constants.LANGUAGE_ENGLISH:
         redmine.create_new_issue(constants.CORS_ENGLISH,
                                  constants.REDMINE_CORS % (vuln['url'], vuln['type'], vuln['origin']),
-                                 scan_info['redmine_project'])
+                                 scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
         mongo.add_vulnerability(scan_info['target'], vuln['url'],
                                 constants.CORS_ENGLISH,
                                 timestamp, scan_info['language'], 'Found CORS %s with origin %s' % (vuln['type'], vuln['origin']))
     elif scan_info['language'] == constants.LANGUAGE_SPANISH:
         redmine.create_new_issue(constants.CORS_SPANISH,
                                  constants.REDMINE_CORS % (vuln['url'], vuln['type'],vuln['origin']),
-                                 scan_info['redmine_project'])
+                                 scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
         mongo.add_vulnerability(scan_info['target'], vuln['url'],
                                 constants.CORS_SPANISH,
                                 timestamp, scan_info['language'], 'Se encontro CORS %s usando origin %s' % (vuln['type'], vuln['origin']))

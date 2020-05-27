@@ -48,7 +48,8 @@ def add_vulnerability_to_mongo(scan_info, scanned_url, css_url, extra_info):
         elif extra_info == 'Status':
             extra_to_send = 'El archivo %s no devolvio codigo 200' % css_url
 
-    redmine.create_new_issue(vuln_name, constants.REDMINE_CSS % (scanned_url, extra_to_send), scan_info['redmine_project'])
+    redmine.create_new_issue(vuln_name, constants.REDMINE_CSS % (scanned_url, extra_to_send),
+                             scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
     mongo.add_vulnerability(scan_info['target'], scanned_url, vuln_name, timestamp, scan_info['language'], extra_to_send)
 
 

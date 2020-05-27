@@ -72,11 +72,13 @@ def add_header_value_vulnerability(scan_info, scanned_url, timestamp, header, im
             redmine_description = constants.REDMINE_INVALID_VALUE_ON_HEADER
 
     # vuln = new Vulnerability('Insecure header configuration')
+
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     output_dir = ROOT_DIR+'/tools_output/headers-result.png'
     im = Image.open(BytesIO(base64.b64decode(img_b64)))
     im.save(output_dir, 'PNG')
-    redmine.create_new_issue(vuln_name, redmine_description % scanned_url, scan_info['redmine_project'],output_dir,'headers-result.png')
+    redmine.create_new_issue(vuln_name, redmine_description % scanned_url,
+                             scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'],output_dir,'headers-result.png')
     os.remove(output_dir)
     mongo.add_vulnerability(scan_info['target'], scanned_url,vuln_name, timestamp, scan_info['language'], None, img_b64)
 
@@ -109,7 +111,7 @@ def add_header_missing_vulnerability(scan_info, scanned_url, timestamp, header, 
     output_dir = ROOT_DIR+'/tools_output/headers-result.png'
     im = Image.open(BytesIO(base64.b64decode(img_b64)))
     im.save(output_dir, 'PNG')
-    redmine.create_new_issue(vuln_name, redmine_description % scanned_url, scan_info['redmine_project'],output_dir,'headers-result.png')
+    redmine.create_new_issue(vuln_name, redmine_description % scanned_url, scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'],output_dir,'headers-result.png')
     os.remove(output_dir)
     mongo.add_vulnerability(scan_info['target'], scanned_url, vuln_name, timestamp, scan_info['language'], None, img_b64)
 

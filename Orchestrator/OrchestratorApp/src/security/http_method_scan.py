@@ -29,13 +29,13 @@ def handle_single(scan_info):
 def add_vulnerability(scan_info, scanned_url, timestamp, message):
     if scan_info['language'] == constants.LANGUAGE_ENGLISH:
         redmine.create_new_issue(constants.UNSECURE_METHOD_ENGLISH, constants.REDMINE_UNSECURE_METHOD % (scanned_url, message),
-                                 scan_info['redmine_project'])
+                                 scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
         mongo.add_vulnerability(scan_info['target'], scanned_url,
                                 constants.UNSECURE_METHOD_ENGLISH,
                                 timestamp, scan_info['language'])
     if scan_info['language'] == constants.LANGUAGE_SPANISH:
         redmine.create_new_issue(constants.UNSECURE_METHOD_SPANISH, constants.REDMINE_UNSECURE_METHOD % (scanned_url, message),
-                                 scan_info['redmine_project'])
+                                 scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
         mongo.add_vulnerability(scan_info['target'], scanned_url,
                                 constants.UNSECURE_METHOD_SPANISH,
                                 timestamp, scan_info['language'])

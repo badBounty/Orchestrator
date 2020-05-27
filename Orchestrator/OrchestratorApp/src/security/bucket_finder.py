@@ -82,7 +82,8 @@ def add_vulnerability_to_mongo(scanned_url, vulnerability, bucket_name, scan_inf
         elif vulnerability == 'cprm':
             vuln_name = constants.BUCKET_CPRM_SPANISH
 
-    redmine.create_new_issue(vuln_name, constants.REDMINE_BUCKET % (bucket_name, scanned_url), scan_info['redmine_project'])
+    redmine.create_new_issue(vuln_name, constants.REDMINE_BUCKET % (bucket_name, scanned_url),
+                             scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
     mongo.add_vulnerability(scan_info['target'], scan_info['url_to_scan'], vuln_name,
                             timestamp, scan_info['language'], 'Bucket ' + bucket_name + ' found at ' + scanned_url)
     return

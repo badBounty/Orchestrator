@@ -50,7 +50,9 @@ def scan_target(scan_info, url_to_scan):
                 vuln_name = constants.IIS_SHORTNAME_MICROSOFT_ENGLISH if 'eng' == scan_info['language'] else constants.IIS_SHORTNAME_MICROSOFT_SPANISH
                 redmine_description = constants.REDMINE_IIS
                 slack_sender.send_simple_vuln("IIS Microsoft files and directories enumeration found at %s", url_to_scan)
-                redmine.create_new_issue(vuln_name, redmine_description % url_to_scan, scan_info['redmine_url'],output_dir,'IIS-Result.png')
+                redmine.create_new_issue(vuln_name, redmine_description % url_to_scan,
+                                         scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'],output_dir,'IIS-Result.png')
+
                 mongo.add_vulnerability(scan_info['target'], url_to_scan,vuln_name, timestamp, scan_info['language'], message,img_str)
                 os.remove(output_dir)
     except KeyError:

@@ -1,0 +1,48 @@
+[
+	{
+		"LANGUAGE": "spa",
+		"TYPE": "<TO DEFINE>",
+		"TITLE": "Token con informacion sensible encontrado",
+		"OBSERVATION": {
+			  "TITLE": "<TO DEFINE>",
+			  "NOTE": ""
+		},
+		"IMPLICATION": "<TO DEFINE>",
+		"RECOMMENDATION": {
+			  "TITLE": "<TO DEFINE>",
+			  "URLS": []
+		},
+		"SEVERITY": "<TO DEFINE>",
+		"EFFORT TO FIX": "<TO DEFINE>",
+		"CIBC RISK": 0,
+		"IMPACT": 0,
+		"LIKELIHOOD": "<TO DEFINE>",
+		"ATTACKER OBJECTIVE AND APPROACH": "<TO DEFINE>",
+		"HOW TO": "<TO DEFINE>",
+		"SUMMARY": "<TO DEFINE>",
+		"COMMENTS": 0
+	},
+	{
+		"LANGUAGE": "eng",
+		"TYPE": "<TO DEFINE>",
+		"TITLE": "Token information disclosure was found",
+		"OBSERVATION": {
+			  "TITLE": "<TO DEFINE>",
+			  "NOTE": ""
+		},
+		"IMPLICATION": "<TO DEFINE>",
+		"RECOMMENDATION": {
+			  "TITLE": "<TO DEFINE>",
+			  "URLS": []
+		},
+		"SEVERITY": "<TO DEFINE>",
+		"EFFORT TO FIX": "<TO DEFINE>",
+		"CIBC RISK": 0,
+		"IMPACT": 0,
+		"LIKELIHOOD": "<TO DEFINE>",
+		"ATTACKER OBJECTIVE AND APPROACH": "<TO DEFINE>",
+		"HOW TO": "<TO DEFINE>",
+		"SUMMARY": "<TO DEFINE>",
+		"COMMENTS": 0
+	}
+]

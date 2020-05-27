@@ -39,7 +39,8 @@ def add_vulnerability_to_mongo(scan_info, scanned_url, extra_info):
     elif scan_info['language'] == constants.LANGUAGE_SPANISH:
         vuln_name = constants.HOST_HEADER_ATTACK_SPANISH
 
-    redmine.create_new_issue(vuln_name, constants.REDMINE_HOST_HEADER_ATTACK % scanned_url, scan_info['redmine_url'])
+    redmine.create_new_issue(vuln_name, constants.REDMINE_HOST_HEADER_ATTACK % scanned_url,
+                             scan_info['redmine_url'], scan_info['assigned_users'], scan_info['watchers'])
     mongo.add_vulnerability(scan_info['target'], scanned_url, vuln_name, timestamp, scan_info['language'], extra_info)
     return
 

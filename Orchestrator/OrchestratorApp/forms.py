@@ -49,11 +49,21 @@ class ReportForm(forms.Form):
 class EmailForm(forms.Form):
     email = forms.CharField(label='email To', max_length=30)
     target = forms.CharField(label='Target(Single URL)', max_length=50, required=False)
+
+    use_active_modules = forms.BooleanField(required=False, initial=True, label='Invasive modules',
+                                            help_text= "Enables intrusive nmap scripts (SSH/FTP/Default login)")
+
     report_type = forms.CharField(label='Select report type', widget=forms.Select(choices=REPORT_CHOICES))
     selected_language = forms.CharField(label='Select language', widget=forms.Select(choices=LANGUAGE_CHOICES))
     REDMINE_PROJ_CHOICES = redmine.get_project_names()
     REDMINE_PROJ_CHOICES.append(('no_project', 'No upload'))
     redmine_project = forms.CharField(label='Redmine project', widget=forms.Select(choices=REDMINE_PROJ_CHOICES))
 
-    use_active_modules = forms.BooleanField(required=False, initial=True, label='Invasive modules',
-                                            help_text= "Enables intrusive nmap scripts (SSH/FTP/Default login)")
+    redmine_users = redmine.get_users()
+    assigned_users = forms.MultipleChoiceField(widget=forms.SelectMultiple, choices=redmine_users,
+                                               label='Assigned to', help_text='Provide only 1 user')
+    watcher_users = forms.MultipleChoiceField(widget=forms.SelectMultiple, choices=redmine_users,
+                                               label='Watchers', help_text='1 or more users')
+
+
+

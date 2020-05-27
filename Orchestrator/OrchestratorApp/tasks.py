@@ -24,11 +24,11 @@ def sleepy(duration):
 
 # ------------------ Scan with email ------------------ #
 @shared_task
-def vuln_scan_with_email_notification(email, url_to_scan, language, report_type, redmine_project, invasive_scans):
-    vuln_scan_single_task(url_to_scan, language, redmine_project, invasive_scans)
-    vulns = mongo.get_vulns_with_language(url_to_scan, language)
-    #file_dir, missing_findings = reporting.create_report("", language, report_type, url_to_scan, vulns)
-    #email_handler.send_email(file_dir, missing_findings, email)
+def vuln_scan_with_email_notification(info):
+    vuln_scan_single_task(info)
+    vulns = mongo.get_vulns_with_language(info['target'], info['selected_language'])
+    #file_dir, missing_findings = reporting.create_report("", info['selected_language'],info['report_type'], info['target'], vulns)
+    #email_handler.send_email(file_dir, missing_findings, info['email'])
 
 
 # ------------------ Full tasks ------------------ #
@@ -93,33 +93,35 @@ def vuln_scan_target_task(target, language):
 
 
 @shared_task
-def vuln_scan_single_task(target, language, redmine_project, invasive_scans):
+def vuln_scan_single_task(info):
     scan_information = {
-        'target': target,
-        'url_to_scan': target,
-        'language': language,
-        'redmine_project': redmine_project,
-        'invasive_scans': invasive_scans
+        'target': info['target'],
+        'url_to_scan': info['target'],
+        'language': info['selected_language'],
+        'redmine_project': info['redmine_project'],
+        'invasive_scans': info['use_active_modules'],
+        'assigned_users': info['assigned_users'],
+        'watchers': info['watcher_users']
     }
     # Baseline
     header_scan.handle_single(scan_information)
-    #http_method_scan.handle_single(scan_information)
-    #cors_scan.handle_single(scan_information)
-   #libraries_scan.handle_single(scan_information)
-    #ssl_tls_scan.handle_single(scan_information)
+    http_method_scan.handle_single(scan_information)
+    cors_scan.handle_single(scan_information)
+    #libraries_scan.handle_single(scan_information)
+    ssl_tls_scan.handle_single(scan_information)
     # Extra
-    #ffuf.handle_single(scan_information)
+    ffuf.handle_single(scan_information)
     # Nmap scripts
-    #nmap_script_scan.handle_single(scan_information)
+    nmap_script_scan.handle_single(scan_information)
     # IIS shortname checker
-    #iis_shortname_scanner.handle_single(scan_information)
+    iis_shortname_scanner.handle_single(scan_information)
     # Dispatcher
-    #bucket_finder.handle_single(scan_information)
-    #token_scan.handle_single(scan_information)
-    #css_scan.handle_single(scan_information)
-    #firebase_scan.handle_single(scan_information)
-    #host_header_attack.handle_single(scan_information)
-    #burp_scan.handle_single(scan_information)
+    bucket_finder.handle_single(scan_information)
+    token_scan.handle_single(scan_information)
+    css_scan.handle_single(scan_information)
+    firebase_scan.handle_single(scan_information)
+    host_header_attack.handle_single(scan_information)
+    burp_scan.handle_single(scan_information)
     return
 
 # ------------------ Recon tasks ------------------ #
