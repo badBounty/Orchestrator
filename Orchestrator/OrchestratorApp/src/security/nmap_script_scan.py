@@ -2,8 +2,10 @@ import subprocess
 import os
 import xmltodict
 import json
+import base64
+from PIL import Image
+from io import BytesIO
 from datetime import datetime
-
 from ..slack import slack_sender
 from ..comms import image_creator
 from .. import constants
@@ -97,7 +99,15 @@ def add_vuln_to_mongo(scan_info, scanned_url, scan_type, extra_info, img_str=Non
             vuln_name = constants.DEFAULT_CREDENTIALS_SPANISH
 
     slack_sender.send_simple_vuln("Nmap " + scan_type + " script found: \n" + str(extra_info))
-    redmine.create_new_issue(vuln_name, extra_info, scan_info['redmine_project'])
+    if img_str:
+        ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+        output_dir = ROOT_DIR+'/tools_output/nmap-result.png'
+        im = Image.open(BytesIO(base64.b64decode(img_str)))
+        im.save(output_dir, 'PNG')
+        redmine.create_new_issue(vuln_name, extra_info, scan_info['redmine_project'],output_dir,'nmap-result.png')
+        os.remove(output_dir)
+    else:
+        redmine.create_new_issue(vuln_name, extra_info, scan_info['redmine_project'])
     mongo.add_vulnerability(scan_info['target'], scanned_url,
                             vuln_name, timestamp, scan_info['language'], extra_info, img_str)
     return

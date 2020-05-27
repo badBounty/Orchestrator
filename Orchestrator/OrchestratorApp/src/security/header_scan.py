@@ -1,4 +1,7 @@
 import requests,os
+import base64
+from PIL import Image
+from io import BytesIO
 from ..mongo import mongo
 from ..comms import image_creator
 from datetime import datetime
@@ -69,7 +72,12 @@ def add_header_value_vulnerability(scan_info, scanned_url, timestamp, header, im
             redmine_description = constants.REDMINE_INVALID_VALUE_ON_HEADER
 
     # vuln = new Vulnerability('Insecure header configuration')
-    redmine.create_new_issue(vuln_name, redmine_description % scanned_url, scan_info['redmine_project'])
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    output_dir = ROOT_DIR+'/tools_output/headers-result.png'
+    im = Image.open(BytesIO(base64.b64decode(img_b64)))
+    im.save(output_dir, 'PNG')
+    redmine.create_new_issue(vuln_name, redmine_description % scanned_url, scan_info['redmine_project'],output_dir,'headers-result.png')
+    os.remove(output_dir)
     mongo.add_vulnerability(scan_info['target'], scanned_url,vuln_name, timestamp, scan_info['language'], None, img_b64)
 
 
@@ -97,7 +105,12 @@ def add_header_missing_vulnerability(scan_info, scanned_url, timestamp, header, 
             vuln_name = constants.HEADER_NOT_FOUND_SPANISH
             redmine_description = constants.REDMINE_HEADER_NOT_FOUND
 
-    redmine.create_new_issue(vuln_name, redmine_description % scanned_url, scan_info['redmine_project'])
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    output_dir = ROOT_DIR+'/tools_output/headers-result.png'
+    im = Image.open(BytesIO(base64.b64decode(img_b64)))
+    im.save(output_dir, 'PNG')
+    redmine.create_new_issue(vuln_name, redmine_description % scanned_url, scan_info['redmine_project'],output_dir,'headers-result.png')
+    os.remove(output_dir)
     mongo.add_vulnerability(scan_info['target'], scanned_url, vuln_name, timestamp, scan_info['language'], None, img_b64)
 
 
