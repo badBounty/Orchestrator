@@ -3,6 +3,7 @@ import os
 from slack import WebClient
 from redminelib import Redmine
 
+import json
 
 # Connections
 MONGO_CLIENT = os.getenv('MONGO_CLIENT')
@@ -19,4 +20,3 @@ REDMINE_PASSWORD = os.getenv('REDMINE_PASSWORD')
 
 redmine = Redmine(str(REDMINE_URL), username=str(REDMINE_USER), password=str(REDMINE_PASSWORD),
                   requests={'verify': False})
-
