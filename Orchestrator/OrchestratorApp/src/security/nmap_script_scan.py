@@ -12,9 +12,9 @@ from ..redmine import redmine
 
 def cleanup(path):
     try:
-        os.remove(output_dir + '.xml')
-        os.remove(output_dir + '.nmap')
-        os.remove(output_dir + '.gnmap')
+        os.remove(path + '.xml')
+        os.remove(path + '.nmap')
+        os.remove(path + '.gnmap')
     except FileNotFoundError:
         pass
     return
@@ -48,9 +48,9 @@ def handle_single(scan_info):
     # We receive the url with http/https, we will get only the host so nmap works
     host = url.split('/')[2]
     print('------------------- NMAP OUTDATED SOFTWARE -------------------')
-    #outdated_software(scan_info, host)
+    outdated_software(scan_info, host)
     print('------------------- NMAP WEB VERSIONS -------------------')
-    #web_versions(scan_info, host)
+    web_versions(scan_info, host)
     if scan_info['invasive_scans']:
         print('------------------- NMAP SSH FTP BRUTE FORCE -------------------')
         ssh_ftp_brute_login(scan_info, host, True)#SHH
@@ -184,10 +184,11 @@ def ssh_ftp_brute_login(scan_info, url_to_scan, is_ssh):
     users = ROOT_DIR + '/tools/usernames-shortlist.txt'
     password = ROOT_DIR + '/tools/default-pass.txt'
     output_dir = ROOT_DIR + '/tools_output/'+url_to_scan+end_name
+    cleanup(output_dir)
     brute_subprocess = subprocess.run(
         ['nmap', '-Pn', '-sV', port, '-vvv', '--script', brute, '--script-args',
          'userdb='+users+','+'passdb='+password+','+timeout+','+'brute.delay='+time_limit+','+'brute.retries=1,brute.guesses=4', '-oA', output_dir,url_to_scan])
-    cleanup(output_dir)
+    print(brute_subprocess)
     with open(output_dir + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()
@@ -201,12 +202,7 @@ def ssh_ftp_brute_login(scan_info, url_to_scan, is_ssh):
             add_vuln_to_mongo(scan_info, url_to_scan, name, message, img_str)
     except KeyError:
         message = None
-    try:
-        os.remove(output_dir + '.xml')
-        os.remove(output_dir + '.nmap')
-        os.remove(output_dir + '.gnmap')
-    except FileNotFoundError:
-        pass
+    cleanup(output_dir)
     return
 
 
@@ -214,6 +210,7 @@ def ftp_anon_login(scan_info,url_to_scan):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     end_name = '.ftp.anon'
     output_dir = ROOT_DIR + '/tools_output/'+url_to_scan+end_name
+    cleanup(output_dir)
     anonynomus_subprocess = subprocess.run(
         ['nmap', '-Pn', '-sV', '-p21', '-vvv', '--script', 'ftp-anon',  url_to_scan, '-oA', output_dir])
     with open(output_dir + '.xml') as xml_file:
@@ -228,13 +225,7 @@ def ftp_anon_login(scan_info,url_to_scan):
             add_vuln_to_mongo(scan_info, url_to_scan, "ftp_anonymous", message, img_str)
     except KeyError:
         message = None
-    try:
-        os.remove(output_dir + '.xml')
-        os.remove(output_dir + '.nmap')
-        os.remove(output_dir + '.gnmap')
-    except FileNotFoundError:
-        pass
-
+    cleanup(output_dir)
     return
 
 def http_errors(target_name,url_to_scan,language):
@@ -242,6 +233,7 @@ def http_errors(target_name,url_to_scan,language):
     end_name = '.htttp.errors'
     output_dir = ROOT_DIR + '/tools_output/'+url_to_scan+end_name
     port_list = '-p 80,81,443,591,2082,2087,2095,2096,3000,8000,8001,8008,8080,8083,8443,8834,8888 '
+    cleanup(output_dir)
     http_subprocess = subprocess.run(
         ['nmap','-Pn', '-sV', port_list, '-vvv', '--script', ' http-errors ',  url_to_scan, '-oA', output_dir],capture_output=True)
     with open(output_dir + '.xml') as xml_file:
@@ -265,12 +257,7 @@ def http_errors(target_name,url_to_scan,language):
                             message +=o['@output']
                     except TypeError:
                         pass
-    try:
-        os.remove(output_dir + '.xml')
-        os.remove(output_dir + '.nmap')
-        os.remove(output_dir + '.gnmap')
-    except FileNotFoundError:
-        pass
+    cleanup(output_dir)
     if message:
         vuln_name = constants.POSSIBLE_ERROR_PAGES_ENGLISH if language == "eng" else constants.POSSIBLE_ERROR_PAGES_SPANISH
         redmine.create_new_issue(vuln_name, message)
@@ -286,6 +273,7 @@ def default_account(scan_info,url_to_scan):
     ports = '80,81,443,591,2082,2087,2095,2096,3000,8000,8001,8008,8080,8083,8443,8834,8888'
     message=""
     #ACA ABRIMOS EL SCRIPT Y MODIFICAMOS LA INFORMACION QUE NECESITAMOS
+    cleanup(output_dir)
     with open(script_to_copy,'r') as script_edit:
         list_of_lines = script_edit.readlines()
     list_of_lines[108] = 'portrule = shortport.port_or_service( {'+ports+'}, {"http", "https"}, "tcp", "open")'
@@ -293,8 +281,7 @@ def default_account(scan_info,url_to_scan):
         script_edit.writelines(list_of_lines)
 
     da_subprocess = subprocess.run(
-        ['nmap','-Pn', '-sV', '-p'+ports,'-vvv', '--script', script_to_launch, '--script-args','http-default-accounts.fingerprintfile='+arg_fingerprint_dir,  url_to_scan, '-oA', output_dir],capture_output=True)   
-
+        ['nmap','-Pn', '-sV', '-p'+ports,'-vvv', '--script', script_to_launch, '--script-args','http-default-accounts.fingerprintfile='+arg_fingerprint_dir,  url_to_scan, '-oA', output_dir],capture_output=True)
     with open(output_dir+ '.xml') as xml_file:
             my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()
@@ -308,16 +295,13 @@ def default_account(scan_info,url_to_scan):
                         message+=scp['@output']
         except KeyError:
             pass
+    try:
+        os.remove(script_to_launch)
+    except FileNotFoundError:
+        pass
     print(message)
     if message:
         img_str = image_creator.create_image_from_string(message)
         add_vuln_to_mongo(scan_info, url_to_scan, "default_creds",message,img_str)
-    try:
-        os.remove(output_dir + '.xml')
-        os.remove(output_dir + '.nmap')
-        os.remove(output_dir + '.gnmap')
-        os.remove(script_to_launch)
-    except FileNotFoundError:
-        pass
-
+    cleanup(output_dir)
     return
