@@ -100,7 +100,7 @@ REDMINE_X_FRAME_OPTIONS_INVALID = 'Clickjacking attack possible at %s'
 REDMINE_HSTS = 'HTTP Strict Transport Security not enforced at %s'
 REDMINE_HOST_HEADER_ATTACK = 'Host header attack possible at %s'
 # METHODS #
-REDMINE_UNSECURE_METHOD = 'Extended HTTP methods enabled at %s'
+REDMINE_UNSECURE_METHOD = 'Extended HTTP methods enabled at %s. %s'
 # SSL_TLS #
 REDMINE_SSL_TLS = 'Weak transport layer security (TLS) configuration at %s'
 # OUTDATED 3RD PARTY LIBRARIES #

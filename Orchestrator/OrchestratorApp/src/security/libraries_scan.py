@@ -47,14 +47,14 @@ def get_cves_and_last_version(librarie):
         return {}, ""
 
 
-def add_libraries_vulnerability(scan_info, scanned_url, libraries):
+def add_libraries_vulnerability(scan_info, scanned_url, libraries, message):
     timestamp = datetime.now()
     finding_name = ''
     if scan_info['language'] == constants.LANGUAGE_ENGLISH:
         finding_name = constants.OUTDATED_3RD_LIBRARIES_ENGLISH
     else:
         finding_name = constants.OUTDATED_3RD_LIBRARIES_SPANISH
-    redmine.create_new_issue(finding_name, constants.REDMINE_OUTDATED_3RD_LIBRARIES % (scanned_url, str(libraries)),
+    redmine.create_new_issue(finding_name, constants.REDMINE_OUTDATED_3RD_LIBRARIES % (scanned_url, str(message)),
                              scan_info['redmine_project'])
     mongo.add_vulnerability(scan_info['target'], scanned_url, finding_name, timestamp, scan_info['language'], str(libraries))
 
@@ -86,7 +86,7 @@ def analyze(scan_info, url_to_scan):
 
         message = fastPrint(libraries)
         slack_sender.send_simple_vuln("Found libraries at %s : \n%s" % (url_to_scan, message))
-        add_libraries_vulnerability(scan_info, url_to_scan, libraries)
+        add_libraries_vulnerability(scan_info, url_to_scan, libraries, message)
         print('\nActive Scan completed\n')
     except Exception as e:
         print('\nSomethig went wrong! :' + '\n' + str(e))

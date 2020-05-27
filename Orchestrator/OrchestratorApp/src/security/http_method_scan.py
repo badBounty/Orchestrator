@@ -26,15 +26,15 @@ def handle_single(scan_info):
     return
 
 
-def add_vulnerability(scan_info, scanned_url, timestamp):
+def add_vulnerability(scan_info, scanned_url, timestamp, message):
     if scan_info['language'] == constants.LANGUAGE_ENGLISH:
-        redmine.create_new_issue(constants.UNSECURE_METHOD_ENGLISH, constants.REDMINE_UNSECURE_METHOD % scanned_url,
+        redmine.create_new_issue(constants.UNSECURE_METHOD_ENGLISH, constants.REDMINE_UNSECURE_METHOD % (scanned_url, message),
                                  scan_info['redmine_project'])
         mongo.add_vulnerability(scan_info['target'], scanned_url,
                                 constants.UNSECURE_METHOD_ENGLISH,
                                 timestamp, scan_info['language'])
     if scan_info['language'] == constants.LANGUAGE_SPANISH:
-        redmine.create_new_issue(constants.UNSECURE_METHOD_SPANISH, constants.REDMINE_UNSECURE_METHOD % scanned_url,
+        redmine.create_new_issue(constants.UNSECURE_METHOD_SPANISH, constants.REDMINE_UNSECURE_METHOD % (scanned_url, message),
                                  scan_info['redmine_project'])
         mongo.add_vulnerability(scan_info['target'], scanned_url,
                                 constants.UNSECURE_METHOD_SPANISH,
@@ -68,4 +68,4 @@ def scan_target(scan_info, url_to_scan):
     if extensive_methods:
         slack_sender.send_simple_vuln("Extensive http methods found on %s, %s"
                                       % (url_to_scan, message))
-        add_vulnerability(scan_info, url_to_scan, timestamp)
+        add_vulnerability(scan_info, url_to_scan, timestamp, message)
