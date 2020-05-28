@@ -309,6 +309,10 @@ def get_specific_finding_info(finding, language):
     else:
         return None
 
+def get_observation_for_object(vuln_name,language):
+    db = client.Orchestrator
+    finding_kb = db.observations.find_one({'TITLE': vuln_name, 'LANGUAGE': language})
+    return finding_kb
 
 def find_last_version_of_librarie(name):
     db = client.Orchestrator

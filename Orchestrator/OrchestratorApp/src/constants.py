@@ -82,7 +82,7 @@ OPEN_FIREBASE = {
     'spanish_name': 'Se encontro firebase abierta'
 }
 OUTDATED_SOFTWARE_NMAP = {
-    'english_name': 'Outdated software found',
+    'english_name': 'Outdated software in use',
     'spanish_name': 'Software desactualizado en uso'
 }
 HTTP_PASSWD_NMAP = {

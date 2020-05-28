@@ -52,7 +52,7 @@ def scan_target(scan_info, url_to_scan):
     responses.append({'method': 'OPTIONS', 'response': options_response})
 
     extensive_methods = False
-    message = "\n"
+    message = "Found extended HTTP Methods at: %s" % url_to_scan + '\n'
     for response in responses:
         if response['response'].status_code == 200:
             extensive_methods = True

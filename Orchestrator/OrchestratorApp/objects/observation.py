@@ -2,7 +2,7 @@ from ..src.mongo import mongo
 
 
 def load_information(vuln_name, language):
-    info = mongo.get_specific_finding_info(vuln_name, language)
+    info = mongo.get_observation_for_object(vuln_name, language)
     return info
 
 

@@ -56,15 +56,15 @@ def handle_single(scan_info):
     # We receive the url with http/https, we will get only the host so nmap works
     host = url.split('/')[2]
     print('------------------- NMAP OUTDATED SOFTWARE -------------------')
-    #outdated_software(scan_info, host)
+    outdated_software(scan_info, host)
     print('------------------- NMAP WEB VERSIONS -------------------')
-    #web_versions(scan_info, host)
+    web_versions(scan_info, host)
     if scan_info['invasive_scans']:
         print('------------------- NMAP SSH FTP BRUTE FORCE -------------------')
-        #ssh_ftp_brute_login(scan_info, host, True)#SHH
+        ssh_ftp_brute_login(scan_info, host, True)#SHH
         sleep(10)
-        #ssh_ftp_brute_login(scan_info, host, False)#FTP
-        #ftp_anon_login(scan_info, host)#FTP ANON
+        ssh_ftp_brute_login(scan_info, host, False)#FTP
+        ftp_anon_login(scan_info, host)#FTP ANON
         print('------------------- NMAP DEFAULT ACCOUNTS -------------------')
         default_account(scan_info,host)#Default creds in web console
     print('------------------- NMAP_SCRIPT SCAN FINISHED -------------------')
