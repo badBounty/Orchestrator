@@ -61,9 +61,10 @@ def handle_single(scan_info):
     #web_versions(scan_info, host)
     if scan_info['invasive_scans']:
         print('------------------- NMAP SSH FTP BRUTE FORCE -------------------')
-        ssh_ftp_brute_login(scan_info, host, True)#SHH
-        ssh_ftp_brute_login(scan_info, host, False)#FTP
-        ftp_anon_login(scan_info, host)#FTP ANON
+        #ssh_ftp_brute_login(scan_info, host, True)#SHH
+        sleep(10)
+        #ssh_ftp_brute_login(scan_info, host, False)#FTP
+        #ftp_anon_login(scan_info, host)#FTP ANON
         print('------------------- NMAP DEFAULT ACCOUNTS -------------------')
         default_account(scan_info,host)#Default creds in web console
     print('------------------- NMAP_SCRIPT SCAN FINISHED -------------------')
@@ -204,8 +205,9 @@ def ssh_ftp_brute_login(scan_info, url_to_scan, is_ssh):
     output_dir = ROOT_DIR + '/tools_output/'+random_filename+end_name
     cleanup(output_dir)
     brute_subprocess = subprocess.run(
-        ['nmap', '-Pn', '-sV', port, '-vvv', '--script', brute, '--script-args',
+        ['nmap', '-Pn', '-sV', port, '--script', brute, '--script-args',
          'userdb='+users+','+'passdb='+password+','+timeout+','+'brute.delay='+time_limit+','+'brute.retries=1', '-oA', output_dir,url_to_scan])
+    print(brute_subprocess)
     with open(output_dir + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()
@@ -287,24 +289,15 @@ def http_errors(target_name, url_to_scan, language):
 def default_account(scan_info,url_to_scan):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     arg_fingerprint_dir = ROOT_DIR+'/tools/http-default-accounts-fingerprints-nndefaccts.lua'
-    script_to_copy = ROOT_DIR+'/tools/nmap/web_versions/http-default-accounts.nse'
+    script_to_launch = ROOT_DIR+'/tools/nmap/web_versions/http-default-accounts.nse'
+    ports='80,81,443,591,2082,2087,2095,2096,3000,8000,8001,8008,8080,8083,8443,8834,8888'
     random_filename = uuid.uuid4().hex
-    script_to_launch = ROOT_DIR+'/tools/nmap/web_versions/'+random_filename+'.nse'
     end_name = '.http.def.acc'
     output_dir = ROOT_DIR + '/tools_output/'+random_filename+end_name
-    ports = '80,81,443,591,2082,2087,2095,2096,3000,8000,8001,8008,8080,8083,8443,8834,8888'
     message=""
-    #ACA ABRIMOS EL SCRIPT Y MODIFICAMOS LA INFORMACION QUE NECESITAMOS
-    cleanup(output_dir)
-    with open(script_to_copy,'r') as script_edit:
-        list_of_lines = script_edit.readlines()
-    list_of_lines[108] = 'portrule = shortport.port_or_service( {'+ports+'}, {"http", "https"}, "tcp", "open")'
-    with open(script_to_launch,'w') as script_edit:
-        script_edit.writelines(list_of_lines)
-
     da_subprocess = subprocess.run(
-        ['nmap','-Pn', '-sV', '-p'+ports,' -vvv', ' --script', script_to_launch, '--script-args','http-default-accounts.fingerprintfile='+arg_fingerprint_dir, '-oA', output_dir,url_to_scan],capture_output=True)
-    print(da_subprocess)
+        ['nmap','-Pn', '-sV', '-p'+ports, '--script', script_to_launch, '--script-args','http-default-accounts.fingerprintfile='+arg_fingerprint_dir, '-oA', output_dir,url_to_scan],capture_output=True)
+
     with open(output_dir+ '.xml') as xml_file:
             my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()
@@ -318,10 +311,6 @@ def default_account(scan_info,url_to_scan):
                         message+=scp['@output']
         except KeyError:
             pass
-    try:
-        os.remove(script_to_launch)
-    except FileNotFoundError:
-        pass
     print(message)
     if message:
         img_str = image_creator.create_image_from_string(message)

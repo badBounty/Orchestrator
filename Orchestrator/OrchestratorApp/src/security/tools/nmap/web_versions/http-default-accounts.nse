@@ -106,7 +106,7 @@ author = {"Paulino Calderon <calderon@websec.mx>", "nnposter"}
 license = "Same as Nmap--See https://nmap.org/book/man-legal.html"
 categories = {"discovery", "auth", "intrusive"}
 
-portrule = shortport.http
+portrule = shortport.port_or_service( {80,81,443,591,2082,2087,2095,2096,3000,8000,8001,8008,8080,8083,8443,8834,8888}, {"http", "https"}, "tcp", "open")
 
 ---
 --validate_fingerprints(fingerprints)
