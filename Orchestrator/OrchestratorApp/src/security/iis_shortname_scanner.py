@@ -42,7 +42,7 @@ def scan_target(scan_info, url_to_scan):
             ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
             TOOL_DIR = ROOT_DIR + '/tools/IIS-ShortName-Scanner/iis_shortname_scanner.jar'
             CONFIG_DIR = ROOT_DIR + '/tools/IIS-ShortName-Scanner/config.xml'
-            iis_processs = subprocess.run(['java', '-jar', TOOL_DIR, '0', '10', url_to_scan, CONFIG_DIR],
+            iis_process = subprocess.run(['java', '-jar', TOOL_DIR, '0', '10', url_to_scan, CONFIG_DIR],
                                          capture_output=True)
             message = iis_process.stdout.decode()
             if "NOT VULNERABLE" not in message:
