@@ -5,6 +5,7 @@ import json
 import base64
 import uuid
 
+from time import sleep
 from PIL import Image
 from io import BytesIO
 from datetime import datetime
@@ -39,6 +40,7 @@ def handle_target(target, url_list, language):
         web_versions(url['target'], host, language)
         print('SSH FTP Bruteforce')
         ssh_ftp_brute_login(url,host, language, True) # SHH
+        sleep(10)
         ssh_ftp_brute_login(url,host, language, False) # FTP
         ftp_anon_login(url,host, language) # FTP ANON
         print('Default accounts')
@@ -54,9 +56,9 @@ def handle_single(scan_info):
     # We receive the url with http/https, we will get only the host so nmap works
     host = url.split('/')[2]
     print('------------------- NMAP OUTDATED SOFTWARE -------------------')
-    outdated_software(scan_info, host)
+    #outdated_software(scan_info, host)
     print('------------------- NMAP WEB VERSIONS -------------------')
-    web_versions(scan_info, host)
+    #web_versions(scan_info, host)
     if scan_info['invasive_scans']:
         print('------------------- NMAP SSH FTP BRUTE FORCE -------------------')
         ssh_ftp_brute_login(scan_info, host, True)#SHH
@@ -203,8 +205,7 @@ def ssh_ftp_brute_login(scan_info, url_to_scan, is_ssh):
     cleanup(output_dir)
     brute_subprocess = subprocess.run(
         ['nmap', '-Pn', '-sV', port, '-vvv', '--script', brute, '--script-args',
-         'userdb='+users+','+'passdb='+password+','+timeout+','+'brute.delay='+time_limit+','+'brute.retries=1,brute.firstonly=true', '-oA', output_dir,url_to_scan])
-    print(brute_subprocess)
+         'userdb='+users+','+'passdb='+password+','+timeout+','+'brute.delay='+time_limit+','+'brute.retries=1', '-oA', output_dir,url_to_scan])
     with open(output_dir + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()
@@ -229,7 +230,7 @@ def ftp_anon_login(scan_info,url_to_scan):
     output_dir = ROOT_DIR + '/tools_output/' + random_filename + end_name
     cleanup(output_dir)
     anonynomus_subprocess = subprocess.run(
-        ['nmap', '-Pn', '-sV', '-p21', '-vvv', '--script', 'ftp-anon',  url_to_scan, '-oA', output_dir])
+        ['nmap', '-Pn', '-sV', '-p21', '-vvv', '--script', 'ftp-anon', '-oA', output_dir,url_to_scan])
     with open(output_dir + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()
@@ -254,7 +255,7 @@ def http_errors(target_name, url_to_scan, language):
     port_list = '-p 80,81,443,591,2082,2087,2095,2096,3000,8000,8001,8008,8080,8083,8443,8834,8888 '
     cleanup(output_dir)
     http_subprocess = subprocess.run(
-        ['nmap','-Pn', '-sV', port_list, '-vvv', '--script', ' http-errors ',  url_to_scan, '-oA', output_dir], capture_output=True)
+        ['nmap','-Pn', '-sV', port_list, '-vvv', '--script', ' http-errors ', '-oA', output_dir,url_to_scan], capture_output=True)
     with open(output_dir + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()
@@ -288,7 +289,7 @@ def default_account(scan_info,url_to_scan):
     arg_fingerprint_dir = ROOT_DIR+'/tools/http-default-accounts-fingerprints-nndefaccts.lua'
     script_to_copy = ROOT_DIR+'/tools/nmap/web_versions/http-default-accounts.nse'
     random_filename = uuid.uuid4().hex
-    script_to_launch = ROOT_DIR+'/tools/nmap/web_versions/'+random_filename+'.hda.nse'
+    script_to_launch = ROOT_DIR+'/tools/nmap/web_versions/'+random_filename+'.nse'
     end_name = '.http.def.acc'
     output_dir = ROOT_DIR + '/tools_output/'+random_filename+end_name
     ports = '80,81,443,591,2082,2087,2095,2096,3000,8000,8001,8008,8080,8083,8443,8834,8888'
@@ -302,7 +303,8 @@ def default_account(scan_info,url_to_scan):
         script_edit.writelines(list_of_lines)
 
     da_subprocess = subprocess.run(
-        ['nmap','-Pn', '-sV', '-p'+ports,'-vvv', '--script', script_to_launch, '--script-args','http-default-accounts.fingerprintfile='+arg_fingerprint_dir,  url_to_scan, '-oA', output_dir],capture_output=True)
+        ['nmap','-Pn', '-sV', '-p'+ports,' -vvv', ' --script', script_to_launch, '--script-args','http-default-accounts.fingerprintfile='+arg_fingerprint_dir, '-oA', output_dir,url_to_scan],capture_output=True)
+    print(da_subprocess)
     with open(output_dir+ '.xml') as xml_file:
             my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()

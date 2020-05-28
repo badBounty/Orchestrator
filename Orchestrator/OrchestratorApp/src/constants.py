@@ -85,6 +85,7 @@ HTTP_PASSWD_NMAP_SPANISH = 'Path traversal encontrado'
 WEB_VERSIONS_NMAP_SPANISH = 'Vulnerabilidades de versiones web encontradas'
 # FTP #
 ANONYMOUS_ACCESS_FTP_SPANISH = 'Permisos de escritura en servidor FTP en forma anónima'
+CREDENTIALS_ACCESS_FTP_SPANISH = 'Servidor FTP con credenciales por defecto'
 # SSH #TODO ESTO POR AHORA COORDINAR EL NOMBRE CORRECTO DESPUES
 DEFAULT_CREDENTIALS_SPANISH = 'Acceso administrativo mediante usuarios por defecto'
 # IIS SHORTNAME #
