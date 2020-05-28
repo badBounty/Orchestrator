@@ -1,10 +1,13 @@
-import requests,os
+import requests
+import os
+import uuid
 import base64
 from PIL import Image
 from io import BytesIO
+from datetime import datetime
+
 from ..mongo import mongo
 from ..comms import image_creator
-from datetime import datetime
 from .. import constants
 from ..slack import slack_sender
 from ..redmine import redmine
@@ -71,10 +74,9 @@ def add_header_value_vulnerability(scan_info, scanned_url, timestamp, header, im
             vuln_name = constants.INVALID_VALUE_ON_HEADER_SPANISH
             redmine_description = constants.REDMINE_INVALID_VALUE_ON_HEADER
 
-    # vuln = new Vulnerability('Insecure header configuration')
-
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-    output_dir = ROOT_DIR+'/tools_output/headers-result.png'
+    random_filename = uuid.uuid4().hex
+    output_dir = ROOT_DIR + '/tools_output/' + random_filename + '.png'
     im = Image.open(BytesIO(base64.b64decode(img_b64)))
     im.save(output_dir, 'PNG')
     redmine.create_new_issue(vuln_name, redmine_description % scanned_url,
@@ -108,7 +110,8 @@ def add_header_missing_vulnerability(scan_info, scanned_url, timestamp, header, 
             redmine_description = constants.REDMINE_HEADER_NOT_FOUND
 
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-    output_dir = ROOT_DIR+'/tools_output/headers-result.png'
+    random_filename = uuid.uuid4().hex
+    output_dir = ROOT_DIR+'/tools_output/' + random_filename + '.png'
     im = Image.open(BytesIO(base64.b64decode(img_b64)))
     im.save(output_dir, 'PNG')
     redmine.create_new_issue(vuln_name, redmine_description % scanned_url, scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'],output_dir,'headers-result.png')
@@ -122,7 +125,7 @@ def scan_target(scan_info, url_to_scan):
         print('------------- SAVING RESPONSE TO IMAGE -----------------')
         message = 'Response Headers From: ' + url_to_scan+'\n'
         for h in response.headers:
-            message+= h + " : " + response.headers[h]+'\n'
+            message += h + " : " + response.headers[h]+'\n'
         img_b64 = image_creator.create_image_from_string(message)
     except requests.exceptions.SSLError:
         return
