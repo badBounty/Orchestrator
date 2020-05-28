@@ -115,8 +115,6 @@ POSSIBLE_ERROR_PAGES = {
     'spanish_name': 'Posible inadecuado manejo de errores'
 }
 
-
-### DESCRIPTIONS ###
 # HEADERS #
 INVALID_VALUE_ON_HEADER_DESCRIPTION = 'Header/s found with invalid value at %s'
 HEADER_NOT_FOUND_DESCRIPTION = 'Certain security header/s were not found at %s'

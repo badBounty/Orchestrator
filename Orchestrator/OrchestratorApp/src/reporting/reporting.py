@@ -9,7 +9,7 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def create_report(client,info,findings=None):
     if findings:
-        findings = get_findings(info['target'], language)
+        findings = get_findings(info['target'], info['selected_language'])
     language = info['selected_language']
     reportType = info['report_type']
     client = client
