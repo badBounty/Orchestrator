@@ -7,6 +7,7 @@ from .. import constants
 from ..mongo import mongo
 from ..slack import slack_sender
 from ..redmine import redmine
+from ...objects.vulnerability import Vulnerability
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -31,26 +32,19 @@ def handle_single(scan_info):
     return
 
 
-def add_vulnerability_to_mongo(scan_info, scanned_url, css_url, extra_info):
+def add_vulnerability_to_mongo(scan_info, css_url, vuln_type):
     timestamp = datetime.now()
-    extra_to_send = ""
-    vuln_name = ""
-    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
-        vuln_name = constants.CSS_ENGLISH
-        if extra_info == 'Access':
-            extra_to_send = 'File could not be accessed %s' % css_url
-        elif extra_info == 'Status':
-            extra_to_send = 'File did %s not return status 200' % css_url
-    elif scan_info['language'] == constants.LANGUAGE_SPANISH:
-        vuln_name = constants.CSS_SPANISH
-        if extra_info == 'Access':
-            extra_to_send = 'No se pudo acceder al archivo %s' % css_url
-        elif extra_info == 'Status':
-            extra_to_send = 'El archivo %s no devolvio codigo 200' % css_url
+    if vuln_type == 'Access':
+        description = "Possible css injection found at %s from %s. File could not be accessed" \
+                      % (css_url, scan_info['url_to_scan'])
+    elif vuln_type == 'Status':
+        description = "Possible css injection found at %s from %s. File did not return 200" \
+                      % (css_url, scan_info['url_to_scan'])
 
-    redmine.create_new_issue(vuln_name, constants.REDMINE_CSS % (scanned_url, extra_to_send),
-                             scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
-    mongo.add_vulnerability(scan_info['target'], scanned_url, vuln_name, timestamp, scan_info['language'], extra_to_send)
+    vulnerability = Vulnerability(constants.CSS_INJECTION, scan_info, description)
+    slack_sender.send_simple_vuln(vulnerability)
+    redmine.create_new_issue(vulnerability)
+    mongo.add_vulnerability(vulnerability)
 
 
 def scan_target(scan_info, url_to_scan):
@@ -70,16 +64,10 @@ def scan_target(scan_info, url_to_scan):
             response = requests.get(css_file, verify=False)
         except Exception:
             if url_split[2] != host_split[2]:
-                slack_sender.send_simple_message(
-                    "Possible css injection found at %s from %s. File could not be accessed"
-                    % (css_file, url_to_scan))
-                add_vulnerability_to_mongo(scan_info, url_to_scan, css_file, 'Access')
+                add_vulnerability_to_mongo(scan_info, css_file, 'Access')
 
         if response.status_code != 200:
             if url_split[2] != host_split[2]:
-                slack_sender.send_simple_message(
-                    "Possible css injection found at %s from %s. File did not return 200"
-                    % (css_file, url_to_scan))
-                add_vulnerability_to_mongo(scan_info, url_to_scan, css_file, 'Status')
+                add_vulnerability_to_mongo(scan_info, css_file, 'Status')
 
     return

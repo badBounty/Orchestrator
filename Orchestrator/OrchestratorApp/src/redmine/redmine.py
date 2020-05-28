@@ -1,7 +1,6 @@
 from redminelib import Redmine
 import redminelib
-import datetime
-import os
+
 from ...__init__ import redmine
 
 
@@ -23,21 +22,22 @@ def get_users():
     return available_users
 
 
-def create_new_issue(vuln_name, description, project_name, assigned_users, watchers, attachment_path=None, attachment_name=None):
+def create_new_issue(vulnerability):
+    project_name = vulnerability.redmine['project_id']
     if project_name == 'no_project':
         return
-    watchers = [int(i) for i in watchers]
     issue = redmine.issue.new()
-    issue.project_id = project_name             # orchestator-test-proj ?
-    issue.subject = vuln_name                   # Nombre de la obs
-    issue.tracker_id = 0                        # [0,1,2: Finding, 3:Consulta, 4: Notificacion de estado]
-    issue.description = description             # Descripcion
-    issue.status_id = 1                         # [0: Borrador, 1: Nuevo QA Pendiente]
-    issue.priority_id = 3                       # [1: Informational, 2: Low, 3: Medium, 4: High, 5: Critical]
-    issue.assigned_to_id = int(assigned_users[0])                   # Id de la asignacion, Orchestrator es 17
-    issue.watcher_user_ids = watchers               # Ids de los watchers, Orchestrator es 17
-    if attachment_path is not None:
-        issue.uploads = [{'path': attachment_path, 'filename': attachment_name}]
+    issue.project_id = project_name                              # project name
+    issue.subject = vulnerability.vulnerability_name             # Nombre de la obs
+    issue.tracker_id = vulnerability.redmine['tracker_id']       # [0,1,2: Finding, 3:Consulta, 4: Notificacion de estado]
+    issue.description = vulnerability.custom_description         # Descripcion
+    issue.status_id = vulnerability.redmine['status_id']         # [0: Borrador, 1: Nuevo QA Pendiente]
+    issue.priority_id = vulnerability.redmine['priority_id']     # [1: Informational, 2: Low, 3: Medium, 4: High, 5: Critical]
+    issue.assigned_to_id = vulnerability.redmine['assigned_to']  # Id de la asignacion, Orchestrator es 17
+    issue.watcher_user_ids = vulnerability.redmine['watchers']   # Ids de los watchers, Orchestrator es 17
+    if vulnerability.redmine['attachment_path'] is not None:
+        issue.uploads = [{'path': vulnerability.redmine['attachment_path'],
+                          'filename': vulnerability.redmine['attachment_name']}]
     try:
         issue.save()
     except Exception as e:

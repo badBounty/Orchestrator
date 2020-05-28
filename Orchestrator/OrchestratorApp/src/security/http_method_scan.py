@@ -3,7 +3,7 @@ from ..mongo import mongo
 from .. import constants
 from ..slack import slack_sender
 from ..redmine import redmine
-from datetime import datetime
+from ...objects.vulnerability import Vulnerability
 
 
 def handle_target(target, url_list, language):
@@ -26,19 +26,12 @@ def handle_single(scan_info):
     return
 
 
-def add_vulnerability(scan_info, scanned_url, timestamp, message):
-    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
-        redmine.create_new_issue(constants.UNSECURE_METHOD_ENGLISH, constants.REDMINE_UNSECURE_METHOD % (scanned_url, message),
-                                 scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
-        mongo.add_vulnerability(scan_info['target'], scanned_url,
-                                constants.UNSECURE_METHOD_ENGLISH,
-                                timestamp, scan_info['language'])
-    if scan_info['language'] == constants.LANGUAGE_SPANISH:
-        redmine.create_new_issue(constants.UNSECURE_METHOD_SPANISH, constants.REDMINE_UNSECURE_METHOD % (scanned_url, message),
-                                 scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
-        mongo.add_vulnerability(scan_info['target'], scanned_url,
-                                constants.UNSECURE_METHOD_SPANISH,
-                                timestamp, scan_info['language'])
+def add_vulnerability(scan_info, message):
+    vulnerability = Vulnerability(constants.UNSECURE_METHOD, scan_info, message)
+
+    slack_sender.send_simple_vuln(vulnerability)
+    redmine.create_new_issue(vulnerability)
+    mongo.add_vulnerability(vulnerability)
 
 
 def scan_target(scan_info, url_to_scan):
@@ -64,8 +57,5 @@ def scan_target(scan_info, url_to_scan):
         if response['response'].status_code == 200:
             extensive_methods = True
             message = message + "Method " + response['method'] + " found." + "\n"
-    timestamp = datetime.now()
     if extensive_methods:
-        slack_sender.send_simple_vuln("Extensive http methods found on %s, %s"
-                                      % (url_to_scan, message))
-        add_vulnerability(scan_info, url_to_scan, timestamp, message)
+        add_vulnerability(scan_info, message)

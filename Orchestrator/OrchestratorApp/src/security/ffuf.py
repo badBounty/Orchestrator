@@ -3,6 +3,7 @@ from ..mongo import mongo
 from .. import constants
 from ..slack import slack_sender
 from ..redmine import redmine
+from ...objects.vulnerability import Vulnerability
 
 import subprocess
 import os
@@ -37,22 +38,13 @@ def handle_single(scan_info):
     return
 
 
-def add_vulnerability(scan_info, affected_resource, extra_info):
+def add_vulnerability(scan_info, affected_resource, description):
     timestamp = datetime.now()
-    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
-        redmine.create_new_issue(constants.ENDPOINT_ENGLISH,
-                                 constants.REDMINE_ENDPOINT % (affected_resource, extra_info),
-                                 scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
-        mongo.add_vulnerability(scan_info['target'], affected_resource,
-                                constants.ENDPOINT_ENGLISH,
-                                timestamp, scan_info['language'], extra_info)
-    elif scan_info['language'] == constants.LANGUAGE_SPANISH:
-        redmine.create_new_issue(constants.ENDPOINT_SPANISH,
-                                 constants.REDMINE_ENDPOINT % (affected_resource, extra_info),
-                                 scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
-        mongo.add_vulnerability(scan_info['target'], affected_resource,
-                                constants.ENDPOINT_SPANISH,
-                                timestamp, scan_info['language'], extra_info)
+    vulnerability = Vulnerability(constants.ENDPOINT, scan_info, description)
+
+    slack_sender.send_simple_vuln(vulnerability)
+    redmine.create_new_issue(vulnerability)
+    mongo.add_vulnerability(vulnerability)
 
 
 def scan_target(scan_info, url_with_http):
@@ -83,8 +75,8 @@ def scan_target(scan_info, url_with_http):
             one_found = True
 
     if one_found:
-        slack_sender.send_simple_vuln("The following endpoints were found at %s:\n %s"% (url_with_http, extra_info_message))
-        add_vulnerability(scan_info, url_with_http, extra_info_message)
+        description = "The following endpoints were found at %s:\n %s" % (url_with_http, extra_info_message)
+        add_vulnerability(scan_info, url_with_http, description)
 
     cleanup(JSON_RESULT)
     return

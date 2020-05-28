@@ -9,6 +9,7 @@ from ..utils import utils
 from ..mongo import mongo
 from .. import constants
 from ..redmine import redmine
+from ...objects.vulnerability import Vulnerability
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -33,18 +34,13 @@ def handle_single(scan_info):
     return
 
 
-def add_token_found_vuln(scan_info, scanned_url, javascript_file, extra_info):
+def add_token_found_vuln(scan_info, message):
     timestamp = datetime.now()
-    vuln_name = None
-    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
-        vuln_name = constants.TOKEN_SENSITIVE_INFO_ENGLISH
-    elif scan_info['language'] == constants.LANGUAGE_SPANISH:
-        vuln_name = constants.TOKEN_SENSITIVE_INFO_SPANISH
+    vulnerability = Vulnerability(constants.TOKEN_SENSITIVE_INFO, scan_info, message)
 
-    redmine.create_new_issue(vuln_name, constants.REDMINE_SENSITIVE_INFO % (javascript_file, extra_info),
-                             scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
-    mongo.add_vulnerability(scan_info['target'], scanned_url, vuln_name,
-                            timestamp, scan_info['language'], 'Found at ' + javascript_file + '\n' + extra_info)
+    slack_sender.send_simple_vuln(vulnerability)
+    redmine.create_new_issue(vulnerability)
+    mongo.add_vulnerability(vulnerability)
 
 
 def scan_target(scan_info, url_for_scanning):
@@ -217,7 +213,6 @@ def scan_for_tokens(scan_info, scanned_url, javascript):
             if token['list']:
                 for ind_token in token['list']:
                     extra_info = extra_info + token['keyword'] + ": " + ind_token + "\n"
-        slack_sender.send_simple_vuln('Tokens were found at %s from %s:\n %s' % (javascript, scanned_url, extra_info))
-        add_token_found_vuln(scan_info, scanned_url, javascript, extra_info)
-
+        add_token_found_vuln(scan_info,
+                             "The following tokes were found at %s from %s: \n %s"% (javascript, scan_info['url_to_scan'], extra_info))
     return

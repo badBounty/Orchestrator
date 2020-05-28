@@ -3,6 +3,7 @@ from datetime import datetime
 from .. import constants
 from ..slack import slack_sender
 from ..redmine import redmine
+from ...objects.vulnerability import Vulnerability
 
 import os
 import subprocess
@@ -62,21 +63,10 @@ def handle_single(scan_info):
 
 
 def add_vulnerability(scan_info, vuln):
-    timestamp = datetime.now()
-    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
-        redmine.create_new_issue(constants.CORS_ENGLISH,
-                                 constants.REDMINE_CORS % (vuln['url'], vuln['type'], vuln['origin']),
-                                 scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
-        mongo.add_vulnerability(scan_info['target'], vuln['url'],
-                                constants.CORS_ENGLISH,
-                                timestamp, scan_info['language'], 'Found CORS %s with origin %s' % (vuln['type'], vuln['origin']))
-    elif scan_info['language'] == constants.LANGUAGE_SPANISH:
-        redmine.create_new_issue(constants.CORS_SPANISH,
-                                 constants.REDMINE_CORS % (vuln['url'], vuln['type'],vuln['origin']),
-                                 scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
-        mongo.add_vulnerability(scan_info['target'], vuln['url'],
-                                constants.CORS_SPANISH,
-                                timestamp, scan_info['language'], 'Se encontro CORS %s usando origin %s' % (vuln['type'], vuln['origin']))
+    vulnerability = Vulnerability(constants.CORS, scan_info, 'Found CORS %s with origin %s' % (vuln['type'], vuln['origin']))
+    slack_sender.send_simple_vuln(vulnerability)
+    redmine.create_new_issue(vulnerability)
+    mongo.add_vulnerability(vulnerability)
 
 
 def scan_target(scan_info, file_name):
@@ -98,7 +88,6 @@ def scan_target(scan_info, file_name):
         return
 
     for vuln in vulns:
-        slack_sender.send_simple_vuln("CORS (%s) vulnerability found at %s" % (vuln['type'], scan_info['url_to_scan']))
         add_vulnerability(scan_info, vuln)
 
     cleanup(FILE_WITH_JSON_RESULT)
