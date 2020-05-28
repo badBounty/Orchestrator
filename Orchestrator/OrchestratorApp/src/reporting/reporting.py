@@ -7,11 +7,11 @@ from ..mongo import mongo
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def create_report(client, language, report_type, selected_target,findings=None):
+def create_report(client,info,findings=None):
     if findings:
-        findings = get_findings(selected_target, language)
-    language = language
-    reportType = report_type
+        findings = get_findings(info['target'], language)
+    language = info['selected_language']
+    reportType = info['report_type']
     client = client
     file_dir,missing_finding = reportGenerator.crearReporte(language, reportType, client, findings)
     return file_dir,missing_finding
