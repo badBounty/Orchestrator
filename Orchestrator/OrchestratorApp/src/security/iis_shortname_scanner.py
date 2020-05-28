@@ -1,8 +1,12 @@
-import requests,os,subprocess
+import requests
+import os
+import subprocess
 import base64
 from PIL import Image
 from io import BytesIO
 from datetime import datetime
+import uuid
+
 from ..mongo import mongo
 from ..comms import image_creator
 from ..slack import slack_sender
@@ -43,7 +47,8 @@ def scan_target(scan_info, url_to_scan):
             message = iis_process.stdout.decode()
             if "NOT VULNERABLE" not in message:
                 img_str = image_creator.create_image_from_string(message)
-                output_dir = ROOT_DIR+'/tools_output/IIS.png'
+                random_filename = uuid.uuid4().hex
+                output_dir = ROOT_DIR + '/tools_output/' + random_filename + '.png'
                 im = Image.open(BytesIO(base64.b64decode(img_str)))
                 im.save(output_dir, 'PNG')
                 timestamp = datetime.now()
@@ -53,9 +58,9 @@ def scan_target(scan_info, url_to_scan):
                 redmine.create_new_issue(vuln_name, redmine_description % url_to_scan,
                                          scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'],output_dir,'IIS-Result.png')
 
-                mongo.add_vulnerability(scan_info['target'], url_to_scan,vuln_name, timestamp, scan_info['language'], message,img_str)
+                mongo.add_vulnerability(scan_info['target'], url_to_scan, vuln_name, timestamp, scan_info['language'],
+                                        message, img_str)
                 os.remove(output_dir)
     except KeyError:
         print("No server header was found")
-        
     return

@@ -1,13 +1,15 @@
 import json
 import xmltodict
+import uuid
+import xml
+from datetime import datetime
+import subprocess
+import os
+
 from ..mongo import mongo
 from .. import constants
 from ..slack import slack_sender
 from ..redmine import redmine
-from datetime import datetime
-import subprocess
-import os
-import xml
 
 
 def handle_target(target, url_list, language):
@@ -78,10 +80,8 @@ def scan_target(scan_info, url, url_with_port):
 
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     TOOL_DIR = ROOT_DIR + '/tools/testssl.sh/testssl.sh'
-    OUTPUT_DIR = ROOT_DIR + '/tools_output'
-    split_url = url.split('/')
-    only_host = split_url[2]
-    OUTPUT_FULL_NAME = OUTPUT_DIR + '/' + only_host + '.json'
+    random_filename = uuid.uuid4().hex
+    OUTPUT_FULL_NAME = ROOT_DIR + '/tools_output/' + random_filename + '.json'
 
     cleanup(OUTPUT_FULL_NAME)
     # We first run the subprocess that creates the xml output file

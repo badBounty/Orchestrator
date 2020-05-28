@@ -66,11 +66,11 @@ def fastPrint(libraries):
         version = info['versions'][0] if info['versions'] else ""
         last_version = info['last_version']
         if version or last_version:
-            info_title+=' Version: '+version+' Last Version :'+last_version
-        message+="\t"+info_title+'\n'
+            info_title += ' Version: '+version+' Last Version :'+last_version
+        message += "\t"+info_title+'\n'
         for cve in info['cves']:
-            cve_info='CVE ID: '+cve['CVE ID']+' - Vulnerability: '+cve['Vulnerability Type(s)']+'- CVSS Score: '+cve['Score']
-            message+="\t"+cve_info+'\n'
+            cve_info = 'CVE ID: '+cve['CVE ID']+' - Vulnerability: '+cve['Vulnerability Type(s)']+'- CVSS Score: '+cve['Score']
+            message += "\t"+cve_info+'\n'
     return message
 
 

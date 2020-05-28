@@ -1,11 +1,13 @@
-import subprocess
-import os
-import json
 from datetime import datetime
 from ..mongo import mongo
 from .. import constants
 from ..slack import slack_sender
 from ..redmine import redmine
+
+import subprocess
+import os
+import json
+import uuid
 
 
 def cleanup(path):
@@ -57,8 +59,8 @@ def scan_target(scan_info, url_with_http):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     TOOL_DIR = ROOT_DIR + '/tools/ffuf'
     WORDLIST_DIR = ROOT_DIR + '/tools/ffuf_wordlist.txt'
-    only_host = url_with_http.split('/')[2]
-    JSON_RESULT = ROOT_DIR + '/tools_output/' + only_host + '.json'
+    random_filename = uuid.uuid4().hex
+    JSON_RESULT = ROOT_DIR + '/tools_output/' + random_filename + '.json'
     cleanup(JSON_RESULT)
 
     if url_with_http[-1] != '/':

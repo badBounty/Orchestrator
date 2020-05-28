@@ -3,6 +3,8 @@ import os
 import xmltodict
 import json
 import base64
+import uuid
+
 from PIL import Image
 from io import BytesIO
 from datetime import datetime
@@ -12,6 +14,7 @@ from .. import constants
 from ..mongo import mongo
 from ..redmine import redmine
 
+
 def cleanup(path):
     try:
         os.remove(path + '.xml')
@@ -20,6 +23,7 @@ def cleanup(path):
     except FileNotFoundError:
         pass
     return
+
 
 def handle_target(target, url_list, language):
     print('------------------- NMAP SCRIPT TARGET SCAN STARTING -------------------')
@@ -101,7 +105,8 @@ def add_vuln_to_mongo(scan_info, scanned_url, scan_type, extra_info, img_str=Non
     slack_sender.send_simple_vuln("Nmap " + scan_type + " script found: \n" + str(extra_info))
     if img_str:
         ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-        output_dir = ROOT_DIR+'/tools_output/nmap-result.png'
+        random_filename = uuid.uuid4().hex
+        output_dir = ROOT_DIR+'/tools_output/' + random_filename + '.png'
         im = Image.open(BytesIO(base64.b64decode(img_str)))
         im.save(output_dir, 'PNG')
         redmine.create_new_issue(vuln_name, extra_info, scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'],output_dir,'nmap-result.png')
@@ -193,7 +198,8 @@ def ssh_ftp_brute_login(scan_info, url_to_scan, is_ssh):
         end_name = '.ftp.brute'
     users = ROOT_DIR + '/tools/usernames-shortlist.txt'
     password = ROOT_DIR + '/tools/default-pass.txt'
-    output_dir = ROOT_DIR + '/tools_output/'+url_to_scan+end_name
+    random_filename = uuid.uuid4().hex
+    output_dir = ROOT_DIR + '/tools_output/'+random_filename+end_name
     cleanup(output_dir)
     brute_subprocess = subprocess.run(
         ['nmap', '-Pn', '-sV', port, '-vvv', '--script', brute, '--script-args',
@@ -219,7 +225,8 @@ def ssh_ftp_brute_login(scan_info, url_to_scan, is_ssh):
 def ftp_anon_login(scan_info,url_to_scan):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     end_name = '.ftp.anon'
-    output_dir = ROOT_DIR + '/tools_output/'+url_to_scan+end_name
+    random_filename = uuid.uuid4().hex
+    output_dir = ROOT_DIR + '/tools_output/' + random_filename + end_name
     cleanup(output_dir)
     anonynomus_subprocess = subprocess.run(
         ['nmap', '-Pn', '-sV', '-p21', '-vvv', '--script', 'ftp-anon',  url_to_scan, '-oA', output_dir])
@@ -239,14 +246,15 @@ def ftp_anon_login(scan_info,url_to_scan):
     return
 
 
-def http_errors(target_name,url_to_scan,language):
+def http_errors(target_name, url_to_scan, language):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     end_name = '.htttp.errors'
-    output_dir = ROOT_DIR + '/tools_output/'+url_to_scan+end_name
+    random_filename = uuid.uuid4().hex
+    output_dir = ROOT_DIR + '/tools_output/' + random_filename + end_name
     port_list = '-p 80,81,443,591,2082,2087,2095,2096,3000,8000,8001,8008,8080,8083,8443,8834,8888 '
     cleanup(output_dir)
     http_subprocess = subprocess.run(
-        ['nmap','-Pn', '-sV', port_list, '-vvv', '--script', ' http-errors ',  url_to_scan, '-oA', output_dir],capture_output=True)
+        ['nmap','-Pn', '-sV', port_list, '-vvv', '--script', ' http-errors ',  url_to_scan, '-oA', output_dir], capture_output=True)
     with open(output_dir + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()
@@ -279,9 +287,10 @@ def default_account(scan_info,url_to_scan):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     arg_fingerprint_dir = ROOT_DIR+'/tools/http-default-accounts-fingerprints-nndefaccts.lua'
     script_to_copy = ROOT_DIR+'/tools/nmap/web_versions/http-default-accounts.nse'
-    script_to_launch = ROOT_DIR+'/tools/nmap/web_versions/'+url_to_scan+'.hda.nse'
+    random_filename = uuid.uuid4().hex
+    script_to_launch = ROOT_DIR+'/tools/nmap/web_versions/'+random_filename+'.hda.nse'
     end_name = '.http.def.acc'
-    output_dir = ROOT_DIR + '/tools_output/'+url_to_scan+end_name
+    output_dir = ROOT_DIR + '/tools_output/'+random_filename+end_name
     ports = '80,81,443,591,2082,2087,2095,2096,3000,8000,8001,8008,8080,8083,8443,8834,8888'
     message=""
     #ACA ABRIMOS EL SCRIPT Y MODIFICAMOS LA INFORMACION QUE NECESITAMOS

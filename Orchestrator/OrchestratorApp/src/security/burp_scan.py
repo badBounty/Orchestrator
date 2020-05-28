@@ -1,11 +1,13 @@
-import requests
 from ..slack import slack_sender
 from ..mongo import mongo
 from ..redmine import redmine
 from .. import constants
+
 import time
+import requests
 import subprocess
 import os
+import uuid
 from datetime import datetime
 
 
@@ -91,7 +93,8 @@ def scan_target(scan_info, url_to_scan):
     print("Passive scan on %s finished!" % url_to_scan)
 
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-    OUTPUT_DIR = ROOT_DIR + '/tools_output/output.xml'
+    random_filename = uuid.uuid4().hex
+    OUTPUT_DIR = ROOT_DIR + '/tools_output/' + random_filename + '.xml'
 
     download_response = requests.get(download_report % url_to_scan, headers=header)
     open(OUTPUT_DIR, 'wb').write(download_response.content)
@@ -100,4 +103,5 @@ def scan_target(scan_info, url_to_scan):
     try:
         os.remove(OUTPUT_DIR)
     except FileNotFoundError:
+        print("File %s is supposed to exist!" % OUTPUT_DIR)
         return
