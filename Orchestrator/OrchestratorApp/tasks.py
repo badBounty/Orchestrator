@@ -108,13 +108,13 @@ def vuln_scan_single_task(info):
         'watchers': info['watcher_users']
     }
     # Baseline
-    header_scan.handle_single(scan_information)
-    http_method_scan.handle_single(scan_information)
-    cors_scan.handle_single(scan_information)
+    #header_scan.handle_single(scan_information)
+    #http_method_scan.handle_single(scan_information)
+    #cors_scan.handle_single(scan_information)
     #libraries_scan.handle_single(scan_information)
-    ssl_tls_scan.handle_single(scan_information)
+    #ssl_tls_scan.handle_single(scan_information)
     # Extra
-    ffuf.handle_single(scan_information)
+    #ffuf.handle_single(scan_information)
     # Nmap scripts
     nmap_script_scan.handle_single(scan_information)
     # IIS shortname checker
