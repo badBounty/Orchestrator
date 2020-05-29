@@ -1,2 +1,4 @@
 Pipfile
 Pipfile.lock
+Orchestrator/.vscode/settings.json
+Orchestrator/celerybeat-schedule.db
