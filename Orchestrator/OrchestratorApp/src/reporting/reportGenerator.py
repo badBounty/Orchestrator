@@ -83,16 +83,7 @@ def add_cves(jsonFinding):
     message=""
     if jsonFinding['TITLE'] == constants.OUTDATED_3RD_LIBRARIES['spanish_name'] or jsonFinding['TITLE'] == constants.OUTDATED_3RD_LIBRARIES['english_name']:
         if jsonFinding['extra_info'] != None :
-            for info in ast.literal_eval(jsonFinding['extra_info']):
-                info_title= "\nName: "+info['name']
-                version = info['versions'][0] if info['versions'] else ""
-                last_version = info['last_version']
-                if version or last_version:
-                    info_title+=' Version: '+version+' Last Version :'+last_version
-                message+="\t"+info_title+'\n'
-                for cve in info['cves']:
-                    cve_info='CVE ID: '+cve['CVE ID']+' - Vulnerability: '+cve['Vulnerability Type(s)']+'- CVSS Score: '+cve['Score']
-                    message+="\t\t"+cve_info+'\n'
+            message = jsonFinding['extra_info']
     return message
 
 # Agregar info en celda sin romper formato
