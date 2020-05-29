@@ -25,7 +25,7 @@ def sleepy(duration):
 # ------------------ Scan with email ------------------ #
 @shared_task
 def vuln_scan_with_email_notification(info):
-    #vuln_scan_single_task(info)
+    vuln_scan_single_task(info)
     vulns = mongo.get_vulns_with_language(info['target'], info['selected_language'])
     file_dir, missing_findings = reporting.create_report("", info, vulns)
     email_handler.send_email(file_dir, missing_findings, info['email'])
@@ -50,7 +50,7 @@ def recon_and_vuln_scan_task(target, language):
     header_scan.handle_target(target, subdomains_http, language)
     http_method_scan.handle_target(target, subdomains_http, language)
     cors_scan.handle_target(target, subdomains_http, language)
-    #libraries_scan.handle_target(target, subdomains_http, language)
+    libraries_scan.handle_target(target, subdomains_http, language)
     ssl_tls_scan.handle_target(target, ssl_valid, language)
     # Nmap script
     nmap_script_scan.handle_target(target, subdomains_http, language)
