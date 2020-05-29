@@ -117,10 +117,12 @@ def outdated_software(scan_info, url_to_scan):
     text = text.split('\n')
 
     extra_info = "Outdated software nmap result: \n"
+    outdated_software_found = False
     for line in text:
         if 'CVE' in line:
+            outdated_software_found = True
             extra_info = extra_info + line
-    if extra_info:
+    if outdated_software_found:
         add_vuln_to_mongo(scan_info, 'outdated_software', extra_info)
     return
 
@@ -158,20 +160,25 @@ def web_versions(scan_info, url_to_scan):
     text_web_versions = text_web_versions.split('\n')
 
     extra_info_web_versions = 'Nmap web-versions script: \n'
+    web_versions_found = False
     for i in range(0, len(text_web_versions)):
         if 'The following JSONP endpoints were detected' in text_web_versions[i] and 'ERROR' not in text_web_versions[i]:
+            web_versions_found = True
             extra_info_web_versions = extra_info_web_versions + text_web_versions[i-1] + " \n " +\
                                            text_web_versions[i] + " \n " + text_web_versions[i+1]
         if 'http-open-redirect' in text_web_versions[i] and 'ERROR' not in text_web_versions[i]:
+            web_versions_found = True
             extra_info_web_versions = extra_info_web_versions + text_web_versions[i] + " \n " +\
                                            text_web_versions[i+1]
         if 'http-vuln-cve2017-5638' in text_web_versions[i] and 'ERROR' not in text_web_versions[i]:
+            web_versions_found = True
             extra_info_web_versions = extra_info_web_versions + text_web_versions[i] + " \n " +\
                                            text_web_versions[i+1] + " \n " + text_web_versions[i+2]
         if 'http-vuln-cve2017-1001000' in text_web_versions[i] and 'ERROR' not in text_web_versions[i]:
+            web_versions_found = True
             extra_info_web_versions = extra_info_web_versions + text_web_versions[i] + " \n " +\
                                            text_web_versions[i+1] + " \n " + text_web_versions[i+2]
-    if extra_info_web_versions:
+    if web_versions_found:
         add_vuln_to_mongo(scan_info, 'web_versions', extra_info_web_versions)
     return
 
