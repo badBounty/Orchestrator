@@ -63,7 +63,7 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
 
 def scan_target(scan_info):
     header = {'accept': '*/*'}
-
+    
     subprocess.run(['curl', '-k', '-x', 'http://127.0.0.1:8080', '-L', scan_info['url_to_scan']],
                    capture_output=True)
 
@@ -102,6 +102,7 @@ def scan_target(scan_info):
     open(OUTPUT_DIR, 'wb').write(download_response.content)
     add_vulnerability(scan_info, download_response.content,
                       OUTPUT_DIR, 'burp_result.xml')
+
     try:
         os.remove(OUTPUT_DIR)
     except FileNotFoundError:

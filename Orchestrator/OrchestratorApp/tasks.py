@@ -4,7 +4,7 @@ from celery.task import periodic_task
 
 from time import sleep
 import datetime as dt
-import os
+import os,gc
 
 from .src.recon import recon, nmap, aquatone
 from .src.security import header_scan, http_method_scan, ssl_tls_scan,\
@@ -33,6 +33,7 @@ def vuln_scan_with_email_notification(info):
     #    os.remove(file_dir)
     #except FileNotFoundError:
     #    pass
+    gc.collect()
 
 
 # ------------------ Full tasks ------------------ #
@@ -111,8 +112,8 @@ def vuln_scan_single_task(info):
     header_scan.handle_single(scan_information)
     http_method_scan.handle_single(scan_information)
     cors_scan.handle_single(scan_information)
-    #libraries_scan.handle_single(scan_information)
-    ssl_tls_scan.handle_single(scan_information)
+    libraries_scan.handle_single(scan_information)
+    #ssl_tls_scan.handle_single(scan_information)
     # Extra
     ffuf.handle_single(scan_information)
     # Nmap scripts

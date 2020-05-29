@@ -271,4 +271,5 @@ def crearReporte(language, reportType, client, findings):
     else:
         name += client + "REPORTE_CON_FINDINGS_INGLES-" + d1 + ".docm"
         doc.save(ROOT_DIR + '/out/' + name)
+    gc.collect()
     return ROOT_DIR + '/out/' + name,missing_findings
