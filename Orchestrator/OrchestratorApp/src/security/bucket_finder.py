@@ -19,14 +19,16 @@ regions = ['us-east-2', 'us-east-1', 'us-west-1', 'us-west-2', 'ap-east-1', 'ap-
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-def handle_target(target, url_list, language):
+def handle_target(info):
     print('------------------- S3BUCKET TARGET SCAN STARTING -------------------')
     slack_sender.send_simple_message("Bucket finder scan started against target: %s. %d alive urls found!"
-                                     % (target, len(url_list)))
-    print('Found ' + str(len(url_list)) + ' targets to scan')
-    for url in url_list:
-        print('Scanning ' + url['url_with_http'])
-        scan_target(url['target'], url['url_with_http'], language)
+                                     % (info['target'], len(info['url_to_scan'])))
+    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+    for url in info['url_to_scan']:
+        sub_info = info
+        sub_info['url_to_scan'] = url
+        print('Scanning ' + url)
+        #scan_target(sub_info, sub_info['url_to_scan'])
     print('------------------- S3BUCKET TARGET SCAN FINISHED -------------------')
     return
 

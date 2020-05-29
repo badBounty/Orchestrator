@@ -26,25 +26,31 @@ def cleanup(path):
     return
 
 
-def handle_target(target, url_list, language):
+def handle_target(info):
     print('------------------- NMAP SCRIPT TARGET SCAN STARTING -------------------')
     slack_sender.send_simple_message("Nmap scripts started against target: %s. %d alive urls found!"
-                                     % (target, len(url_list)))
-    print('Found ' + str(len(url_list)) + ' targets to scan')
-    for url in url_list:
-        print('Scanning ' + url['url_with_http'])
-        host = url['url_with_http'].split('/')[2]
-        print('Outdated software')
-        outdated_software(url['target'], host, language)
-        print('Web versions')
-        web_versions(url['target'], host, language)
-        print('SSH FTP Bruteforce')
-        ssh_ftp_brute_login(url,host, language, True) # SHH
-        sleep(10)
-        ssh_ftp_brute_login(url,host, language, False) # FTP
-        ftp_anon_login(url,host, language) # FTP ANON
-        print('Default accounts')
-        default_account(url,host, language) # Default creds in web console
+                                     % (info['target'], len(info['url_to_scan'])))
+    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+    scanned_hosts = list()
+    for url in info['url_to_scan']:
+        sub_info = info
+        sub_info['url_to_scan'] = url
+        host = url.split('/')[2]
+        print('Scanning ' + url + "Host " + host)
+        print('------------------- NMAP OUTDATED SOFTWARE -------------------')
+        if host not in scanned_hosts:
+            #outdated_software(sub_info, host)
+            print('------------------- NMAP WEB VERSIONS -------------------')
+            #web_versions(sub_info, host)
+            if sub_info['invasive_scans']:
+                print('------------------- NMAP SSH FTP BRUTE FORCE -------------------')
+                #ssh_ftp_brute_login(sub_info, host, True)#SHH
+                #sleep(10)
+                #ssh_ftp_brute_login(sub_info, host, False)#FTP
+                #ftp_anon_login(sub_info, host)#FTP ANON
+                print('------------------- NMAP DEFAULT ACCOUNTS -------------------')
+                #default_account(sub_info,host)#Default creds in web console
+        scanned_hosts.append(host)
     print('------------------- NMAP SCRIPT TARGET SCAN FINISHED -------------------')
     return
 

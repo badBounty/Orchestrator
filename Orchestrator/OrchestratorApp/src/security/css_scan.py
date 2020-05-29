@@ -12,14 +12,16 @@ from ...objects.vulnerability import Vulnerability
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-def handle_target(target, url_list, language):
+def handle_target(info):
     print('------------------- CSS TARGET SCAN STARTING -------------------')
     slack_sender.send_simple_message("CSS scan started against target: %s. %d alive urls found!"
-                                     % (target, len(url_list)))
-    print('Found ' + str(len(url_list)) + ' targets to scan')
-    for url in url_list:
-        print('Scanning ' + url['url_with_http'])
-        scan_target(url['target'], url['url_with_http'], language)
+                                     % (info['target'], len(info['url_to_scan'])))
+    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+    for url in info['url_to_scan']:
+        sub_info = info
+        sub_info['url_to_scan'] = url
+        print('Scanning ' + url)
+        #scan_target(sub_info, sub_info['url_to_scan'])
     print('------------------- CSS TARGET SCAN FINISHED -------------------')
     return
 

@@ -13,14 +13,23 @@ from ..redmine import redmine
 from ...objects.vulnerability import Vulnerability
 
 
-def handle_target(target, url_list, language):
+def handle_target(info):
     print('------------------- TARGET SSL/TLS SCAN STARTING -------------------')
-    print('Found ' + str(len(url_list)) + ' targets to scan')
+    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     slack_sender.send_simple_message("SSL/TLS scan started against target: %s. %d alive urls found!"
-                                     % (target, len(url_list)))
-    for url in url_list:
-        print('Scanning ' + url['url_with_port'])
-        scan_target(url['target'], url['name'], url['url_with_port'], language)
+                                     % (info['target'], len(info['url_to_scan'])))
+    valid_ports = ['443']
+    for url in info['url_to_scan']:
+        sub_info = info
+        sub_info['url_to_scan'] = url
+
+        split_url = url.split('/')
+        final_url = split_url[2]
+        #TODO SACAR ESTO
+        for port in valid_ports:
+            print('Scanning ' + url + 'With real target ' + final_url+':'+port)
+            pass
+            #scan_target(sub_info, url, final_url+':'+port)
     print('-------------------  TARGET SSL/TLS SCAN FINISHED -------------------')
     return
 

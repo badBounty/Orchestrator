@@ -19,13 +19,17 @@ def cleanup(path):
     return
 
 
-def handle_target(target, url_list, language):
+def handle_target(info):
     print('------------------- FFUF SCAN STARTING -------------------')
-    print('Found ' + str(len(url_list)) + ' targets to scan')
+    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     slack_sender.send_simple_message("Directory bruteforce scan started against target: %s. %d alive urls found!"
-                                     % (target, len(url_list)))
-    for url in url_list:
-        scan_target(url['target'], url['url_with_http'], language)
+                                     % (info['target'], len(info['url_to_scan'])))
+    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+    for url in info['url_to_scan']:
+        sub_info = info
+        sub_info['url_to_scan'] = url
+        print('Scanning ' + url)
+        #scan_target(sub_info, sub_info['url_to_scan'])
     print('-------------------  FFUF SCAN FINISHED -------------------')
     return
 

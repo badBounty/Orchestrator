@@ -87,14 +87,17 @@ def analyze(scan_info, url_to_scan):
         print('\nSomethig went wrong! :' + '\n' + str(e))
 
 
-def handle_target(target, url_list, language):
+def handle_target(info):
     print('------------------- TARGET LIBRARIES SCAN STARTING -------------------')
-    print('Found ' + str(len(url_list)) + ' targets to scan')
+    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     slack_sender.send_simple_message("Libraries scan started against target: %s. %d alive urls found!"
-                                     % (target, len(url_list)))
-    for url in url_list:
-        print('Scanning ' + url['url_with_http'])
-        analyze(url['target'], url['url_with_http'], language)
+                                     % (info['target'], len(info['url_to_scan'])))
+    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+    for url in info['url_to_scan']:
+        sub_info = info
+        sub_info['url_to_scan'] = url
+        print('Scanning ' + url)
+        #scan_target(sub_info, sub_info['url_to_scan'])
     print('-------------------  TARGET LIBRARIES SCAN FINISHED -------------------')
     return
 
