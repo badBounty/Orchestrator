@@ -18,7 +18,9 @@ def handle_file_target_scan(info, file):
     for line in lines:
         url_list.append(line.replace('\n',''))
 
-    vuln_scan_file_input_task.delay(info, url_list)
+    info_to_send = {'target': 'file_target', 'selected_language': 'eng', 'use_active_modules': True}
+
+    vuln_scan_file_input_task.delay(info_to_send, url_list)
     return
 
 

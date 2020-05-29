@@ -31,12 +31,10 @@ def handle_target(info):
     FILE_WITH_URLS = ROOT_DIR + '/tools_output/' + random_filename + '.txt'
     with open(FILE_WITH_URLS, 'w') as f:
         for item in info['url_to_scan']:
-            # TODO BORRA ESTO
-            print(item)
             f.write("%s\n" % item)
 
     # Call scan target with the file
-    #scan_target(info, FILE_WITH_URLS)
+    scan_target(info, FILE_WITH_URLS)
     # Delete all created files
     cleanup(FILE_WITH_URLS)
     print('-------------------  CORS SCAN FINISHED -------------------')

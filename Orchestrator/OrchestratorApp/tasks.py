@@ -49,33 +49,48 @@ def recon_and_vuln_scan_task(info):
         'watchers': None
     }
     recon.run_recon(scan_information['target'])
-    #subdomains_plain = mongo.get_target_alive_subdomains(scan_information['target'])
-    #nmap.start_nmap(subdomains_plain)
-    #aquatone.start_aquatone(subdomains_plain)
+    subdomains_plain = mongo.get_target_alive_subdomains(scan_information['target'])
+    nmap.start_nmap(subdomains_plain)
+    aquatone.start_aquatone(subdomains_plain)
 
-    subdomains_http = mongo.get_target_alive_subdomains(scan_information['target'])
+    subdomains_http = mongo.get_responsive_http_resources(scan_information['target'])
+    only_urls = list()
+    for subdomain in subdomains_http:
+        only_urls.append(subdomain['url_with_http'])
 
-    #subdomains_http = mongo.get_responsive_http_resources(scan_information['target'])
     http_scan_information = scan_information
-    http_scan_information['url_to_scan'] = subdomains_http
+    http_scan_information['url_to_scan'] = only_urls
 
     header_scan.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
     http_method_scan.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
     cors_scan.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
     #libraries_scan.handle_target(http_scan_information)
+    #http_scan_information['url_to_scan'] = only_urls
     # Nmap script
     nmap_script_scan.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
     # IIS shortname checker
     iis_shortname_scanner.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
     # Other
     ffuf.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
     # Dispatcher
     bucket_finder.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
     token_scan.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
     css_scan.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
     firebase_scan.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
     host_header_attack.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
     ssl_tls_scan.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
 
     return
 
@@ -134,8 +149,6 @@ def vuln_scan_target_task(info):
 
 @shared_task
 def vuln_scan_file_input_task(info, url_list):
-    print(info)
-    print(url_list)
     scan_information = {
         'target': info['target'],
         'url_to_scan': url_list,
@@ -146,22 +159,35 @@ def vuln_scan_file_input_task(info, url_list):
         'watchers': None
     }
 
+    scan_information['url_to_scan'] = url_list
     header_scan.handle_target(scan_information)
+    scan_information['url_to_scan'] = url_list
     http_method_scan.handle_target(scan_information)
+    scan_information['url_to_scan'] = url_list
     cors_scan.handle_target(scan_information)
+    scan_information['url_to_scan'] = url_list
     #libraries_scan.handle_target(scan_information)
+    #scan_information['url_to_scan'] = url_list
     # Nmap script
     nmap_script_scan.handle_target(scan_information)
+    scan_information['url_to_scan'] = url_list
     # IIS shortname checker
     iis_shortname_scanner.handle_target(scan_information)
+    scan_information['url_to_scan'] = url_list
     # Other
     ffuf.handle_target(scan_information)
+    scan_information['url_to_scan'] = url_list
     # Dispatcher
     bucket_finder.handle_target(scan_information)
+    scan_information['url_to_scan'] = url_list
     token_scan.handle_target(scan_information)
+    scan_information['url_to_scan'] = url_list
     css_scan.handle_target(scan_information)
+    scan_information['url_to_scan'] = url_list
     firebase_scan.handle_target(scan_information)
+    scan_information['url_to_scan'] = url_list
     host_header_attack.handle_target(scan_information)
+    scan_information['url_to_scan'] = url_list
     ssl_tls_scan.handle_target(scan_information)
 
     return

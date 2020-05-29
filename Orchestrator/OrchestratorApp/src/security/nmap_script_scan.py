@@ -35,21 +35,24 @@ def handle_target(info):
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
-        host = url.split('/')[2]
-        print('Scanning ' + url + "Host " + host)
+        try:
+            host = url.split('/')[2]
+        except IndexError:
+            host = url
+        print('Scanning ' + url)
         print('------------------- NMAP OUTDATED SOFTWARE -------------------')
         if host not in scanned_hosts:
-            #outdated_software(sub_info, host)
+            outdated_software(sub_info, host)
             print('------------------- NMAP WEB VERSIONS -------------------')
-            #web_versions(sub_info, host)
+            web_versions(sub_info, host)
             if sub_info['invasive_scans']:
                 print('------------------- NMAP SSH FTP BRUTE FORCE -------------------')
-                #ssh_ftp_brute_login(sub_info, host, True)#SHH
-                #sleep(10)
-                #ssh_ftp_brute_login(sub_info, host, False)#FTP
-                #ftp_anon_login(sub_info, host)#FTP ANON
+                ssh_ftp_brute_login(sub_info, host, True)#SHH
+                sleep(10)
+                ssh_ftp_brute_login(sub_info, host, False)#FTP
+                ftp_anon_login(sub_info, host)#FTP ANON
                 print('------------------- NMAP DEFAULT ACCOUNTS -------------------')
-                #default_account(sub_info,host)#Default creds in web console
+                default_account(sub_info,host)#Default creds in web console
         scanned_hosts.append(host)
     print('------------------- NMAP SCRIPT TARGET SCAN FINISHED -------------------')
     return
