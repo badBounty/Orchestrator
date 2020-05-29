@@ -27,12 +27,12 @@ def sleepy(duration):
 def vuln_scan_with_email_notification(info):
     vuln_scan_single_task(info)
     vulns = mongo.get_vulns_with_language(info['target'], info['selected_language'])
-    #file_dir, missing_findings = reporting.create_report("", info, vulns)
-    #email_handler.send_email(file_dir, missing_findings, info['email'])
-    #try:
-    #    os.remove(file_dir)
-    #except FileNotFoundError:
-    #    pass
+    file_dir, missing_findings = reporting.create_report("", info, vulns)
+    email_handler.send_email(file_dir, missing_findings, info['email'])
+    try:
+        os.remove(file_dir)
+    except FileNotFoundError:
+        pass
 
 
 # ------------------ Full tasks ------------------ #
