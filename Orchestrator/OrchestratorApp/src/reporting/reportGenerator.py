@@ -6,6 +6,9 @@
 #   Tipo Reporte: S o F (indica si es Estado o Final)
 #   json con los titulos de los findings a buscar
 import datetime,docx,json,os,ast,base64,time
+
+import gc
+
 from copy import deepcopy
 from docx.shared import Inches
 from .. import constants
@@ -78,7 +81,7 @@ def delete_screenshot(image_path):
 
 def add_cves(jsonFinding):
     message=""
-    if jsonFinding['TITLE'] == constants.OUTDATED_3RD_LIBRARIES_SPANISH or jsonFinding['TITLE'] == constants.OUTDATED_3RD_LIBRARIES_ENGLISH:
+    if jsonFinding['TITLE'] == constants.OUTDATED_3RD_LIBRARIES['spanish_name'] or jsonFinding['TITLE'] == constants.OUTDATED_3RD_LIBRARIES['english_name']:
         if jsonFinding['extra_info'] != None :
             for info in ast.literal_eval(jsonFinding['extra_info']):
                 info_title= "\nName: "+info['name']
@@ -253,6 +256,7 @@ def crearReporte(language, reportType, client, findings):
             #TODO mensaje a slack
             print("The following finding was not found: "+finding['title'])
             missing_findings.append(finding)
+        gc.collect()
     print("Se genero el reporte con los findings que fueron encontrados")
     d1 = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     name = ""
