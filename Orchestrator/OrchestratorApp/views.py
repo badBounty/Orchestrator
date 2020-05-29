@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from .forms import BaselineScanForm, ReconForm, ReportForm, EmailForm
+from .forms import ReconForm, ReportForm, EmailForm, TargetScanForm
 
 from .src.mongo import mongo
 from .src.slack import slack_receiver
@@ -17,6 +17,7 @@ from .tasks import recon_and_vuln_scan_task
 from .__init__ import slack_web_client
 
 import json
+import os
 
 
 def newIndex(request):
@@ -65,23 +66,31 @@ def show_project_vulns(request, target_name):
         return response
     return render(request, 'Orchestrator/single_vulns_view.html', {'object_list': resources})
 
-'''
-def baseline_scan_view(request):
+
+def target_scan_view(request):
     target = mongo.get_targets()
     if request.method == 'POST':
-        form = BaselineScanForm(request.POST)
+        form = TargetScanForm(request.POST, request.FILES)
         if form.is_valid():
-            selected_target = form.cleaned_data['target']
-            if selected_target == 'url_target':
-                vuln_scan_handler.handle_url_baseline_security_scan(form.cleaned_data['single_url'], form.cleaned_data['selected_language'])
-            elif selected_target == 'new_target':
-                recon_and_vuln_scan_task.delay(form.cleaned_data['single_url'], form.cleaned_data['selected_language'])
+            if form.cleaned_data['target'] == 'file_target':
+                output_dir = handle_uploaded_file(request.FILES['file'])
+                vuln_scan_handler.handle_file_target_scan(form.cleaned_data, output_dir)
+            elif form.cleaned_data['target'] == 'new_target':
+                print('Im here')
+                vuln_scan_handler.handle_new_target_scan(form.cleaned_data)
             else:
-                vuln_scan_handler.handle_target_baseline_security_scan(selected_target, form.cleaned_data['selected_language'])
+                vuln_scan_handler.handle_target_scan(form.cleaned_data)
             return redirect('/')
-    form = BaselineScanForm()
+    form = TargetScanForm()
     return render(request, 'Orchestrator/baseline_targets_view.html', {'object_list': target, 'form': form})
-'''
+
+def handle_uploaded_file(f):
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    OUTPUT_DIR = ROOT_DIR + 'input_file.txt'
+    with open(OUTPUT_DIR, 'wb+') as destination:
+        for chunk in f.chunks():
+            destination.write(chunk)
+    return OUTPUT_DIR
 
 ### SLACK ###
 @csrf_exempt
@@ -99,7 +108,7 @@ def slack_input(request):
     return HttpResponse(status=200)
 
 
-### REPORTING ###
+'''### REPORTING ###
 def reporting_view(request):
     target = mongo.get_targets_with_vulns()
     if request.method == 'POST':
@@ -112,7 +121,7 @@ def reporting_view(request):
             file_dir,missing_finding = reporting.create_report(client, language, report_type, selected_target)
             return FileResponse(open(file_dir, 'rb'))
     form = ReportForm()
-    return render(request, 'Orchestrator/reporting_view.html', {'object_list': target, 'form': form})
+    return render(request, 'Orchestrator/reporting_view.html', {'object_list': target, 'form': form})'''
 
 
 ### EMAIL ###

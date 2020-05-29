@@ -66,4 +66,22 @@ class EmailForm(forms.Form):
                                                label='Watchers', help_text='1 or more users')
 
 
+class TargetScanForm(forms.Form):
+    targets = mongo.get_targets()
+    target_list = list()
+    for available_target in targets:
+        target_list.append((available_target, available_target))
+
+    target_list.append(('file_target', 'File Input'))
+    target_list.append(('new_target', 'Target (Will run recon and vuln scan)'))
+    target = forms.CharField(label='Select target', widget=forms.Select(choices=target_list))
+
+    target_url = forms.CharField(label='If new target selected', max_length=50, required=False)
+
+    file = forms.FileField(label='If file input selected', required=False)
+
+    selected_language = forms.CharField(label='Select language', widget=forms.Select(choices=LANGUAGE_CHOICES))
+    use_active_modules = forms.BooleanField(required=False, initial=True, label='Invasive modules',
+                                            help_text= "Enables intrusive nmap scripts (SSH/FTP/Default login)")
+
 

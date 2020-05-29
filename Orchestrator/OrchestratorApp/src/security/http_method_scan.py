@@ -6,14 +6,16 @@ from ..redmine import redmine
 from ...objects.vulnerability import Vulnerability
 
 
-def handle_target(target, url_list, language):
+def handle_target(info):
     print('------------------- TARGET HTTP METHOD SCAN STARTING -------------------')
     slack_sender.send_simple_message("HTTP method scan started against target: %s. %d alive urls found!"
-                                     % (target, len(url_list)))
-    print('Found ' + str(len(url_list)) + ' targets to scan')
-    for url in url_list:
-        print('Scanning ' + url['url_with_http'])
-        scan_target(url['target'], url['url_with_http'], language)
+                                     % (info['target'], len(info['url_to_scan'])))
+    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+    for url in info['url_to_scan']:
+        sub_info = info
+        sub_info['url_to_scan'] = url
+        print('Scanning ' + url)
+        #scan_target(sub_info, sub_info['url_to_scan'])
     print('------------------- TARGET HTTP METHOD SCAN FINISHED -------------------')
     return
 

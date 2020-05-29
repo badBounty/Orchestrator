@@ -38,64 +38,133 @@ def vuln_scan_with_email_notification(info):
 
 # ------------------ Full tasks ------------------ #
 @shared_task
-def recon_and_vuln_scan_task(target, language):
-    print('Started recon and scan against target ' + target + ' language ' + language)
-    recon.run_recon(target)
-    subdomains_plain = mongo.get_target_alive_subdomains(target)
-    nmap.start_nmap(subdomains_plain)
-    aquatone.start_aquatone(subdomains_plain)
+def recon_and_vuln_scan_task(info):
+    scan_information = {
+        'target': info['target_url'],
+        'url_to_scan': info['target_url'],
+        'language': info['selected_language'],
+        'redmine_project': 'no_project',
+        'invasive_scans': info['use_active_modules'],
+        'assigned_users': None,
+        'watchers': None
+    }
+    recon.run_recon(scan_information['target'])
+    #subdomains_plain = mongo.get_target_alive_subdomains(scan_information['target'])
+    #nmap.start_nmap(subdomains_plain)
+    #aquatone.start_aquatone(subdomains_plain)
 
-    subdomains_http = mongo.get_responsive_http_resources(target)
-    ssl_valid = mongo.get_ssl_scannable_resources(target)
-    header_scan.handle_target(target, subdomains_http, language)
-    http_method_scan.handle_target(target, subdomains_http, language)
-    cors_scan.handle_target(target, subdomains_http, language)
-    #libraries_scan.handle_target(target, subdomains_http, language)
-    ssl_tls_scan.handle_target(target, ssl_valid, language)
+    subdomains_http = mongo.get_target_alive_subdomains(scan_information['target'])
+
+    #subdomains_http = mongo.get_responsive_http_resources(scan_information['target'])
+    http_scan_information = scan_information
+    http_scan_information['url_to_scan'] = subdomains_http
+
+    header_scan.handle_target(http_scan_information)
+    http_method_scan.handle_target(http_scan_information)
+    cors_scan.handle_target(http_scan_information)
+    #libraries_scan.handle_target(http_scan_information)
     # Nmap script
-    nmap_script_scan.handle_target(target, subdomains_http, language)
+    nmap_script_scan.handle_target(http_scan_information)
     # IIS shortname checker
-    iis_shortname_scanner.handle_target(target,subdomains_http, language)
+    iis_shortname_scanner.handle_target(http_scan_information)
     # Other
-    ffuf.handle_target(target, subdomains_http, language)
+    ffuf.handle_target(http_scan_information)
     # Dispatcher
-    bucket_finder.handle_target(target, subdomains_http, language)
-    token_scan.handle_target(target, subdomains_http, language)
-    css_scan.handle_target(target, subdomains_http, language)
-    firebase_scan.handle_target(target, subdomains_http, language)
-    host_header_attack.handle_target(target, subdomains_http, language)
-
-    ssl_tls_scan.handle_target(target, ssl_valid, language)
+    bucket_finder.handle_target(http_scan_information)
+    token_scan.handle_target(http_scan_information)
+    css_scan.handle_target(http_scan_information)
+    firebase_scan.handle_target(http_scan_information)
+    host_header_attack.handle_target(http_scan_information)
+    ssl_tls_scan.handle_target(http_scan_information)
 
     return
 
 
 # ------------------ Vulneability scans ------------------ #
 @shared_task
-def vuln_scan_target_task(target, language):
-    subdomains_http = mongo.get_responsive_http_resources(target)
-    ssl_valid = mongo.get_ssl_scannable_resources(target)
-    # Baseline
-    header_scan.handle_target(target, subdomains_http, language)
-    http_method_scan.handle_target(target, subdomains_http, language)
-    cors_scan.handle_target(target, subdomains_http, language)
-    #libraries_scan.handle_target(target, subdomains, language)
-    ssl_tls_scan.handle_target(target, ssl_valid, language)
-    # Nmap scripts
-    nmap_script_scan.handle_target(target, subdomains_http, language)
+def vuln_scan_target_task(info):
+    scan_information = {
+        'target': info['target'],
+        'url_to_scan': info['target'],
+        'language': info['selected_language'],
+        'redmine_project': 'no_project',
+        'invasive_scans': info['use_active_modules'],
+        'assigned_users': None,
+        'watchers': None
+    }
+    subdomains_http = mongo.get_responsive_http_resources(scan_information['target'])
+    only_urls = list()
+    for subdomain in subdomains_http:
+        only_urls.append(subdomain['url_with_http'])
+    http_scan_information = scan_information
+    http_scan_information['url_to_scan'] = only_urls
+
+    header_scan.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
+    http_method_scan.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
+    cors_scan.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
+    #libraries_scan.handle_target(http_scan_information)
+    #http_scan_information['url_to_scan'] = only_urls
+    # Nmap script
+    nmap_script_scan.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
     # IIS shortname checker
-    iis_shortname_scanner.handle_target(target,subdomains_http, language)
-    # Extra
-    ffuf.handle_target(target, subdomains_http, language)
+    iis_shortname_scanner.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
+    # Other
+    ffuf.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
     # Dispatcher
-    bucket_finder.handle_target(target, subdomains_http, language)
-    token_scan.handle_target(target, subdomains_http, language)
-    css_scan.handle_target(target, subdomains_http, language)
-    firebase_scan.handle_target(target, subdomains_http, language)
-    host_header_attack.handle_target(target, subdomains_http, language)
+    bucket_finder.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
+    token_scan.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
+    css_scan.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
+    firebase_scan.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
+    host_header_attack.handle_target(http_scan_information)
+    http_scan_information['url_to_scan'] = only_urls
+    ssl_tls_scan.handle_target(http_scan_information)
 
     return
 
+
+@shared_task
+def vuln_scan_file_input_task(info, url_list):
+    print(info)
+    print(url_list)
+    scan_information = {
+        'target': info['target'],
+        'url_to_scan': url_list,
+        'language': info['selected_language'],
+        'redmine_project': 'no_project',
+        'invasive_scans': info['use_active_modules'],
+        'assigned_users': None,
+        'watchers': None
+    }
+
+    header_scan.handle_target(scan_information)
+    http_method_scan.handle_target(scan_information)
+    cors_scan.handle_target(scan_information)
+    #libraries_scan.handle_target(scan_information)
+    # Nmap script
+    nmap_script_scan.handle_target(scan_information)
+    # IIS shortname checker
+    iis_shortname_scanner.handle_target(scan_information)
+    # Other
+    ffuf.handle_target(scan_information)
+    # Dispatcher
+    bucket_finder.handle_target(scan_information)
+    token_scan.handle_target(scan_information)
+    css_scan.handle_target(scan_information)
+    firebase_scan.handle_target(scan_information)
+    host_header_attack.handle_target(scan_information)
+    ssl_tls_scan.handle_target(scan_information)
+
+    return
 
 @shared_task
 def vuln_scan_single_task(info):
@@ -134,8 +203,8 @@ def vuln_scan_single_task(info):
 def recon_handle_task(target):
     recon.run_recon(target)
     subdomains = mongo.get_target_alive_subdomains(target)
-    nmap.start_nmap(subdomains)
-    aquatone.start_aquatone(subdomains)
+    #nmap.start_nmap(subdomains)
+    #aquatone.start_aquatone(subdomains)
 
 
 # Execute monitor everyday at midnight
