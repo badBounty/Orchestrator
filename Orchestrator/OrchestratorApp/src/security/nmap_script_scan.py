@@ -140,12 +140,14 @@ def web_versions(scan_info, url_to_scan):
     text_httpd_passwd = http_passwd_subprocess.stdout.decode()
     text_httpd_passwd = text_httpd_passwd.split('\n')
     extra_info_httpd_passwd = 'Http-passwd.nse nmap result: \n'
+    traversal_found = False
     for i in range(0, len(text_httpd_passwd)):
         if 'Directory traversal found' in text_httpd_passwd[i]:
+            traversal_found = True
             extra_info_httpd_passwd = extra_info_httpd_passwd + text_httpd_passwd[i-1] + " \n " +\
                                       text_httpd_passwd[i] + " \n " +\
                                       text_httpd_passwd[i+1]
-    if extra_info_httpd_passwd:
+    if traversal_found:
         add_vuln_to_mongo(scan_info, 'http_passwd', extra_info_httpd_passwd)
 
     web_versions_subprocess = subprocess.run(
