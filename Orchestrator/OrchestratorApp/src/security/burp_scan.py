@@ -63,21 +63,22 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
     description = 'Burp scan completed against %s' % scan_info['url_to_scan'] +'\n'
     for issue in json_data['issues']['issue']:
         name = "[BURP SCAN] - "+ issue['name']
-        extra='Burp Request: '+base64.b64decode(issue['requestresponse']['request']['#text'])
+        extra='Burp Request: \n'+base64.b64decode(issue['requestresponse']['request']['#text']).decode("utf-8")
         vulnerability = Vulnerability(name, scan_info, description+extra)
         vulnerability.add_file_string(file_string)
         vulnerability.add_attachment(file_dir, file_name)
-        slack_sender.send_simple_vuln(vulnerability)
+        #slack_sender.send_simple_vuln(vulnerability)
         redmine.create_new_issue(vulnerability)
-        mongo.add_vulnerability(vulnerability)
+        #mongo.add_vulnerability(vulnerability)
 
 
 def scan_target(scan_info):
     print("LAUNCHING BURP")
-    burp_process = subprocess.Popen("/root/Desktop/burp-rest-api/burp-rest-api.sh")
-    print("WAITING TO BURP")
-    time.sleep(80)
-    print("BURP STARTED")
+    burp_process = subprocess.Popen("/root/Desktop/burp-rest-api/burp-rest-api.sh", stdout=subprocess.PIPE)
+    time.sleep(100)
+    print("BURP STARTED BEGINING SCAN")
+    #GETTING PID FOR TERMINATE JAVA AFTER BURP SCAN
+    pid = burp_process.stdout.readline().decode('utf-8')[30:34]
     header = {'accept': '*/*'}
     
     subprocess.run(['curl', '-k', '-x', 'http://127.0.0.1:8080', '-L', scan_info['url_to_scan']],
@@ -119,9 +120,9 @@ def scan_target(scan_info):
     open(OUTPUT_DIR, 'wb').write(download_response.content)
     add_vulnerability(scan_info, download_response.content,OUTPUT_DIR, 'burp_result.xml')
     
-    burp_process.kill()
     print("------------- STOPING BURP SUITE -------------")
-
+    burp_process.kill()
+    os.system("kill -9 "+pid)
     try:
         os.remove(OUTPUT_DIR)
     except FileNotFoundError:
