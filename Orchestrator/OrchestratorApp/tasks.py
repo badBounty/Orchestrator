@@ -26,14 +26,14 @@ def sleepy(duration):
 @shared_task
 def vuln_scan_with_email_notification(info):
     vuln_scan_single_task(info)
-    vulns = mongo.get_vulns_with_language(info['target'], info['selected_language'])
-    file_dir, missing_findings = reporting.create_report("", info, vulns)
-    email_handler.send_email(file_dir, missing_findings, info['email'])
-    try:
-        os.remove(file_dir)
-    except FileNotFoundError:
-        pass
-    gc.collect()
+    #vulns = mongo.get_vulns_with_language(info['target'], info['selected_language'])
+    #file_dir, missing_findings = reporting.create_report("", info, vulns)
+    #email_handler.send_email(file_dir, missing_findings, info['email'])
+    #try:
+    #    os.remove(file_dir)
+    #except FileNotFoundError:
+    #    pass
+    #gc.collect()
 
 
 # ------------------ Full tasks ------------------ #
@@ -136,33 +136,34 @@ def vuln_scan_target_task(info):
 def vuln_scan_file_input_task(info, url_list):
     print(info)
     print(url_list)
-    scan_information = {
-        'target': info['target'],
-        'url_to_scan': url_list,
-        'language': info['selected_language'],
-        'redmine_project': 'no_project',
-        'invasive_scans': info['use_active_modules'],
-        'assigned_users': None,
-        'watchers': None
-    }
+    for url in url_list:
+        scan_information = {
+            'target': url,
+            'url_to_scan': url,
+            'language': info['selected_language'],
+            'redmine_project': 'no_project',
+            'invasive_scans': info['use_active_modules'],
+            'assigned_users': None,
+            'watchers': None
+        }
 
-    header_scan.handle_target(scan_information)
-    http_method_scan.handle_target(scan_information)
-    cors_scan.handle_target(scan_information)
+    #header_scan.handle_target(scan_information)
+    #http_method_scan.handle_target(scan_information)
+    #cors_scan.handle_target(scan_information)
     #libraries_scan.handle_target(scan_information)
     # Nmap script
-    nmap_script_scan.handle_target(scan_information)
+    #nmap_script_scan.handle_target(scan_information)
     # IIS shortname checker
-    iis_shortname_scanner.handle_target(scan_information)
+    #iis_shortname_scanner.handle_target(scan_information)
     # Other
-    ffuf.handle_target(scan_information)
+    #ffuf.handle_target(scan_information)
     # Dispatcher
-    bucket_finder.handle_target(scan_information)
-    token_scan.handle_target(scan_information)
-    css_scan.handle_target(scan_information)
-    firebase_scan.handle_target(scan_information)
-    host_header_attack.handle_target(scan_information)
-    ssl_tls_scan.handle_target(scan_information)
+    #bucket_finder.handle_target(scan_information)
+    #token_scan.handle_target(scan_information)
+    #css_scan.handle_target(scan_information)
+    #firebase_scan.handle_target(scan_information)
+    #host_header_attack.handle_target(scan_information)
+    #ssl_tls_scan.handle_target(scan_information)
 
     return
 
@@ -178,23 +179,23 @@ def vuln_scan_single_task(info):
         'watchers': info['watcher_users']
     }
     # Baseline
-    header_scan.handle_single(scan_information)
-    http_method_scan.handle_single(scan_information)
-    cors_scan.handle_single(scan_information)
+    #header_scan.handle_single(scan_information)
+    #http_method_scan.handle_single(scan_information)
+    #cors_scan.handle_single(scan_information)
     #libraries_scan.handle_single(scan_information)
     #ssl_tls_scan.handle_single(scan_information)
     # Extra
-    ffuf.handle_single(scan_information)
+    #ffuf.handle_single(scan_information)
     # Nmap scripts
-    nmap_script_scan.handle_single(scan_information)
+    #nmap_script_scan.handle_single(scan_information)
     # IIS shortname checker
-    iis_shortname_scanner.handle_single(scan_information)
+    #iis_shortname_scanner.handle_single(scan_information)
     # Dispatcher
-    bucket_finder.handle_single(scan_information)
-    token_scan.handle_single(scan_information)
-    css_scan.handle_single(scan_information)
-    firebase_scan.handle_single(scan_information)
-    host_header_attack.handle_single(scan_information)
+    #bucket_finder.handle_single(scan_information)
+    #token_scan.handle_single(scan_information)
+    #css_scan.handle_single(scan_information)
+    #firebase_scan.handle_single(scan_information)
+    #host_header_attack.handle_single(scan_information)
     burp_scan.handle_single(scan_information)
     return
 
