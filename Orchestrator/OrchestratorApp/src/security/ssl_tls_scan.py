@@ -24,12 +24,12 @@ def handle_target(info):
         sub_info['url_to_scan'] = url
 
         split_url = url.split('/')
-        final_url = split_url[2]
-        #TODO SACAR ESTO
+        try:
+            final_url = split_url[2]
+        except IndexError:
+            final_url = url
         for port in valid_ports:
-            print('Scanning ' + url + 'With real target ' + final_url+':'+port)
-            pass
-            #scan_target(sub_info, url, final_url+':'+port)
+            scan_target(sub_info, url, final_url+':'+port)
     print('-------------------  TARGET SSL/TLS SCAN FINISHED -------------------')
     return
 
@@ -40,7 +40,10 @@ def handle_single(scan_info):
     slack_sender.send_simple_message("SSL/TLS scan started against %s" % url)
     valid_ports = ['443']
     split_url = url.split('/')
-    final_url = split_url[2]
+    try:
+        final_url = split_url[2]
+    except IndexError:
+        final_url = url
     print('------------------- SINGLE SSL/TLS SCAN STARTING -------------------')
     for port in valid_ports:
         scan_target(scan_info, url, final_url+':'+port)

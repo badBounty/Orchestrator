@@ -21,7 +21,7 @@ def handle_target(info):
         sub_info = info
         sub_info['url_to_scan'] = url
         print('Scanning ' + url)
-        #scan_target(sub_info, sub_info['url_to_scan'])
+        scan_target(sub_info, sub_info['url_to_scan'])
     print('------------------- CSS TARGET SCAN FINISHED -------------------')
     return
 

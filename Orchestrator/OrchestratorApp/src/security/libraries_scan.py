@@ -97,7 +97,7 @@ def handle_target(info):
         sub_info = info
         sub_info['url_to_scan'] = url
         print('Scanning ' + url)
-        #scan_target(sub_info, sub_info['url_to_scan'])
+        analyze(sub_info, sub_info['url_to_scan'])
     print('-------------------  TARGET LIBRARIES SCAN FINISHED -------------------')
     return
 
