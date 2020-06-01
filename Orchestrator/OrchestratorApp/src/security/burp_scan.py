@@ -67,9 +67,9 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
         vulnerability = Vulnerability(name, scan_info, description+extra)
         vulnerability.add_file_string(file_string)
         vulnerability.add_attachment(file_dir, file_name)
-        #slack_sender.send_simple_vuln(vulnerability)
+        slack_sender.send_simple_vuln(vulnerability)
         redmine.create_new_issue(vulnerability)
-        #mongo.add_vulnerability(vulnerability)
+        mongo.add_vulnerability(vulnerability)
 
 
 def scan_target(scan_info):
