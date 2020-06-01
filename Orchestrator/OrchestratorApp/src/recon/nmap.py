@@ -2,6 +2,7 @@ import subprocess
 import os
 import xmltodict
 import json
+import uuid
 
 from ..mongo import mongo
 from ..comms import image_creator
@@ -25,13 +26,14 @@ def run_nmap(target_name, subdomain):
 
     # /home/handerllon/Desktop/OrchestratorV1/Orchestrator/src/recon
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    random_filename = uuid.uuid4().hex
     OUTPUT_DIR = ROOT_DIR + '/tools_output'
     PROJECT_DIR = OUTPUT_DIR + '/' + target_name
-
+    
     nmap_process = subprocess.run(
-        ['nmap', '-sV', '-Pn', '-oA', '--top-ports=1000', PROJECT_DIR + '/' + subdomain, subdomain])
+        ['nmap', '-sV', '-Pn', '--top-ports=1000', '-oA', PROJECT_DIR + '/' + random_filename, subdomain])
 
-    with open(PROJECT_DIR + '/' + subdomain + '.xml') as xml_file:
+    with open(PROJECT_DIR + '/' + random_filename + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()
     json_data = json.dumps(my_dict)
