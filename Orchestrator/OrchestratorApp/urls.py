@@ -12,5 +12,6 @@ urlpatterns = [
     path('workspaces/<str:target_name>', views.show_workspace, name='workspace'),
     path('vulnerabilities', views.show_vulns, name='vulnerabilities'),
     path('vulnerabilities/<str:target_name>', views.show_project_vulns, name='project_vulns'),
-    path('slack_in', views.slack_input, name='slack_in')
+    path('slack_in', views.slack_input, name='slack_in'),
+    path('test_area/', views.test_view, name='test_area')
 ]

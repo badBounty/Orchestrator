@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from .forms import ReconForm, ReportForm, EmailForm, TargetScanForm
+from .forms import ReconForm, ReportForm, EmailForm, TargetScanForm, TestForm
 
 from .src.mongo import mongo
 from .src.slack import slack_receiver
@@ -134,3 +134,14 @@ def email_scan_view(request):
             return redirect('/')
     form = EmailForm()
     return render(request, 'Orchestrator/single_with_email_view.html', {'form': form})
+
+
+def test_view(request):
+    # Form handle
+    if request.method == 'POST':
+        form = TestForm(request.POST)
+        if form.is_valid():
+            print(form.cleaned_data)
+            return redirect('/')
+    form = TestForm()
+    return render(request, 'Orchestrator/test_form.html', {'form': form})
