@@ -195,7 +195,7 @@ def web_versions(scan_info, url_to_scan):
 def ssh_ftp_brute_login(scan_info, url_to_scan, is_ssh):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     timeout = 'timeout=5s'
-    time_limit = '180' #seconds
+    time_limit = '0' #seconds
     if is_ssh:
         brute = ROOT_DIR + '/tools/nmap/server_versions/ssh-brute.nse'
         port = '-p22'

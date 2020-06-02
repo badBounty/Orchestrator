@@ -13,9 +13,7 @@ def handle_new_target_scan(info):
 
 def handle_file_target_scan(info, file):
     url_list = list()
-    with open(file, 'r') as f:
-        lines = f.readlines()
-    for line in lines:
+    for line in f.readlines():
         url_list.append(line.replace('\n',''))
 
     info_to_send = {'target': 'file_target', 'selected_language': 'eng', 'use_active_modules': True}

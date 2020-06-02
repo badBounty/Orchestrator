@@ -9,6 +9,9 @@ import requests
 import subprocess
 import os
 import uuid
+import xmltodict
+import json
+import base64
 from datetime import datetime
 
 
@@ -28,7 +31,8 @@ scan_status_url = "http://localhost:8090/burp/scanner/status"
 active_scan_url = "http://localhost:8090/burp/scanner/scans/active?baseUrl=%s&insertionPoint="
 #Get
 download_report = "http://localhost:8090/burp/report?reportType=XML&urlPrefix=%s"
-
+#Get
+stop_burp = "http://localhost:8090/burp/stop"
 
 def handle_target(info):
     print('------------------- BURP TARGET SCAN STARTING -------------------')
@@ -53,17 +57,28 @@ def handle_single(scan_information):
 
 
 def add_vulnerability(scan_info, file_string, file_dir, file_name):
-    vulnerability = Vulnerability(constants.BURP_SCAN, scan_info, 'Burp scan completed against %s' 
-                                  % scan_info['url_to_scan'])
-    vulnerability.add_file_string(file_string)
-    vulnerability.add_attachment(file_dir, file_name)
-
-    slack_sender.send_simple_vuln(vulnerability)
-    redmine.create_new_issue(vulnerability)
-    mongo.add_vulnerability(vulnerability)
+    my_dict = xmltodict.parse(file_string)
+    json_data = json.dumps(my_dict)
+    json_data = json.loads(json_data)
+    description = 'Burp scan completed against %s' % scan_info['url_to_scan'] +'\n'
+    for issue in json_data['issues']['issue']:
+        name = "[BURP SCAN] - "+ issue['name']
+        extra='Burp Request: \n'+base64.b64decode(issue['requestresponse']['request']['#text']).decode("utf-8")
+        vulnerability = Vulnerability(name, scan_info, description+extra)
+        vulnerability.add_file_string(file_string)
+        vulnerability.add_attachment(file_dir, file_name)
+        #slack_sender.send_simple_vuln(vulnerability)
+        redmine.create_new_issue(vulnerability)
+        #mongo.add_vulnerability(vulnerability)
 
 
 def scan_target(scan_info):
+    print("LAUNCHING BURP")
+    burp_process = subprocess.Popen("/root/Desktop/burp-rest-api/burp-rest-api.sh", stdout=subprocess.PIPE)
+    time.sleep(100)
+    print("BURP STARTED BEGINING SCAN")
+    #GETTING PID FOR TERMINATE JAVA AFTER BURP SCAN
+    pid = burp_process.stdout.readline().decode('utf-8')[30:34]
     header = {'accept': '*/*'}
     
     subprocess.run(['curl', '-k', '-x', 'http://127.0.0.1:8080', '-L', scan_info['url_to_scan']],
@@ -101,10 +116,13 @@ def scan_target(scan_info):
     OUTPUT_DIR = ROOT_DIR + '/tools_output/' + random_filename + '.xml'
 
     download_response = requests.get(download_report % scan_info['url_to_scan'], headers=header)
-    open(OUTPUT_DIR, 'wb').write(download_response.content)
-    add_vulnerability(scan_info, download_response.content,
-                      OUTPUT_DIR, 'burp_result.xml')
 
+    open(OUTPUT_DIR, 'wb').write(download_response.content)
+    add_vulnerability(scan_info, download_response.content,OUTPUT_DIR, 'burp_result.xml')
+    
+    print("------------- STOPING BURP SUITE -------------")
+    burp_process.kill()
+    os.system("kill -9 "+pid)
     try:
         os.remove(OUTPUT_DIR)
     except FileNotFoundError:

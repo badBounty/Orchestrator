@@ -73,8 +73,8 @@ def target_scan_view(request):
         form = TargetScanForm(request.POST, request.FILES)
         if form.is_valid():
             if form.cleaned_data['target'] == 'file_target':
-                output_dir = handle_uploaded_file(request.FILES['file'])
-                vuln_scan_handler.handle_file_target_scan(form.cleaned_data, output_dir)
+                #output_dir = handle_uploaded_file(request.FILES['file'])
+                vuln_scan_handler.handle_file_target_scan(form.cleaned_data, request.FILES['file'])
             elif form.cleaned_data['target'] == 'new_target':
                 print('Im here')
                 vuln_scan_handler.handle_new_target_scan(form.cleaned_data)
