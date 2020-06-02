@@ -130,7 +130,8 @@ def email_scan_view(request):
     if request.method == 'POST':
         form = EmailForm(request.POST)
         if form.is_valid():
-            vuln_scan_handler.handle_scan_with_email_notification(form.cleaned_data)
+            # vuln_scan_handler.handle_scan_with_email_notification(form.cleaned_data)
+            vuln_scan_handler.handle_scan_with_two_workers_test(form.cleaned_data)
             return redirect('/')
     form = EmailForm()
     return render(request, 'Orchestrator/single_with_email_view.html', {'form': form})
@@ -141,7 +142,7 @@ def test_view(request):
     if request.method == 'POST':
         form = TestForm(request.POST)
         if form.is_valid():
-            print(form.cleaned_data)
+            vuln_scan_handler.handle(form.cleaned_data)
             return redirect('/')
     form = TestForm()
     return render(request, 'Orchestrator/test_form.html', {'form': form})

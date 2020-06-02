@@ -47,14 +47,27 @@ def scan_target(scan_info, url_to_scan):
 
     responses.append({'method': 'PUT', 'response': put_response})
 
-    delete_response = requests.delete(url_to_scan)
+    try:
+        delete_response = requests.delete(url_to_scan)
+        responses.append({'method': 'DELETE', 'response': delete_response})
+    except requests.exceptions.SSLError:
+        return
+    except requests.exceptions.ConnectionError:
+        return
     responses.append({'method': 'DELETE', 'response': delete_response})
 
-    options_response = requests.options(url_to_scan)
-    responses.append({'method': 'OPTIONS', 'response': options_response})
+    try:
+        options_response = requests.options(url_to_scan)
+        responses.append({'method': 'OPTIONS', 'response': options_response})
+    except requests.exceptions.SSLError:
+        return
+    except requests.exceptions.ConnectionError:
+        return
 
     extensive_methods = False
     message = "Found extended HTTP Methods at: %s" % url_to_scan + '\n'
+    if not responses:
+        return
     for response in responses:
         if response['response'].status_code == 200:
             extensive_methods = True
