@@ -1,12 +1,15 @@
 from redminelib import Redmine
 import redminelib
 
-from ...__init__ import redmine
+from ...__init__ import redmine_client
 
 
 # Projects under orchestrator
 def get_project_names():
-    projects = redmine.project.all()
+    if redmine_client is None:
+        return []
+        
+    projects = redmine_client.project.all()
     project_names = list()
     for project in projects:
         project_names.append((project.identifier, project.name))
@@ -14,7 +17,9 @@ def get_project_names():
 
 
 def get_users():
-    project = redmine.project.get('vulnerability-management')
+    if redmine_client is None:
+        return []
+    project = redmine_client.project.get('vulnerability-management')
     available_users = list()
     for user in project['memberships']:
         available_users.append((user['user'].id, user['user'].name))
@@ -23,10 +28,12 @@ def get_users():
 
 
 def create_new_issue(vulnerability):
+    if redmine_client is None:
+        return
     project_name = vulnerability.redmine['project_id']
     if project_name == 'no_project':
         return
-    issue = redmine.issue.new()
+    issue = redmine_client.issue.new()
     issue.project_id = project_name                              # project name
     issue.subject = vulnerability.vulnerability_name             # Nombre de la obs
     issue.tracker_id = vulnerability.redmine['tracker_id']       # [0,1,2: Finding, 3:Consulta, 4: Notificacion de estado]

@@ -35,7 +35,6 @@ def vuln_scan_with_email_notification(info):
     #    pass
     #gc.collect()
 
-
 # ------------------ Full tasks ------------------ #
 @shared_task
 def recon_and_vuln_scan_task(info):

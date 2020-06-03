@@ -1,4 +1,4 @@
-from ...__init__ import slack_web_client
+from ...__init__ import slack_web_client, slack_channel_name
 
 
 def send_new_domain_found_message(domain_name, ip):
@@ -30,13 +30,17 @@ def send_recon_end_message(target_name):
 
 
 def send_simple_message(message):
-    slack_web_client.chat_postMessage(channel="#orchestrator_out", text=str(message))
+    if slack_web_client == None:
+        return
+    slack_web_client.chat_postMessage(channel=slack_channel_name, text=str(message))
     return
 
 
 def send_simple_vuln(vulnerability):
+    if slack_web_client == None:
+        return
     try:
-        slack_web_client.chat_postMessage(channel="#orchestrator_vulns", text=str(vulnerability.custom_description))
+        slack_web_client.chat_postMessage(channel=slack_channel_name, text=str(vulnerability.custom_description))
     except Exception:
         return
     return

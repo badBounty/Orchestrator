@@ -117,7 +117,7 @@ class TestForm(forms.Form):
 	checkbox_email = forms.BooleanField(label='Email notification ', required=False, initial=False,
 	 widget=forms.CheckboxInput(attrs={"onchange":'enable_checkbox_div(\'id_checkbox_email\', \'email_div\' )'}))
 	## div_name = email_div
-	some_text = forms.CharField(label='Enter email here: ', required=False)
+	email = forms.CharField(label='Enter email here: ', required=False)
 
 	### Report selection
 	checkbox_report = forms.BooleanField(label='Report (requires email) ', required=False, initial=False,
