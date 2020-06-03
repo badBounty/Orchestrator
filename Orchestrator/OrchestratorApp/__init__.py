@@ -11,10 +11,15 @@ import os,json
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 settings = json.loads(open(BASE_DIR+'/settings.json').read())
+
+#Common variables por the security baseline
+email_config = settings['EMAIL']
+burp_config = settings['BURP']
+wordlist = settings['WORDLIST']
+
 # Enviroment variables
 os.environ['C_FORCE_ROOT'] = settings['C_FORCE_ROOT']
 # Connections
-
 WAPPALIZE_KEY = settings['WAPPALIZE_KEY']
 
 # Mongo connection

@@ -3,6 +3,7 @@ from ..mongo import mongo
 from ..redmine import redmine
 from .. import constants
 from ...objects.vulnerability import Vulnerability
+from ...__init__ import burp_config
 
 import time
 import requests
@@ -13,10 +14,6 @@ import xmltodict
 import json
 import base64
 from datetime import datetime
-
-#PATH TO THE BURP API SH FILE
-BASE_DIR = os.path.dirname((os.path.abspath('settings.json')))
-settings = json.loads(open(BASE_DIR+'/settings.json').read())
 
 #Put
 add_to_scope_url = "http://localhost:8090/burp/target/scope?url=%s"
@@ -65,7 +62,7 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
     json_data = json.loads(json_data)
     description = 'Burp scan completed against %s' % scan_info['url_to_scan'] +'\n'
     for issue in json_data['issues']['issue']:
-        if issue['name'] not in settings['BURP']['blacklist_findings']:
+        if issue['name'] not in burp_config['blacklist_findings']:
             name = "[BURP SCAN] - "+ issue['name']
             extra='Burp Request: \n'+base64.b64decode(issue['requestresponse']['request']['#text']).decode("utf-8")
             vulnerability = Vulnerability(name, scan_info, description+extra)
@@ -80,7 +77,7 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
 
 def scan_target(scan_info):
     print("LAUNCHING BURP")
-    burp_process = subprocess.Popen(settings['BURP']['bash_folder'], stdout=subprocess.PIPE)
+    burp_process = subprocess.Popen(burp_config['bash_folder'], stdout=subprocess.PIPE)
     time.sleep(120)
     print("BURP STARTED BEGINING SCAN")
     #GETTING PID FOR TERMINATE JAVA AFTER BURP SCAN

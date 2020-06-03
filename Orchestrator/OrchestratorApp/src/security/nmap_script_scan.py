@@ -14,6 +14,7 @@ from .. import constants
 from ..mongo import mongo
 from ..redmine import redmine
 from ...objects.vulnerability import Vulnerability
+from ...__init__ import wordlist
 
 
 def cleanup(path):
@@ -65,9 +66,9 @@ def handle_single(scan_info):
     # We receive the url with http/https, we will get only the host so nmap works
     host = url.split('/')[2]
     print('------------------- NMAP OUTDATED SOFTWARE -------------------')
-    outdated_software(scan_info, host)
+    #outdated_software(scan_info, host)
     print('------------------- NMAP WEB VERSIONS -------------------')
-    web_versions(scan_info, host)
+    #web_versions(scan_info, host)
     if scan_info['invasive_scans']:
         print('------------------- NMAP SSH FTP BRUTE FORCE -------------------')
         ssh_ftp_brute_login(scan_info, host, True)#SHH
@@ -204,8 +205,8 @@ def ssh_ftp_brute_login(scan_info, url_to_scan, is_ssh):
         brute = ROOT_DIR + '/tools/nmap/server_versions/ftp-brute.nse'
         port = '-p21'
         end_name = '.ftp.brute'
-    users = ROOT_DIR + '/tools/usernames-shortlist.txt'
-    password = ROOT_DIR + '/tools/default-pass.txt'
+    users = wordlist['ssh_ftp_user']
+    password = wordlist['ssh_ftp_pass']
     random_filename = uuid.uuid4().hex
     output_dir = ROOT_DIR + '/tools_output/'+random_filename+end_name
     cleanup(output_dir)
