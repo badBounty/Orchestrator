@@ -229,8 +229,8 @@ def vuln_scan_single_task(info):
 def recon_handle_task(target):
     recon.run_recon(target)
     subdomains = mongo.get_target_alive_subdomains(target)
-    aquatone.start_aquatone(subdomains)
-    nmap.start_nmap(subdomains)
+    #nmap.start_nmap(subdomains)
+    #aquatone.start_aquatone(subdomains)
 
 
 # Execute monitor everyday at midnight
@@ -247,104 +247,3 @@ def monitor_task():
             slack_sender.send_recon_start_message(target)
             recon_handle_task.delay(target)
             slack_sender.send_recon_end_message(target)
-
-
-### MULTIPLE WORKERS TEST ###
-# We have to create a task for each scan and handle assignment from handler
-@shared_task
-def header_scan_task(scan_type, scan_information):
-    if scan_type == 'single':
-        header_scan.handle_single(scan_information)
-    elif scan_type == 'target':
-        header_scan.handle_target(scan_information)
-
-@shared_task
-def http_method_scan_task(scan_type, scan_information):
-    if scan_type == 'single':
-        http_method_scan.handle_single(scan_information)
-    elif scan_type == 'target':
-        http_method_scan.handle_target(scan_information)
-
-@shared_task
-def cors_scan_task(scan_type, scan_information):
-    if scan_type == 'single':
-        cors_scan.handle_single(scan_information)
-    elif scan_type == 'target':
-        cors_scan.handle_target(scan_information)
-
-@shared_task
-def libraries_scan_task(scan_type, scan_information):
-    if scan_type == 'single':
-        libraries_scan.handle_single(scan_information)
-    elif scan_type == 'target':
-        libraries_scan.handle_target(scan_information)
-
-@shared_task
-def ssl_tls_scan_task(scan_type, scan_information):
-    if scan_type == 'single':
-        ssl_tls_scan.handle_single(scan_information)
-    elif scan_type == 'target':
-        ssl_tls_scan.handle_target(scan_information)
-
-@shared_task
-def ffuf_task(scan_type, scan_information):
-    if scan_type == 'single':
-        ffuf.handle_single(scan_information)
-    elif scan_type == 'target':
-        ffuf.handle_target(scan_information)
-
-@shared_task
-def nmap_script_scan_task(scan_type, scan_information):
-    if scan_type == 'single':
-        nmap_script_scan.handle_single(scan_information)
-    elif scan_type == 'target':
-        nmap_script_scan.handle_target(scan_information)
-
-@shared_task
-def iis_shortname_scan_task(scan_type, scan_information):
-    if scan_type == 'single':
-        iis_shortname_scanner.handle_single(scan_information)
-    elif scan_type == 'target':
-        iis_shortname_scanner.handle_target(scan_information)
-
-@shared_task
-def bucket_finder_task(scan_type, scan_information):
-    if scan_type == 'single':
-        bucket_finder.handle_single(scan_information)
-    elif scan_type == 'target':
-        bucket_finder.handle_target(scan_information)
-
-@shared_task
-def token_scan_task(scan_type, scan_information):
-    if scan_type == 'single':
-        token_scan.handle_single(scan_information)
-    elif scan_type == 'target':
-        token_scan.handle_target(scan_information)
-
-@shared_task
-def css_scan_task(scan_type, scan_information):
-    if scan_type == 'single':
-        css_scan.handle_single(scan_information)
-    elif scan_type == 'target':
-        css_scan.handle_target(scan_information)
-
-@shared_task
-def firebase_scan_task(scan_type, scan_information):
-    if scan_type == 'single':
-        firebase_scan.handle_single(scan_information)
-    elif scan_type == 'target':
-        firebase_scan.handle_target(scan_information)
-
-@shared_task
-def host_header_attack_scan(scan_type, scan_information):
-    if scan_type == 'single':
-        host_header_attack.handle_single(scan_information)
-    elif scan_type == 'target':
-        host_header_attack.handle_target(scan_information)
-
-@shared_task
-def burp_scan_task(scan_type, scan_information):
-    if scan_type == 'single':
-        burp_scan.handle_single(scan_information)
-    elif scan_type == 'target':
-        burp_scan.handle_target(scan_information)
