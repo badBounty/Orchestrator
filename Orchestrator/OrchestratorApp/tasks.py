@@ -26,14 +26,14 @@ def sleepy(duration):
 @shared_task
 def vuln_scan_with_email_notification(info):
     vuln_scan_single_task(info)
-    vulns = mongo.get_vulns_with_language(info['target'], info['selected_language'])
-    file_dir, missing_findings = reporting.create_report("", info, vulns)
-    email_handler.send_email(file_dir, missing_findings, info['email'])
-    try:
-        os.remove(file_dir)
-    except FileNotFoundError:
-        pass
-    gc.collect()
+    #vulns = mongo.get_vulns_with_language(info['target'], info['selected_language'])
+    #file_dir, missing_findings = reporting.create_report("", info, vulns)
+    #email_handler.send_email(file_dir, missing_findings, info['email'])
+    #try:
+    #    os.remove(file_dir)
+    #except FileNotFoundError:
+    #    pass
+    #gc.collect()
 
 
 # ------------------ Full tasks ------------------ #
@@ -208,7 +208,7 @@ def vuln_scan_single_task(info):
     http_method_scan.handle_single(scan_information)
     cors_scan.handle_single(scan_information)
     #libraries_scan.handle_single(scan_information)
-    ssl_tls_scan.handle_single(scan_information)
+    #ssl_tls_scan.handle_single(scan_information)
     # Extra
     ffuf.handle_single(scan_information)
     # Nmap scripts

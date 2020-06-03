@@ -9,7 +9,7 @@ LANGUAGE_SPANISH = 'spa'
 ### GENERAL ###
 BURP_SCAN = {
     'english_name': 'Burp scan',
-    'spanish_name': 'Burp scan'
+    'spanish_name': 'Burp scan',
 }
 
 ### VULNERABILITIES ###

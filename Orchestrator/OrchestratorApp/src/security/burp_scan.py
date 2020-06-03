@@ -14,6 +14,9 @@ import json
 import base64
 from datetime import datetime
 
+#PATH TO THE BURP API SH FILE
+BASE_DIR = os.path.dirname((os.path.abspath('settings.json')))
+settings = json.loads(open(BASE_DIR+'/settings.json').read())
 
 #Put
 add_to_scope_url = "http://localhost:8090/burp/target/scope?url=%s"
@@ -62,20 +65,23 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
     json_data = json.loads(json_data)
     description = 'Burp scan completed against %s' % scan_info['url_to_scan'] +'\n'
     for issue in json_data['issues']['issue']:
-        name = "[BURP SCAN] - "+ issue['name']
-        extra='Burp Request: \n'+base64.b64decode(issue['requestresponse']['request']['#text']).decode("utf-8")
-        vulnerability = Vulnerability(name, scan_info, description+extra)
-        vulnerability.add_file_string(file_string)
-        vulnerability.add_attachment(file_dir, file_name)
-        #slack_sender.send_simple_vuln(vulnerability)
-        redmine.create_new_issue(vulnerability)
-        #mongo.add_vulnerability(vulnerability)
+        if issue['name'] not in settings['BURP']['blacklist_findings']:
+            name = "[BURP SCAN] - "+ issue['name']
+            extra='Burp Request: \n'+base64.b64decode(issue['requestresponse']['request']['#text']).decode("utf-8")
+            vulnerability = Vulnerability(name, scan_info, description+extra)
+            vulnerability.add_file_string(file_string)
+            vulnerability.add_attachment(file_dir, file_name)
+            slack_sender.send_simple_vuln(vulnerability)
+            redmine.create_new_issue(vulnerability)
+            mongo.add_vulnerability(vulnerability)
+        else:
+            print("Not reported: "+issue['name']+" because is in burp blacklist")
 
 
 def scan_target(scan_info):
     print("LAUNCHING BURP")
-    burp_process = subprocess.Popen("/root/Desktop/burp-rest-api/burp-rest-api.sh", stdout=subprocess.PIPE)
-    time.sleep(100)
+    burp_process = subprocess.Popen(settings['BURP']['bash_folder'], stdout=subprocess.PIPE)
+    time.sleep(120)
     print("BURP STARTED BEGINING SCAN")
     #GETTING PID FOR TERMINATE JAVA AFTER BURP SCAN
     pid = burp_process.stdout.readline().decode('utf-8')[30:34]
