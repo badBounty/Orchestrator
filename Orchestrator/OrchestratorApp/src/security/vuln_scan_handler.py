@@ -1,6 +1,9 @@
-from ...tasks import recon_and_vuln_scan_task
+from ...tasks import recon_and_vuln_scan_task, subdomain_finder_task, url_resolver_task
 from ...tasks import header_scan_task, http_method_scan_task, cors_scan_task, libraries_scan_task, ssl_tls_scan_task, ffuf_task, nmap_script_scan_task, iis_shortname_scan_task, bucket_finder_task, token_scan_task, css_scan_task, firebase_scan_task, host_header_attack_scan, burp_scan_task
+from ...tasks import task_finished
+from celery import chain, chord
 from ..mongo import mongo
+from celery.result import AsyncResult
 import os
 
 
@@ -67,28 +70,64 @@ def handle_target_scan(info):
 
 
 def handle_new_target_scan(info):
-    recon_and_vuln_scan_task.delay(info)
+    new_target_chain = chain(
+        chord(
+            [
+                subdomain_finder_task.s(info['target']).set(queue='slow_queue')
+            ],
+            body=url_resolver_task.s(info['target']),
+            immutable=True
+        ),
+        chord(
+        [
+            # Fast_scans
+            header_scan_task.s('target', info).set(queue='fast_queue'),
+            http_method_scan_task.s('target', info).set(queue='fast_queue'),
+            #libraries_scan_task.s('target', info).set(queue='fast_queue'),
+            #ffuf_task.s('target', info).set(queue='fast_queue'),
+            #iis_shortname_scan_task.s('target', info).set(queue='fast_queue'),
+            #bucket_finder_task.s('target', info).set(queue='fast_queue'),
+            #token_scan_task.s('target', info).set(queue='fast_queue'),
+            #css_scan_task.s('target', info).set(queue='fast_queue'),
+            #firebase_scan_task.s('target', info).set(queue='fast_queue'),
+            #host_header_attack_scan.s('target', info).set(queue='fast_queue'),
+            # Slow_scans
+            #cors_scan_task.s('target', info).set(queue='slow_queue'),
+            #ssl_tls_scan_task.s('target', info).set(queue='slow_queue'),
+            #nmap_script_scan_task.s('target', info).set(queue='slow_queue'),
+            #burp_scan_task.s('target', info).set(queue='slow_queue'),
+        ],
+        body=task_finished.s(),
+        immutable=True)
+    )
+    new_target_chain.apply_async(queue='fast_queue')
+    
     return
 
 
 def handle_multiple_scan(info):
-
-    header_scan_task.apply_async(args=['target', info], queue='fast_queue')
-    http_method_scan_task.apply_async(args=['target', info], queue='fast_queue')
-    libraries_scan_task.apply_async(args=['target', info], queue='fast_queue')
-    ffuf_task.apply_async(args=['target', info], queue='fast_queue')
-    iis_shortname_scan_task.apply_async(args=['target', info], queue='fast_queue')
-    bucket_finder_task.apply_async(args=['target', info], queue='fast_queue')
-    token_scan_task.apply_async(args=['target', info], queue='fast_queue')
-    css_scan_task.apply_async(args=['target', info], queue='fast_queue')
-    firebase_scan_task.apply_async(args=['target', info], queue='fast_queue')
-    host_header_attack_scan.apply_async(args=['target', info], queue='fast_queue')
-
-    # Slow queue
-    cors_scan_task.apply_async(args=['target', info], queue='slow_queue')
-    ssl_tls_scan_task.apply_async(args=['target', info], queue='slow_queue')
-    nmap_script_scan_task.apply_async(args=['target', info], queue='slow_queue')
-    burp_scan_task.apply_async(args=['target', info], queue='slow_queue')    
+    execution_chord = chord(
+        [
+            # Fast_scans
+            header_scan_task.s('target', info).set(queue='fast_queue'),
+            http_method_scan_task.s('target', info).set(queue='fast_queue'),
+            #libraries_scan_task.s('target', info).set(queue='fast_queue'),
+            #ffuf_task.s('target', info).set(queue='fast_queue'),
+            #iis_shortname_scan_task.s('target', info).set(queue='fast_queue'),
+            #bucket_finder_task.s('target', info).set(queue='fast_queue'),
+            #token_scan_task.s('target', info).set(queue='fast_queue'),
+            #css_scan_task.s('target', info).set(queue='fast_queue'),
+            #firebase_scan_task.s('target', info).set(queue='fast_queue'),
+            #host_header_attack_scan.s('target', info).set(queue='fast_queue'),
+            # Slow_scans
+            #cors_scan_task.s('target', info).set(queue='slow_queue'),
+            #ssl_tls_scan_task.s('target', info).set(queue='slow_queue'),
+            #nmap_script_scan_task.s('target', info).set(queue='slow_queue'),
+            #burp_scan_task.s('target', info).set(queue='slow_queue'),
+        ],
+        body=task_finished.s(),
+        immutable=True)
+    execution_chord.apply_async(queue='fast_queue')    
     return
     
 
@@ -98,28 +137,32 @@ def handle_single_scan(info):
         'url_to_scan': info['single_target_choice'],
         'language': info['selected_language'],
         'redmine_project': info['redmine_project'],
-        #TODO 
-        'invasive_scans': False,
+        'invasive_scans': info['use_active_modules'],
         'assigned_users': info['assigned_users'],
         'watchers': info['watcher_users']
     }
 
-    # Fast queue
-    header_scan_task.apply_async(args=['single', scan_information], queue='fast_queue')
-    http_method_scan_task.apply_async(args=['single', scan_information], queue='fast_queue')
-    libraries_scan_task.apply_async(args=['single', scan_information], queue='fast_queue')
-    ffuf_task.apply_async(args=['single', scan_information], queue='fast_queue')
-    iis_shortname_scan_task.apply_async(args=['single', scan_information], queue='fast_queue')
-    bucket_finder_task.apply_async(args=['single', scan_information], queue='fast_queue')
-    token_scan_task.apply_async(args=['single', scan_information], queue='fast_queue')
-    css_scan_task.apply_async(args=['single', scan_information], queue='fast_queue')
-    firebase_scan_task.apply_async(args=['single', scan_information], queue='fast_queue')
-    host_header_attack_scan.apply_async(args=['single', scan_information], queue='fast_queue')
-
-    # Slow queue
-    cors_scan_task.apply_async(args=['single', scan_information], queue='slow_queue')
-    ssl_tls_scan_task.apply_async(args=['single', scan_information], queue='slow_queue')
-    nmap_script_scan_task.apply_async(args=['single', scan_information], queue='slow_queue')
-    burp_scan_task.apply_async(args=['single', scan_information], queue='slow_queue')
+    execution_chord = chord(
+        [
+            # Fast_scans
+            header_scan_task.s('single', scan_information).set(queue='fast_queue'),
+            http_method_scan_task.s('single', scan_information).set(queue='fast_queue'),
+            #libraries_scan_task.s('single', scan_information).set(queue='fast_queue'),
+            #ffuf_task.s('single', scan_information).set(queue='fast_queue'),
+            #iis_shortname_scan_task.s('single', scan_information).set(queue='fast_queue'),
+            #bucket_finder_task.s('single', scan_information).set(queue='fast_queue'),
+            #token_scan_task.s('single', scan_information).set(queue='fast_queue'),
+            #css_scan_task.s('single', scan_information).set(queue='fast_queue'),
+            #firebase_scan_task.s('single', scan_information).set(queue='fast_queue'),
+            #host_header_attack_scan.s('single', scan_information).set(queue='fast_queue'),
+            # Slow_scans
+            #ors_scan_task.s('single', scan_information).set(queue='slow_queue'),
+            #ssl_tls_scan_task.s('single', scan_information).set(queue='slow_queue'),
+            #nmap_script_scan_task.s('single', scan_information).set(queue='slow_queue'),
+            #burp_scan_task.s('single', scan_information).set(queue='slow_queue'),
+        ],
+        body=task_finished.s(),
+        immutable=True)
+    execution_chord.apply_async(queue='fast_queue')
     return
 

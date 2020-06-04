@@ -1,6 +1,7 @@
 from celery import shared_task
 from celery.schedules import crontab
 from celery.task import periodic_task
+from celery import group
 
 from time import sleep
 import datetime as dt
@@ -35,7 +36,7 @@ def recon_and_vuln_scan_task(info):
     }
     recon.run_recon(scan_information['target'])
     subdomains_plain = mongo.get_target_alive_subdomains(scan_information['target'])
-    nmap.start_nmap(subdomains_plain)
+    #nmap.start_nmap(subdomains_plain)
     aquatone.start_aquatone(subdomains_plain)
 
     subdomains_http = mongo.get_responsive_http_resources(scan_information['target'])
@@ -85,8 +86,15 @@ def recon_handle_task(target):
     recon.run_recon(target)
     subdomains = mongo.get_target_alive_subdomains(target)
     aquatone.start_aquatone(subdomains)
-    nmap.start_nmap(subdomains)
 
+@shared_task
+def subdomain_finder_task(target):
+    recon.run_recon(target)
+
+@shared_task
+def url_resolver_task(Task, target):
+    subdomains = mongo.get_target_alive_subdomains(target)
+    aquatone.start_aquatone(subdomains)
 
 # Execute monitor everyday at midnight
 @periodic_task(run_every=crontab(hour=0, minute=0))
@@ -203,3 +211,12 @@ def burp_scan_task(scan_type, scan_information):
         burp_scan.handle_single(scan_information)
     elif scan_type == 'target':
         burp_scan.handle_target(scan_information)
+
+@shared_task
+def task_finished(Task):
+    print('-----------------------------------------')
+    print('-----------------------------------------')
+    print('---------------- FINISHED ---------------')
+    print('-----------------------------------------')
+    print('-----------------------------------------')
+    print('-----------------------------------------')

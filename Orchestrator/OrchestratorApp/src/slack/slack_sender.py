@@ -32,7 +32,10 @@ def send_recon_end_message(target_name):
 def send_simple_message(message):
     if slack_web_client == None:
         return
-    slack_web_client.chat_postMessage(channel=slack_channel_name, text=str(message))
+    try:
+        slack_web_client.chat_postMessage(channel=slack_channel_name, text=str(message))
+    except Exception:
+        return
     return
 
 
