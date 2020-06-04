@@ -105,21 +105,21 @@ def handle_single_scan(info):
     }
 
     # Fast queue
-    #header_scan_task.apply_async(args=['single', scan_information], queue='fast_queue')
-    #http_method_scan_task.apply_async(args=['single', scan_information], queue='fast_queue')
+    header_scan_task.apply_async(args=['single', scan_information], queue='fast_queue')
+    http_method_scan_task.apply_async(args=['single', scan_information], queue='fast_queue')
     #libraries_scan_task.apply_async(args=['single', scan_information], queue='fast_queue')
-    #ffuf_task.apply_async(args=['single', scan_information], queue='fast_queue')
-    #iis_shortname_scan_task.apply_async(args=['single', scan_information], queue='fast_queue')
-    #bucket_finder_task.apply_async(args=['single', scan_information], queue='fast_queue')
-    #token_scan_task.apply_async(args=['single', scan_information], queue='fast_queue')
-    #css_scan_task.apply_async(args=['single', scan_information], queue='fast_queue')
-    #firebase_scan_task.apply_async(args=['single', scan_information], queue='fast_queue')
-    #host_header_attack_scan.apply_async(args=['single', scan_information], queue='fast_queue')
+    ffuf_task.apply_async(args=['single', scan_information], queue='fast_queue')
+    iis_shortname_scan_task.apply_async(args=['single', scan_information], queue='fast_queue')
+    bucket_finder_task.apply_async(args=['single', scan_information], queue='fast_queue')
+    token_scan_task.apply_async(args=['single', scan_information], queue='fast_queue')
+    css_scan_task.apply_async(args=['single', scan_information], queue='fast_queue')
+    firebase_scan_task.apply_async(args=['single', scan_information], queue='fast_queue')
+    host_header_attack_scan.apply_async(args=['single', scan_information], queue='fast_queue')
 
     # Slow queue
-    #cors_scan_task.apply_async(args=['single', scan_information], queue='slow_queue')
-    #ssl_tls_scan_task.apply_async(args=['single', scan_information], queue='slow_queue')
-    #nmap_script_scan_task.apply_async(args=['single', scan_information], queue='slow_queue')
+    cors_scan_task.apply_async(args=['single', scan_information], queue='slow_queue')
+    ssl_tls_scan_task.apply_async(args=['single', scan_information], queue='slow_queue')
+    nmap_script_scan_task.apply_async(args=['single', scan_information], queue='slow_queue')
     burp_scan_task.apply_async(args=['single', scan_information], queue='slow_queue')
     return
 
