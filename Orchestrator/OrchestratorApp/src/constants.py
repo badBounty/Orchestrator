@@ -15,23 +15,13 @@ BURP_SCAN = {
 ### VULNERABILITIES ###
 INVALID_VALUE_ON_HEADER = {
     'english_name': 'Insecure HTTP Response Header Configuration',
-    'spanish_name': 'Inadecuada configuración de encabezados de seguridad'
+    'spanish_name': 'Inadecuada configuración de encabezados de seguridad',
+    'status' : 1
 }
 HEADER_NOT_FOUND = {
     'english_name': 'Insecure HTTP Response Header Configuration',
-    'spanish_name': 'Inadecuada configuración de encabezados de seguridad'
-}
-X_FRAME_OPTIONS_NOT_PRESENT = {
-    'english_name': 'Clickjacking X-Frame-Options header missing',
-    'spanish_name': 'Inexistencia de protección contra IFRAMES'
-}
-X_FRAME_OPTIONS_INVALID = {
-    'english_name': 'Clickjacking attack possible',
-    'spanish_name': 'Ataque de Clickjacking posible'
-}
-HSTS = {
-    'english_name': 'HTTP Strict Transport Security not enforced',
-    'spanish_name': 'HTTP Strict Transport Security (HSTS) no aplicada'
+    'spanish_name': 'Inadecuada configuración de encabezados de seguridad',
+    'status':1
 }
 HOST_HEADER_ATTACK = {
     'english_name': 'Host header attack possible',
@@ -43,7 +33,8 @@ UNSECURE_METHOD = {
 }
 SSL_TLS = {
     'english_name': 'Weak transport layer security (TLS) configuration',
-    'spanish_name': 'Inadecuada configuración de seguridad de capa de transporte (TLS)'
+    'spanish_name': 'Inadecuada configuración de seguridad de capa de transporte (TLS)',
+    'status': 1
 }
 OUTDATED_3RD_LIBRARIES = {
     'english_name': 'Outdated 3rd party libraries in use',
@@ -57,17 +48,9 @@ ENDPOINT = {
     'english_name': 'Vulnerable endpoints were found',
     'spanish_name': 'Se encontraron endpoints vulnerables'
 }
-BUCKET_LS = {
-    'english_name': 'Bucket with ls allowed found',
-    'spanish_name': 'Bucket con listado disponible encontrado'
-}
-BUCKET_NF = {
-    'english_name': 'Bucket is called but does not exist',
-    'spanish_name': 'Bucket fue invocado pero no existe'
-}
-BUCKET_CPRM = {
-    'english_name': 'Bucket with copy remove allowed found',
-    'spanish_name': 'Bucket con copia y borrado encontrado'
+BUCKET = {
+    'english_name': 'Misconfiguration in Bucket found',
+    'spanish_name': 'Mala configuración en Bucket'
 }
 TOKEN_SENSITIVE_INFO = {
     'english_name': 'Token information disclosure was found',
@@ -83,11 +66,12 @@ OPEN_FIREBASE = {
 }
 OUTDATED_SOFTWARE_NMAP = {
     'english_name': 'Outdated software in use',
-    'spanish_name': 'Software desactualizado en uso'
+    'spanish_name': 'Software desactualizado'
 }
 HTTP_PASSWD_NMAP = {
     'english_name': 'Path traversal found',
-    'spanish_name': 'Path traversal encontrado'
+    'spanish_name': 'Path traversal encontrado',
+    'status': 12
 }
 WEB_VERSIONS_NMAP = {
     'english_name': 'Web versions vulnerabilities found',
@@ -95,24 +79,29 @@ WEB_VERSIONS_NMAP = {
 }
 ANON_ACCESS_FTP = {
     'english_name': 'Anonymous access to FTP server',
-    'spanish_name': 'Permisos de escritura en servidor FTP en forma anónima'
+    'spanish_name': 'Permisos de escritura en servidor FTP en forma anónima',
+    'status': 1
 }
 # TODO revisar spanish name
 CRED_ACCESS_FTP = {
     'english_name': 'Access to FTP server with default credentials',
-    'spanish_name': 'Acceso administrativo mediante usuarios por defecto'
+    'spanish_name': 'Acceso administrativo mediante usuarios por defecto',
+    'status': 1
 }
 DEFAULT_CREDS = {
     'english_name': 'Default credentials in use',
-    'spanish_name': 'Acceso administrativo mediante usuarios por defecto'
+    'spanish_name': 'Acceso administrativo mediante usuarios por defecto',
+    'status': 1
 }
 IIS_SHORTNAME_MICROSOFT = {
     'english_name': 'Microsoft short name directory and file enumeration',
-    'spanish_name': 'Enumeración de nombres cortos de archivos y directorios de Microsoft'
+    'spanish_name': 'Enumeración de nombres cortos de archivos y directorios de Microsoft',
+    'status': 1
 }
 POSSIBLE_ERROR_PAGES = {
     'english_name': 'Possible information disclosure within system error messages',
-    'spanish_name': 'Posible inadecuado manejo de errores'
+    'spanish_name': 'Posible inadecuado manejo de errores',
+    'status': 12
 }
 
 # HEADERS #

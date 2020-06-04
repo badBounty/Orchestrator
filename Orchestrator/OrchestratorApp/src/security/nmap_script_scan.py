@@ -14,6 +14,7 @@ from .. import constants
 from ..mongo import mongo
 from ..redmine import redmine
 from ...objects.vulnerability import Vulnerability
+from ...__init__ import wordlist
 
 
 def cleanup(path):
@@ -64,6 +65,8 @@ def handle_single(scan_info):
     slack_sender.send_simple_message("Nmap scripts started against %s" % url)
     # We receive the url with http/https, we will get only the host so nmap works
     host = url.split('/')[2]
+    print('------------------- NMAP BASIC SCAN -------------------')
+    #basic_scan(scan_info, host)
     print('------------------- NMAP OUTDATED SOFTWARE -------------------')
     outdated_software(scan_info, host)
     print('------------------- NMAP WEB VERSIONS -------------------')
@@ -114,6 +117,18 @@ def add_vuln_to_mongo(scan_info, scan_type, description, img_str=None):
     mongo.add_vulnerability(vulnerability)
     return
 
+def basic_scan(scan_info, url_to_scan):
+    ports=[21,23,80]
+    random_filename = uuid.uuid4().hex
+    output_dir = ROOT_DIR + '/tools_output/'+random_filename
+    basic_scan = subprocess.run(['nmap','-Pn','-sV','-sS','-vvv','--top-ports=1000','-oA',output_dir,url_to_scan],capture_output=True)
+    with open(output_dir + '.xml') as xml_file:
+        my_dict = xmltodict.parse(xml_file.read())
+    xml_file.close()
+    json_data = json.dumps(my_dict)
+    json_data = json.loads(json_data)
+    #Check plain text open ports
+    cleanup(output_dir)
 
 def outdated_software(scan_info, url_to_scan):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -204,8 +219,8 @@ def ssh_ftp_brute_login(scan_info, url_to_scan, is_ssh):
         brute = ROOT_DIR + '/tools/nmap/server_versions/ftp-brute.nse'
         port = '-p21'
         end_name = '.ftp.brute'
-    users = ROOT_DIR + '/tools/usernames-shortlist.txt'
-    password = ROOT_DIR + '/tools/default-pass.txt'
+    users = wordlist['ssh_ftp_user']
+    password = wordlist['ssh_ftp_pass']
     random_filename = uuid.uuid4().hex
     output_dir = ROOT_DIR + '/tools_output/'+random_filename+end_name
     cleanup(output_dir)

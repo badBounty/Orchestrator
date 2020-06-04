@@ -68,13 +68,7 @@ def scan_target(scan_information, url_to_scan):
 
 def add_vulnerability_to_mongo(scanned_url, finding_name, bucket_name, description , scan_info):
     timestamp = datetime.now()
-    vuln_name = None
-    if finding_name == 'ls':
-        vuln_name = constants.BUCKET_LS
-    elif finding_name == 'nf':
-        vuln_name = constants.BUCKET_NF
-    elif finding_name == 'cprm':
-        vuln_name = constants.BUCKET_CPRM
+    vuln_name = constants.BUCKET
 
     vulnerability = Vulnerability(vuln_name, scan_info, description)
     slack_sender.send_simple_vuln(vulnerability)

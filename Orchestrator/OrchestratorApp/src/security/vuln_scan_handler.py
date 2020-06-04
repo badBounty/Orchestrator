@@ -101,7 +101,7 @@ def handle_new_target_scan(info):
         immutable=True)
     )
     new_target_chain.apply_async(queue='fast_queue')
-    
+
     return
 
 
@@ -141,7 +141,6 @@ def handle_single_scan(info):
         'assigned_users': info['assigned_users'],
         'watchers': info['watcher_users']
     }
-
     execution_chord = chord(
         [
             # Fast_scans
@@ -164,5 +163,6 @@ def handle_single_scan(info):
         body=task_finished.s(),
         immutable=True)
     execution_chord.apply_async(queue='fast_queue')
+
     return
 
