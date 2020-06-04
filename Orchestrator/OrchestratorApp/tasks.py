@@ -85,7 +85,6 @@ def recon_handle_task(target):
     recon.run_recon(target)
     subdomains = mongo.get_target_alive_subdomains(target)
     aquatone.start_aquatone(subdomains)
-    nmap.start_nmap(subdomains)
 
 
 # Execute monitor everyday at midnight
