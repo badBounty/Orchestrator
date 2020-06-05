@@ -10,7 +10,7 @@ import os,gc
 from .src.recon import recon, nmap, aquatone
 from .src.security import header_scan, http_method_scan, ssl_tls_scan,\
     cors_scan, ffuf, libraries_scan, bucket_finder, token_scan, css_scan,\
-    firebase_scan, nmap_script_scan, host_header_attack,iis_shortname_scanner, burp_scan
+    firebase_scan, nmap_script_scan,nmap_script_baseline, host_header_attack,iis_shortname_scanner, burp_scan
 from .src.slack import slack_sender
 from .src.mongo import mongo
 from .src.comms import email_handler
@@ -121,6 +121,14 @@ def nmap_script_scan_task(scan_information, scan_type):
         nmap_script_scan.handle_target(scan_information)
 
 @shared_task
+def nmap_script_baseline_task(scan_information, scan_type):
+    if scan_type == 'single':
+        nmap_script_baseline.handle_single(scan_information)
+    elif scan_type == 'target':
+        nmap_script_baseline.handle_target(scan_information)
+        
+
+@shared_task
 def iis_shortname_scan_task(scan_information, scan_type):
     if scan_type == 'single':
         iis_shortname_scanner.handle_single(scan_information)
@@ -172,7 +180,8 @@ def burp_scan_task(scan_information, scan_type):
 @shared_task
 def generate_report_task(scan_type, scan_information):
     if scan_type == 'single':
-        reporting.create_report(scan_information)
+        print('I AM THE REPORT TASK M*F')
+        #reporting.create_report(scan_information)
     
 @shared_task
 def task_finished(Task):

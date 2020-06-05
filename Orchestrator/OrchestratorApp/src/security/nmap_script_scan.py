@@ -44,8 +44,6 @@ def handle_target(info):
         print('------------------- NMAP OUTDATED SOFTWARE -------------------')
         if host not in scanned_hosts:
             outdated_software(sub_info, host)
-            print('------------------- NMAP BASIC SCAN -------------------')
-            basic_scan(sub_info, host)
             print('------------------- NMAP WEB VERSIONS -------------------')
             web_versions(sub_info, host)
             if sub_info['invasive_scans']:
@@ -67,8 +65,6 @@ def handle_single(scan_info):
     slack_sender.send_simple_message("Nmap scripts started against %s" % url)
     # We receive the url with http/https, we will get only the host so nmap works
     host = url.split('/')[2]
-    print('------------------- NMAP BASIC SCAN -------------------')
-    basic_scan(scan_info, host)
     print('------------------- NMAP OUTDATED SOFTWARE -------------------')
     outdated_software(scan_info, host)
     print('------------------- NMAP WEB VERSIONS -------------------')
@@ -121,38 +117,6 @@ def add_vuln_to_mongo(scan_info, scan_type, description, img_str=None):
     slack_sender.send_simple_vuln(vulnerability)
     redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
-    return
-
-def check_ports_and_report(scan_info,ports,scan_type,json_scan,img_str):
-    message=''
-    try:
-        for port in json_scan['nmaprun']['host']['ports']['port']:
-            if port['@portid'] in ports and port['state']['@state'] == 'open':
-                message = 'Service: '+port['service']['@name']+' '
-                message+= 'Product: '+port['service']['@product']+' '
-                message+= 'Version: '+port['service']['@version']+'\n'
-        add_vuln_to_mongo(scan_info, scan_type, message, img_str)
-    except KeyError:
-        message = None
-    return
-
-def basic_scan(scan_info, url_to_scan):
-    plaintext_ports=["21","23","80"]
-    remote_ports=["135","513","514","1433","3306","3389"]
-    random_filename = uuid.uuid4().hex
-    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-    output_dir = ROOT_DIR + '/tools_output/'+random_filename
-    basic_scan = subprocess.run(['nmap','-Pn','-sV','-sS','-vvv','--top-ports=1000','-oA',output_dir,url_to_scan],capture_output=True)
-    with open(output_dir + '.xml') as xml_file:
-        my_dict = xmltodict.parse(xml_file.read())
-    xml_file.close()
-    json_data = json.dumps(my_dict)
-    json_data = json.loads(json_data)
-    img_str = image_creator.create_image_from_file(output_dir + '.nmap')
-
-    check_ports_and_report(scan_info,plaintext_ports,'plaintext_services',json_data,img_str)
-    check_ports_and_report(scan_info,remote_ports,'unnecessary_services',json_data,img_str)
-    cleanup(output_dir)
     return
 
 def outdated_software(scan_info, url_to_scan):
