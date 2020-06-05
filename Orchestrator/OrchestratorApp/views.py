@@ -12,8 +12,6 @@ from .src.comms import download
 from .src.reporting import reporting
 from .src.security import vuln_scan_handler
 
-from .tasks import recon_and_vuln_scan_task
-
 from .__init__ import slack_web_client
 
 import json
@@ -83,7 +81,9 @@ def vuln_scan_view(request):
         form = VulnerabilityScanForm(request.POST, request.FILES)
         if form.is_valid():
             if form.cleaned_data['scan_type'] == 'file_target':
-                vuln_scan_handler.handle_file(form.cleaned_data, request.FILES['input_file_name'])
+                vuln_scan_handler.handle_url_file(form.cleaned_data, request.FILES['input_file_name'])
+            elif form.cleaned_data['scan_type'] == 'file_ip':
+                vuln_scan_handler.handle_ip_file(form.cleaned_data, request.FILES['input_ip_file_name'])
             else:
                 vuln_scan_handler.handle(form.cleaned_data)
             return redirect('/')

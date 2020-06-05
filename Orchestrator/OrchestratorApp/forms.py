@@ -14,11 +14,12 @@ REPORT_CHOICES = [
 	('S', 'Status')
 ]
 
-SCAN_CHOINCES = [
+SCAN_CHOICES = [
 	('existing_target', 'Existing Target'),
 	('new_target', 'New target (Recon and security scan)'),
 	('single_target', 'Scan against one url (With http/https)'),
-	('file_target', 'Input file (Urls with http/https)')
+	('file_target', 'Input file (Urls with http/https)'),
+	('file_ip', 'Input file (Ips)')
 ]
 
 
@@ -28,7 +29,7 @@ class ReconForm(forms.Form):
 
 class VulnerabilityScanForm(forms.Form):
 	### Scan type selection
-	scan_type = forms.CharField(label='Select scan type', widget=forms.Select(choices=SCAN_CHOINCES,
+	scan_type = forms.CharField(label='Select scan type', widget=forms.Select(choices=SCAN_CHOICES,
 	attrs={'onchange':'enable_scan_type_div(\'id_scan_type\')'}))
 	## div_name = scan_choice_div
 	## When a choice is selected, it will become required
@@ -45,6 +46,8 @@ class VulnerabilityScanForm(forms.Form):
 	single_target_choice = forms.CharField(label='New url (http/https)', required=False)
 	# div_name = file_target_choice_div
 	input_file_name = forms.FileField(label='Input file', required=False)
+	# div_name = file_ip_target_choice_div
+	input_ip_file_name = forms.FileField(label='Input file', required=False)
 
 	use_active_modules = forms.BooleanField(required=False, initial=True, label='Invasive modules',
 											help_text= "Enables intrusive nmap scripts (SSH/FTP/Default login)")
