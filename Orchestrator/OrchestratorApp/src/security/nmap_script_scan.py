@@ -44,6 +44,8 @@ def handle_target(info):
         print('------------------- NMAP OUTDATED SOFTWARE -------------------')
         if host not in scanned_hosts:
             outdated_software(sub_info, host)
+            print('------------------- NMAP BASIC SCAN -------------------')
+            basic_scan(sub_info, host)
             print('------------------- NMAP WEB VERSIONS -------------------')
             web_versions(sub_info, host)
             if sub_info['invasive_scans']:
@@ -66,11 +68,11 @@ def handle_single(scan_info):
     # We receive the url with http/https, we will get only the host so nmap works
     host = url.split('/')[2]
     print('------------------- NMAP BASIC SCAN -------------------')
-    #basic_scan(scan_info, host)
+    basic_scan(scan_info, host)
     print('------------------- NMAP OUTDATED SOFTWARE -------------------')
-    outdated_software(scan_info, host)
+    #outdated_software(scan_info, host)
     print('------------------- NMAP WEB VERSIONS -------------------')
-    web_versions(scan_info, host)
+    #web_versions(scan_info, host)
     if scan_info['invasive_scans']:
         print('------------------- NMAP SSH FTP BRUTE FORCE -------------------')
         ssh_ftp_brute_login(scan_info, host, True)#SHH
@@ -99,6 +101,10 @@ def add_vuln_to_mongo(scan_info, scan_type, description, img_str=None):
         vuln_name = constants.CRED_ACCESS_FTP
     elif scan_type == "default_creds":
         vuln_name = constants.DEFAULT_CREDS
+    elif scan_type == 'plaintext_services':
+        vuln_name = constants.PLAINTEXT_COMUNICATION
+    elif scan_type == 'unnecessary_services':
+        vuln_name = constants.UNNECESSARY_SERVICES
 
     vulnerability = Vulnerability(vuln_name, scan_info, description)
     vulnerability.add_image_string(img_str)
@@ -117,9 +123,23 @@ def add_vuln_to_mongo(scan_info, scan_type, description, img_str=None):
     mongo.add_vulnerability(vulnerability)
     return
 
+def check_ports_and_report(scan_info,ports,scan_type,json_scan,img_str):
+    try:
+        for port in json_scan['nmaprun']['host']['ports']['port']:
+            if port['@portid'] in ports and port['state']['@state'] == 'open':
+                message = 'Service: '+port['service']['@name']+' '
+                message+= 'Product: '+port['service']['@product']+' '
+                message+= 'Version: '+port['service']['@version']+'\n'
+        add_vuln_to_mongo(scan_info, scan_type, message, img_str)
+    except KeyError:
+        message = None
+    return
+
 def basic_scan(scan_info, url_to_scan):
-    ports=[21,23,80]
+    plaintext_ports=["21","23","80"]
+    remote_ports=["135","513","514","1433","3306","3389"]
     random_filename = uuid.uuid4().hex
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     output_dir = ROOT_DIR + '/tools_output/'+random_filename
     basic_scan = subprocess.run(['nmap','-Pn','-sV','-sS','-vvv','--top-ports=1000','-oA',output_dir,url_to_scan],capture_output=True)
     with open(output_dir + '.xml') as xml_file:
@@ -127,8 +147,12 @@ def basic_scan(scan_info, url_to_scan):
     xml_file.close()
     json_data = json.dumps(my_dict)
     json_data = json.loads(json_data)
-    #Check plain text open ports
+    img_str = image_creator.create_image_from_file(output_dir + '.nmap')
+
+    check_ports_and_report(scan_info,plaintext_ports,'plaintext_services',json_data,img_str)
+    check_ports_and_report(scan_info,remote_ports,'unnecessary_services',json_data,img_str)
     cleanup(output_dir)
+    return
 
 def outdated_software(scan_info, url_to_scan):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
