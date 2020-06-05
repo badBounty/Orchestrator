@@ -13,7 +13,7 @@ celery==4.4.2
 certifi==2020.4.5.1
 chardet==3.0.4
 colorama==0.4.3
-django==3.0.5
+django==3.0.7
 dnspython==1.16.0
 docutils==0.15.2
 easyprocess==0.3
@@ -21,15 +21,15 @@ editorconfig==0.12.2
 entrypoint2==0.2.1
 future==0.18.2
 gevent==20.5.2
-greenlet==0.4.16 ; platform_python_implementation == 'CPython'
+greenlet==0.4.16
 idna==2.9
 importlib-metadata==1.6.0
-jeepney==0.4.3 ; python_version > '3.4' and platform_system == 'Linux'
+jeepney==0.4.3
 jmespath==0.10.0
 jsbeautifier==1.11.0
 kombu==4.6.8
 lxml==4.5.0
-mss==5.1.0 ; python_version > '3.4'
+mss==5.1.0
 multidict==4.7.5
 pillow==7.1.2
 pyasn1==0.4.8
@@ -39,7 +39,7 @@ python-dateutil==2.8.1
 python-docx==0.8.10
 python-redmine==2.3.0
 pytz==2019.3
-pyyaml==5.3.1 ; python_version != '3.4'
+pyyaml==5.3.1
 redis==3.4.1
 requests-file==1.5.1
 requests==2.23.0
