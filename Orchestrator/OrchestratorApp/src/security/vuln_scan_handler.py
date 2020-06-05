@@ -194,21 +194,21 @@ def handle_single_scan(info):
     execution_chord = chord(
         [
             # Fast_scans
-            header_scan_task.s('single', scan_information).set(queue='fast_queue'),
-            http_method_scan_task.s('single', scan_information).set(queue='fast_queue'),
-            #libraries_scan_task.s('single', scan_information).set(queue='fast_queue'),
-            ffuf_task.s('single', scan_information).set(queue='fast_queue'),
-            iis_shortname_scan_task.s('single', scan_information).set(queue='fast_queue'),
-            bucket_finder_task.s('single', scan_information).set(queue='fast_queue'),
-            token_scan_task.s('single', scan_information).set(queue='fast_queue'),
-            css_scan_task.s('single', scan_information).set(queue='fast_queue'),
-            firebase_scan_task.s('single', scan_information).set(queue='fast_queue'),
-            host_header_attack_scan.s('single', scan_information).set(queue='fast_queue'),
+            header_scan_task.s(scan_information, 'single').set(queue='fast_queue'),
+            http_method_scan_task.s(scan_information, 'single').set(queue='fast_queue'),
+            #libraries_scan_task.s(scan_information, 'single').set(queue='fast_queue'),
+            #ffuf_task.s(scan_information, 'single').set(queue='fast_queue'),
+            #iis_shortname_scan_task.s(scan_information, 'single').set(queue='fast_queue'),
+            #bucket_finder_task.s(scan_information, 'single').set(queue='fast_queue'),
+            #token_scan_task.s(scan_information, 'single').set(queue='fast_queue'),
+            #css_scan_task.s(scan_information, 'single').set(queue='fast_queue'),
+            #firebase_scan_task.s(scan_information, 'single').set(queue='fast_queue'),
+            #host_header_attack_scan.s(scan_information, 'single').set(queue='fast_queue'),
             # Slow_scans
-            cors_scan_task.s('single', scan_information).set(queue='slow_queue'),
-            #ssl_tls_scan_task.s('single', scan_information).set(queue='slow_queue'),
-            nmap_script_scan_task.s('single', scan_information).set(queue='slow_queue'),
-            burp_scan_task.s('single', scan_information).set(queue='slow_queue'),
+            #cors_scan_task.s(scan_information, 'single').set(queue='slow_queue'),
+            #ssl_tls_scan_task.s(scan_information, 'single').set(queue='slow_queue'),
+            #nmap_script_scan_task.s(scan_information, 'single').set(queue='slow_queue'),
+            #burp_scan_task.s(scan_information, 'single').set(queue='slow_queue'),
         ],
         body=task_finished.s())
     execution_chord.apply_async(queue='fast_queue')
