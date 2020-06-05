@@ -32,32 +32,6 @@ doc = docx.Document()
 ############################################################
 # PARA REPORTES ESTADO DE AVANCE EN ESPAÑOL O FINAL SLATAM #
 ############################################################
-# Se agrega la informacion del cliente dependiente del tipo de reporte
-def setClientInDoc(doc, estado, client):
-    if client:
-        if estado:
-            cliText = doc.tables[0].cell(1, 1).text.replace("<CLIENTE>", client)
-            doc.tables[0].cell(1, 1).text = cliText
-            footerCli = doc.sections[0].footer.tables[0].cell(0, 1).paragraphs[0].runs[0].text.replace("<CLIENTE>",
-                                                                                                       client)
-            doc.sections[0].footer.tables[0].cell(0, 1).paragraphs[0].runs[0].text = footerCli
-        else:
-            cliText = doc.tables[1].cell(0, 0).paragraphs[0].text.replace("<CLIENTE>", client)
-            doc.tables[1].cell(0, 0).paragraphs[0].text = cliText
-            headerText = doc.sections[0].header.paragraphs[0].runs[3].text.replace("<CLIENTE>", client)
-            doc.sections[0].header.paragraphs[0].runs[3].text = headerText
-            # Declaracion de responsabilidad
-            for i in range(3, 7):
-                paraText = doc.paragraphs[i].text.replace("<CLIENTE>", client)
-                doc.paragraphs[i].text = paraText
-            # Privado y confidencial
-            for i in range(31, 34):
-                paraText = doc.paragraphs[i].text.replace("<CLIENTE>", client)
-                doc.paragraphs[i].text = paraText
-                # Resumen ejecutivo
-                paraText = doc.paragraphs[54].text.replace("<CLIENTE>", client)
-                doc.paragraphs[54].text = paraText
-
 
 # Buscamos la nota en el listado de los paragraph
 def agregarNota(p, nota):
@@ -214,7 +188,7 @@ def clonarTemplateYAgregarFinding(doc, indexNros, language, jsonFinding):
     addFindingInfo(new_tbl, language, urls)
 
 
-def crearReporte(language, reportType, client, findings):
+def crearReporte(language, reportType, findings):
     eng = True if language == "eng" else False
     estado = True if reportType == "S" else False
     global doc,missing_findings
@@ -237,7 +211,6 @@ def crearReporte(language, reportType, client, findings):
 
     # Itero sobre la lista recibida si el finding existe lo agrego sino pongo un mensaje de alerta
     print("Generando Reporte espere")
-    setClientInDoc(doc, estado, client)
     for finding in findings:
         # Obtenemos finding de la KB
         json_value = mongo.get_specific_finding_info(finding, language)

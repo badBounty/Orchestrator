@@ -170,6 +170,11 @@ def burp_scan_task(scan_information, scan_type):
         burp_scan.handle_target(scan_information)
 
 @shared_task
+def generate_report_task(scan_type, scan_information):
+    if scan_type == 'single':
+        reporting.create_report(scan_information)
+    
+@shared_task
 def task_finished(Task):
     print('-----------------------------------------')
     print('-----------------------------------------')
