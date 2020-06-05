@@ -6,14 +6,29 @@ from ..mongo import mongo
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
+"""
+{'scan_type': 'single_target',
+ 'existing_target_choice': 'deloitte.com',
+ 'new_target_choice': '', 
+ 'single_target_choice': 'https://juice-shop.herokuapp.com/', 
+ 'input_file_name': None, 
+ 'use_active_modules': True, 
+ 'checkbox_email': False, 'email': '', 
+ 'checkbox_report': True, 
+ 'report_type': 'F', 
+ 'selected_language': 'eng',
+ 'checkbox_redmine': True, 'redmine_project': 'orchestator-test-proj', 
+ 'assigned_users': ['17'], 
+ 'watcher_users': ['17']
+ }
+"""
 
-def create_report(client,info,findings=None):
-    if findings:
-        findings = get_findings(info['target'], info['selected_language'])
+def create_report(info):
     language = info['selected_language']
     reportType = info['report_type']
-    client = client
-    file_dir,missing_finding = reportGenerator.crearReporte(language, reportType, client, findings)
+    target = info['single_target_choice']
+    findings = get_findings(target, language) 
+    file_dir,missing_finding = reportGenerator.crearReporte(language, reportType, findings)
     return file_dir,missing_finding
 
 

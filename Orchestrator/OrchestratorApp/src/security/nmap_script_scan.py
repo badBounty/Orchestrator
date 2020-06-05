@@ -70,9 +70,9 @@ def handle_single(scan_info):
     print('------------------- NMAP BASIC SCAN -------------------')
     basic_scan(scan_info, host)
     print('------------------- NMAP OUTDATED SOFTWARE -------------------')
-    #outdated_software(scan_info, host)
+    outdated_software(scan_info, host)
     print('------------------- NMAP WEB VERSIONS -------------------')
-    #web_versions(scan_info, host)
+    web_versions(scan_info, host)
     if scan_info['invasive_scans']:
         print('------------------- NMAP SSH FTP BRUTE FORCE -------------------')
         ssh_ftp_brute_login(scan_info, host, True)#SHH
@@ -124,6 +124,7 @@ def add_vuln_to_mongo(scan_info, scan_type, description, img_str=None):
     return
 
 def check_ports_and_report(scan_info,ports,scan_type,json_scan,img_str):
+    message=''
     try:
         for port in json_scan['nmaprun']['host']['ports']['port']:
             if port['@portid'] in ports and port['state']['@state'] == 'open':
