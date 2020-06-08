@@ -24,7 +24,7 @@ eng = False
 estado = True
 # Estos indices son para copiar el finding de inicio a fin varian segundo el tipo de reporte
 indexNros = (0, 0, 0)
-missing_findings=[]
+missing_findings=""
 # Documento
 doc = docx.Document()
 
@@ -89,7 +89,7 @@ def addFindingInfo(table, language, urls):
     else:
         # Al ser un solo recurso va en singular
         resourcesTitle.text = constants.recursoAfectadoSin_EN if language else constants.recursoAfectadoSin_ES
-        paragraph.text = urls
+        paragraph.text = urls[0]
 
 
 def clonarTemplateYAgregarFinding(doc, indexNros, language, jsonFinding):
@@ -219,7 +219,7 @@ def crearReporte(language, reportType, findings):
         else:
             #TODO mensaje a slack
             print("The following finding was not found: "+finding['title'])
-            missing_findings.append(finding)
+            missing_findings += finding['title']+'\n'
         gc.collect()
     print("Se genero el reporte con los findings que fueron encontrados")
     d1 = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -227,13 +227,13 @@ def crearReporte(language, reportType, findings):
     # Muy probable que esto cambie
     if not eng:
         if estado:
-            name += client + "REPORTE_DE_ESTADO_" + d1 + ".docm"
+            name += "REPORTE_DE_ESTADO_" + d1 + ".docm"
             doc.save(ROOT_DIR + '/out/' + name)
         else:
-            name += client + "REPORTE_FINAL_" + d1 + ".docm"
+            name += "REPORTE_FINAL_" + d1 + ".docm"
             doc.save(ROOT_DIR + '/out/' + name)
     else:
-        name += client + "REPORTE_CON_FINDINGS_INGLES-" + d1 + ".docm"
+        name += "REPORTE_CON_FINDINGS_INGLES-" + d1 + ".docm"
         doc.save(ROOT_DIR + '/out/' + name)
     gc.collect()
     return ROOT_DIR + '/out/' + name,missing_findings

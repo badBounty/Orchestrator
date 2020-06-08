@@ -40,7 +40,6 @@ def prepare_info_for_target_scan(task, info):
     for subdomain in subdomains_http:
         only_urls.append(subdomain['url_with_http'])
     scan_information['url_to_scan'] = only_urls
-    print(scan_information)
     return scan_information
 
 
@@ -180,11 +179,7 @@ def burp_scan_task(scan_information, scan_type):
 @shared_task
 def generate_report_task(Task,scan_information,scan_type):
     if scan_information['report_type']:
-        if scan_type == 'single':
-            print("NADA POR AHORA")
-            #reporting.create_report(scan_information,scan_type)
-        elif scan_type == 'target':
-            print("NADA POR AHORA")
+            reporting.create_report(scan_information)
     
 @shared_task
 def task_finished(Task):

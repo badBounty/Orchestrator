@@ -8,7 +8,6 @@ import os
 
 # Here we parse the information and call each scan type
 def handle(info):
-    print(info)
     if not info['checkbox_redmine']:
         info['redmine_project'] = 'no_project'
     if info['scan_type'] == 'existing_target':
@@ -80,8 +79,8 @@ def handle_url_file(info, f):
     execution_chord = chord(
         [
             # Fast_scans
-            header_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
-            http_method_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
+            #header_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
+            #http_method_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
             #libraries_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
             #ffuf_task.s(scan_information, 'target').set(queue='fast_queue'),
             #iis_shortname_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
@@ -113,6 +112,8 @@ def handle_target_scan(info):
         'assigned_users': info['assigned_users'],
         'watchers': info['watcher_users']
     }
+    if info['checkbox_report']:
+        scan_information['report_type'] = info['report_type']
     subdomains_http = mongo.get_responsive_http_resources(scan_information['target'])
     only_urls = list()
     for subdomain in subdomains_http:
@@ -123,8 +124,8 @@ def handle_target_scan(info):
     execution_chord = chord(
         [
             # Fast_scans
-            header_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
-            http_method_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
+            #header_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
+            #http_method_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
             #libraries_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
             #ffuf_task.s(scan_information, 'target').set(queue='fast_queue'),
             #iis_shortname_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
@@ -139,7 +140,7 @@ def handle_target_scan(info):
             #nmap_script_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
             #burp_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
         ],
-        body=task_finished.s(),
+        body=generate_report_task.s(scan_information,'target'),
         immutable=True)
     execution_chord.apply_async(queue='fast_queue')
     return
@@ -158,8 +159,8 @@ def handle_new_target_scan(info):
         chord(
             [
                 # Fast_scans
-                header_scan_task.s('target').set(queue='fast_queue'),
-                http_method_scan_task.s('target').set(queue='fast_queue'),
+                #header_scan_task.s('target').set(queue='fast_queue'),
+                #http_method_scan_task.s('target').set(queue='fast_queue'),
                 #libraries_scan_task.s('target').set(queue='fast_queue'),
                 #ffuf_task.s('target').set(queue='fast_queue'),
                 #iis_shortname_scan_task.s('target').set(queue='fast_queue'),
@@ -174,7 +175,7 @@ def handle_new_target_scan(info):
                 #nmap_script_scan_task.s('target').set(queue='slow_queue'),
                 #burp_scan_task.s('target').set(queue='slow_queue'),
             ],
-            body=task_finished.s())
+            body=generate_report_task.s(scan_information,'target'))
     )
     new_target_chain.apply_async(queue='fast_queue')
 

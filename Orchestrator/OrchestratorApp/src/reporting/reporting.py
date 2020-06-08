@@ -2,35 +2,22 @@ import os
 from . import reportGenerator
 from collections import defaultdict
 from ..mongo import mongo
+from ..redmine import redmine
 
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-"""
-{'scan_type': 'single_target',
- 'existing_target_choice': 'deloitte.com',
- 'new_target_choice': '', 
- 'single_target_choice': 'https://juice-shop.herokuapp.com/', 
- 'input_file_name': None, 
- 'use_active_modules': True, 
- 'checkbox_email': False, 'email': '', 
- 'checkbox_report': True, 
- 'report_type': 'F', 
- 'selected_language': 'eng',
- 'checkbox_redmine': True, 'redmine_project': 'orchestator-test-proj', 
- 'assigned_users': ['17'], 
- 'watcher_users': ['17']
- }
-"""
 
 def create_report(info):
-    language = info['selected_language']
+    language = info['language']
     reportType = info['report_type']
-    target = info['single_target_choice']
-    findings = get_findings(target, language) 
+    target = info['target']
+    findings = get_findings(target, language)
     file_dir,missing_finding = reportGenerator.crearReporte(language, reportType, findings)
-    return file_dir,missing_finding
-
+    print("------------- Saving report in redmine -------------")
+    redmine.create_report_issue(info,file_dir,missing_finding)
+    print("------------- DONE !!! -------------")
+    return
 
 def get_findings(target, language):
     default_dict = defaultdict(list)
