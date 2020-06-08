@@ -60,7 +60,7 @@ def handle_single(scan_info):
     print('------------------- NMAP_SCRIPT SCAN FINISHED -------------------')
     return
 
-def add_vuln_to_mongo(scan_info, scan_type, description, img_str=None):
+def add_vuln_to_mongo(scan_info, scan_type, description, img_str):
     vuln_name = ""
     if scan_type == 'plaintext_services':
         vuln_name = constants.PLAINTEXT_COMUNICATION
@@ -70,18 +70,16 @@ def add_vuln_to_mongo(scan_info, scan_type, description, img_str=None):
     vulnerability = Vulnerability(vuln_name, scan_info, description)
     vulnerability.add_image_string(img_str)
 
-    if img_str:
-        ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-        random_filename = uuid.uuid4().hex
-        output_dir = ROOT_DIR+'/tools_output/' + random_filename + '.png'
-        im = Image.open(BytesIO(base64.b64decode(img_str)))
-        im.save(output_dir, 'PNG')
-        vulnerability.add_attachment(output_dir, 'nmap-result.png')
-        os.remove(output_dir)
-
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    random_filename = uuid.uuid4().hex
+    output_dir = ROOT_DIR+'/tools_output/' + random_filename + '.png'
+    im = Image.open(BytesIO(base64.b64decode(img_str)))
+    im.save(output_dir, 'PNG')
+    vulnerability.add_attachment(output_dir, 'nmap-result.png')
     slack_sender.send_simple_vuln(vulnerability)
     redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
+    os.remove(output_dir)
     return
 
 def check_ports_and_report(scan_info,ports,scan_type,json_scan,img_str):
@@ -89,10 +87,11 @@ def check_ports_and_report(scan_info,ports,scan_type,json_scan,img_str):
     try:
         for port in json_scan['nmaprun']['host']['ports']['port']:
             if port['@portid'] in ports and port['state']['@state'] == 'open':
-                message = 'Service: '+port['service']['@name']+' '
-                message+= 'Product: '+port['service']['@product']+' '
-                message+= 'Version: '+port['service']['@version']+'\n'
-        add_vuln_to_mongo(scan_info, scan_type, message, img_str)
+                message+= 'Port: '+port['@portid']+'\n'
+                message+= 'Service: '+port['service']['@name']+'\n'
+                message+= 'Product: '+port['service']['@product']+'\n'
+                message+= 'Version: '+port['service']['@version']+'\n\n'
+                add_vuln_to_mongo(scan_info, scan_type, message, img_str)
     except KeyError:
         message = None
     return
@@ -110,7 +109,6 @@ def basic_scan(scan_info, url_to_scan):
     json_data = json.dumps(my_dict)
     json_data = json.loads(json_data)
     img_str = image_creator.create_image_from_file(output_dir + '.nmap')
-
     check_ports_and_report(scan_info,plaintext_ports,'plaintext_services',json_data,img_str)
     check_ports_and_report(scan_info,remote_ports,'unnecessary_services',json_data,img_str)
     cleanup(output_dir)

@@ -1,5 +1,5 @@
 from ...tasks import subdomain_finder_task, url_resolver_task, recon_handle_task, prepare_info_for_target_scan
-from ...tasks import header_scan_task, http_method_scan_task, cors_scan_task, libraries_scan_task, ssl_tls_scan_task, ffuf_task, nmap_script_scan_task, iis_shortname_scan_task, bucket_finder_task, token_scan_task, css_scan_task, firebase_scan_task, host_header_attack_scan, burp_scan_task,nmap_script_baseline_task
+from ...tasks import header_scan_task, http_method_scan_task, cors_scan_task, libraries_scan_task, ssl_tls_scan_task, ffuf_task, nmap_script_scan_task, iis_shortname_scan_task, bucket_finder_task, token_scan_task, css_scan_task, firebase_scan_task, host_header_attack_scan, burp_scan_task,nmap_script_baseline_task,generate_report_task
 from ...tasks import task_finished
 from celery import chain, chord
 from ..mongo import mongo
@@ -8,9 +8,9 @@ import os
 
 # Here we parse the information and call each scan type
 def handle(info):
+    print(info)
     if not info['checkbox_redmine']:
         info['redmine_project'] = 'no_project'
-
     if info['scan_type'] == 'existing_target':
         # If input is an existing target
         handle_target_scan(info)
@@ -191,27 +191,28 @@ def handle_single_scan(info):
         'assigned_users': info['assigned_users'],
         'watchers': info['watcher_users']
     }
-    print(scan_information)
+    if info['checkbox_report']:
+        scan_information['report_type'] = info['report_type']
     execution_chord = chord(
         [
             # Fast_scans
-            header_scan_task.s(scan_information,'single').set(queue='fast_queue'),
-            http_method_scan_task.s(scan_information,'single').set(queue='fast_queue'),
+            #header_scan_task.s(scan_information,'single').set(queue='fast_queue'),
+            #http_method_scan_task.s(scan_information,'single').set(queue='fast_queue'),
             #libraries_scan_task.s(scan_information,'single').set(queue='fast_queue'),
-            ffuf_task.s(scan_information,'single').set(queue='fast_queue'),
-            iis_shortname_scan_task.s(scan_information,'single').set(queue='fast_queue'),
-            bucket_finder_task.s(scan_information,'single').set(queue='fast_queue'),
-            token_scan_task.s(scan_information,'single').set(queue='fast_queue'),
-            css_scan_task.s(scan_information,'single').set(queue='fast_queue'),
-            firebase_scan_task.s(scan_information,'single').set(queue='fast_queue'),
-            host_header_attack_scan.s(scan_information,'single').set(queue='fast_queue'),
+            #ffuf_task.s(scan_information,'single').set(queue='fast_queue'),
+            #iis_shortname_scan_task.s(scan_information,'single').set(queue='fast_queue'),
+            #bucket_finder_task.s(scan_information,'single').set(queue='fast_queue'),
+            #token_scan_task.s(scan_information,'single').set(queue='fast_queue'),
+            #css_scan_task.s(scan_information,'single').set(queue='fast_queue'),
+            #firebase_scan_task.s(scan_information,'single').set(queue='fast_queue'),
+            #host_header_attack_scan.s(scan_information,'single').set(queue='fast_queue'),
             # Slow_scans
-            cors_scan_task.s(scan_information,'single').set(queue='slow_queue'),
+            #cors_scan_task.s(scan_information,'single').set(queue='slow_queue'),
             #ssl_tls_scan_task.s('single', scan_information).set(queue='slow_queue'),
-            nmap_script_baseline_task.s(scan_information,'single').set(queue='slow_queue'),
-            nmap_script_scan_task.s(scan_information,'single').set(queue='slow_queue'),
-            burp_scan_task.s(scan_information,'single').set(queue='slow_queue'),
+            #nmap_script_baseline_task.s(scan_information,'single').set(queue='slow_queue'),
+            #nmap_script_scan_task.s(scan_information,'single').set(queue='slow_queue'),
+            #burp_scan_task.s(scan_information,'single').set(queue='slow_queue')
         ],
-        body=generate_report_task.s('single', scan_information))
+        body=generate_report_task.s(scan_information,'single'))
     execution_chord.apply_async(queue='fast_queue')
     return

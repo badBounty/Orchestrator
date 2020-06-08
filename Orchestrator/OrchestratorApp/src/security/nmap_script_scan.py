@@ -216,7 +216,6 @@ def ssh_ftp_brute_login(scan_info, url_to_scan, is_ssh):
     brute_subprocess = subprocess.run(
         ['nmap', '-Pn', '-sV', port, '--script', brute, '--script-args',
          'userdb='+users+','+'passdb='+password+','+timeout+','+'brute.delay='+time_limit+','+'brute.retries=1', '-oA', output_dir,url_to_scan])
-    print(brute_subprocess)
     with open(output_dir + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()
@@ -320,7 +319,6 @@ def default_account(scan_info,url_to_scan):
                         message+=scp['@output']
         except KeyError:
             pass
-    print(message)
     if message:
         img_str = image_creator.create_image_from_string(message)
         add_vuln_to_mongo(scan_info, "default_creds", message, img_str)
