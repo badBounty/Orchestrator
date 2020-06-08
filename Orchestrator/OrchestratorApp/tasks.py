@@ -42,6 +42,22 @@ def prepare_info_for_target_scan(task, info):
     scan_information['url_to_scan'] = only_urls
     return scan_information
 
+@shared_task
+def prepare_info_after_nmap(info):
+    scan_information = {
+        'target': info['new_target_choice'],
+        'url_to_scan': info['new_target_choice'],
+        'language': info['selected_language'],
+        'redmine_project': info['redmine_project'], 
+        'invasive_scans': info['use_active_modules'],
+        'assigned_users': info['assigned_users'],
+        'watchers': info['watcher_users']
+    }
+    web_ips = mongo.get_ips_with_web_interface(scan_information['target'])
+    scan_information['url_to_scan'] = web_ips
+    print(scan_information)
+    return scan_information
+
 
 @shared_task
 def subdomain_finder_task(target):

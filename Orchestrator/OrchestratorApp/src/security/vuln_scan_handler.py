@@ -1,4 +1,4 @@
-from ...tasks import subdomain_finder_task, url_resolver_task, recon_handle_task, prepare_info_for_target_scan
+from ...tasks import subdomain_finder_task, url_resolver_task, recon_handle_task, prepare_info_for_target_scan, prepare_info_after_nmap
 from ...tasks import header_scan_task, http_method_scan_task, cors_scan_task, libraries_scan_task, ssl_tls_scan_task, ffuf_task, nmap_script_scan_task, iis_shortname_scan_task, bucket_finder_task, token_scan_task, css_scan_task, firebase_scan_task, host_header_attack_scan, burp_scan_task,nmap_script_baseline_task,generate_report_task
 from ...tasks import task_finished
 from celery import chain, chord
@@ -42,16 +42,37 @@ def handle_ip_file(info, f):
 
     scan_information['url_to_scan'] = url_list
     # Run the scan
-    execution_chord = chord(
-        [
-            # Nmap baseline
-            #ssl_tls_scan_task.s(scan_information, 'target').set(queue='slow_queue'), #Con resultados del anterior
-            # ver si hacemos web
-            #nmap_script_scan_task.s(scan_information, 'target').set(queue='slow_queue')
-        ],
-        body=task_finished.s(),
-        immutable=True)
-    execution_chord.apply_async(queue='fast_queue')
+    execution_chain = chain(
+        chord(
+            [
+                nmap_script_baseline_task.s(scan_information, 'target').set(queue='slow_queue'),
+                #nmap_script_scan_task.s(scan_information, 'target').set(queue='slow_queue')
+            ],
+            body=task_finished.s(),
+            mmutable=True),
+        # Based on the previous output, ips with port 80 and 443 will be scanned
+        prepare_info_after_nmap.si(scan_information),
+        chord(
+            [
+                # Fast_scans
+                header_scan_task.s('target').set(queue='fast_queue'),
+                #http_method_scan_task.s('target').set(queue='fast_queue'),
+                #libraries_scan_task.s('target').set(queue='fast_queue'),
+                #ffuf_task.s('target').set(queue='fast_queue'),
+                #iis_shortname_scan_task.s('target').set(queue='fast_queue'),
+                #bucket_finder_task.s('target').set(queue='fast_queue'),
+                #token_scan_task.s('target').set(queue='fast_queue'),
+                #css_scan_task.s('target').set(queue='fast_queue'),
+                #firebase_scan_task.s('target').set(queue='fast_queue'),
+                #host_header_attack_scan.s('target').set(queue='fast_queue'),
+                # Slow_scans
+                #cors_scan_task.s('target').set(queue='slow_queue'),
+                #ssl_tls_scan_task.s('target').set(queue='slow_queue'),
+                #burp_scan_task.s('target').set(queue='slow_queue'),
+            ],
+            body=task_finished.s())
+        )
+    execution_chain.apply_async(queue='fast_queue', interval=300)
 
     return
 
@@ -97,7 +118,7 @@ def handle_url_file(info, f):
         ],
         body=task_finished.s(),
         immutable=True)
-    execution_chord.apply_async(queue='fast_queue')
+    execution_chord.apply_async(queue='fast_queue', interval=300)
 
     return
 
@@ -142,7 +163,7 @@ def handle_target_scan(info):
         ],
         body=generate_report_task.s(scan_information,'target'),
         immutable=True)
-    execution_chord.apply_async(queue='fast_queue')
+    execution_chord.apply_async(queue='fast_queue', interval=300)
     return
 
 ### NEW TARGET CASE ###
@@ -177,7 +198,7 @@ def handle_new_target_scan(info):
             ],
             body=generate_report_task.s(scan_information,'target'))
     )
-    new_target_chain.apply_async(queue='fast_queue')
+    new_target_chain.apply_async(queue='fast_queue', interval=300)
 
     return
 
@@ -197,8 +218,8 @@ def handle_single_scan(info):
     execution_chord = chord(
         [
             # Fast_scans
-            #header_scan_task.s(scan_information,'single').set(queue='fast_queue'),
-            #http_method_scan_task.s(scan_information,'single').set(queue='fast_queue'),
+            header_scan_task.s(scan_information,'single').set(queue='fast_queue'),
+            http_method_scan_task.s(scan_information,'single').set(queue='fast_queue'),
             #libraries_scan_task.s(scan_information,'single').set(queue='fast_queue'),
             #ffuf_task.s(scan_information,'single').set(queue='fast_queue'),
             #iis_shortname_scan_task.s(scan_information,'single').set(queue='fast_queue'),
@@ -215,5 +236,5 @@ def handle_single_scan(info):
             #burp_scan_task.s(scan_information,'single').set(queue='slow_queue')
         ],
         body=generate_report_task.s(scan_information,'single'))
-    execution_chord.apply_async(queue='fast_queue')
+    execution_chord.apply_async(queue='fast_queue', interval=300)
     return

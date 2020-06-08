@@ -28,10 +28,11 @@ def cleanup(path):
 
 
 def handle_target(info):
-    print('------------------- NMAP SCRIPT TARGET SCAN STARTING -------------------')
+    print('------------------- NMAP BASIC TARGET SCAN STARTING -------------------')
     slack_sender.send_simple_message("Nmap scripts started against target: %s. %d alive urls found!"
                                      % (info['target'], len(info['url_to_scan'])))
     print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+    print(os.getenv('C_FORCE_ROOT'))
     scanned_hosts = list()
     for url in info['url_to_scan']:
         sub_info = info
@@ -40,24 +41,22 @@ def handle_target(info):
             host = url.split('/')[2]
         except IndexError:
             host = url
-        print('Scanning ' + url)
         if host not in scanned_hosts:
-            print('------------------- NMAP BASIC SCAN -------------------')
+            print('Scanning ' + url)
             basic_scan(sub_info, host)
         scanned_hosts.append(host)
-    print('------------------- NMAP SCRIPT TARGET SCAN FINISHED -------------------')
+    print('------------------- NMAP BASIC TARGET SCAN FINISHED -------------------')
     return
 
 
 def handle_single(scan_info):
-    print('------------------- NMAP SCRIPT SCAN STARTING -------------------')
+    print('------------------- NMAP BASIC SCAN STARTING -------------------')
     url = scan_info['url_to_scan']
     slack_sender.send_simple_message("Nmap scripts started against %s" % url)
     # We receive the url with http/https, we will get only the host so nmap works
     host = url.split('/')[2]
-    print('------------------- NMAP BASIC SCAN -------------------')
     basic_scan(scan_info, host)
-    print('------------------- NMAP_SCRIPT SCAN FINISHED -------------------')
+    print('------------------- NMAP BASIC SCAN FINISHED -------------------')
     return
 
 def add_vuln_to_mongo(scan_info, scan_type, description, img_str):
@@ -102,7 +101,7 @@ def basic_scan(scan_info, url_to_scan):
     random_filename = uuid.uuid4().hex
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     output_dir = ROOT_DIR + '/tools_output/'+random_filename
-    basic_scan = subprocess.run(['nmap','-Pn','-sV','-sS','-vvv','--top-ports=1000','-oA',output_dir,url_to_scan],capture_output=True)
+    basic_scan = subprocess.run(['nmap','-Pn','-sV','-sS','-vvv','--top-ports=1000','-oA',output_dir,url_to_scan])
     with open(output_dir + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()
