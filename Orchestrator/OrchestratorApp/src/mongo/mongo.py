@@ -9,6 +9,18 @@ def get_workspaces():
     workspaces = db.resources.distinct('from_workspace')
     return workspaces
 
+# In this case the target will be a filename
+def get_ips_with_web_interface(target):
+    db = client.Orchestrator
+    ips_to_check = db.resources.find({'target_name': target})
+    urls_to_send = list()
+    for ip in ips_to_check:
+        if 'Port:80' in ip['extra_info']:
+            urls_to_send.append('http://' + ip['subdomain'])
+        if 'Port:443' in ip['extra_info']:
+            urls_to_send.append('https://' + ip['subdomain'])
+            
+    return urls_to_send
 
 def get_responsive_http_resources(target):
     db = client.Orchestrator
