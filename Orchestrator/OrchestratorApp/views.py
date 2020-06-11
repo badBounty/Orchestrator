@@ -89,3 +89,16 @@ def vuln_scan_view(request):
             return redirect('/')
     form = VulnerabilityScanForm()
     return render(request, 'Orchestrator/vulnerability_scan_form.html', {'form': form})
+
+@csrf_exempt
+@require_POST
+def one_shot_scan(request):
+    print('I get a request')
+    if request.method == 'POST':
+        scan = json.loads(request.body)
+        if scan['scan_type'] == 'file_target' or scan['scan_type'] == 'file_ip':
+            vuln_scan_handler.handle_url_ip_file(scan)
+        else:
+            vuln_scan_handler.handle(scan)
+        return JsonResponse({'message': 'Running scan'})
+    return JsonResponse({'message': 'Bad format json'})

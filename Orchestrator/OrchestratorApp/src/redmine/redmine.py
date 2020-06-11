@@ -55,20 +55,12 @@ def create_new_issue(vulnerability):
 
 
 def create_report_issue(info,file_dir,missing_finding):
-    issue = redmine_client.issue.new()
-    issue.project_id = info['redmine_project']                              # project name
-    issue.subject = "Status or Final Report"             # Nombre de la obs
-    issue.tracker_id = 3       # [0,1,2: Finding, 3:Consulta, 4: Notificacion de estado]
-    issue.description = "The following findings were not found: "+ missing_finding
-    issue.status_id = 0         # [0: Borrador, 1: Nuevo QA Pendiente]
-    issue.priority_id = 1     # [1: Informational, 2: Low, 3: Medium, 4: High, 5: Critical]
-    issue.assigned_to_id = info['assigned_users']  # Id de la asignacion, Orchestrator es 17
-    issue.watcher_user_ids = info['watchers']   # Ids de los watchers, Orchestrator es 17
-    issue.uploads = [{'path': file_dir,'filename': 'Report.docm'}]
-    try:
-        issue.save()
-    except Exception as e:
-        print("ERROR SAVING THE ISSUE - SHOWING FULL ERROR:\n")
-        print(e)
-        print("CONTINUING WITH THE SCAN")
-        pass
+    message = 'RECORDAR, ABRIRLO Y GUARDARLO DE NUEVO PORQUE TIENE EL XML ROTO POR LA GENERACION\n'
+    message+= 'The following findings were not found: '+ missing_finding
+    f = redmine_client.file.new()
+    f.project_id = info['redmine_project']
+    f.path = file_dir
+    f.filename = 'Report.docm'
+    f.description = message
+    #f.content_type = 'application/vnd.ms-word.document.macroEnabled.12'
+    f.save()

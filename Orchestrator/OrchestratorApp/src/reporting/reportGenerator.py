@@ -189,8 +189,8 @@ def clonarTemplateYAgregarFinding(doc, indexNros, language, jsonFinding):
 
 
 def crearReporte(language, reportType, findings):
-    eng = True if language == "eng" else False
-    estado = True if reportType == "S" else False
+    eng = True if language == 'eng' else False
+    estado = True if reportType == 'S' else False
     global doc,missing_findings
     # Template a utilizar acorde al tipo de reporte que se necesite generar, va a variar dependiendo del idioma, avance o final
     if not eng:
@@ -222,18 +222,19 @@ def crearReporte(language, reportType, findings):
             missing_findings += finding['title']+'\n'
         gc.collect()
     print("Se genero el reporte con los findings que fueron encontrados")
-    d1 = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    d1 = datetime.datetime.now().strftime('%Y%m%d')
     name = ""
     # Muy probable que esto cambie
     if not eng:
         if estado:
-            name += "REPORTE_DE_ESTADO_" + d1 + ".docm"
+            name += "REPORTE_DE_ESTADO_" + d1 + ".docx"
             doc.save(ROOT_DIR + '/out/' + name)
         else:
-            name += "REPORTE_FINAL_" + d1 + ".docm"
+            name += "REPORTE_FINAL_" + d1 + ".docx"
             doc.save(ROOT_DIR + '/out/' + name)
     else:
-        name += "REPORTE_CON_FINDINGS_INGLES-" + d1 + ".docm"
+        name += "REPORTE_CON_FINDINGS_INGLES-" + d1 + ".docx"
         doc.save(ROOT_DIR + '/out/' + name)
     gc.collect()
-    return ROOT_DIR + '/out/' + name,missing_findings
+    path = ROOT_DIR + '/out/' + name
+    return path,missing_findings

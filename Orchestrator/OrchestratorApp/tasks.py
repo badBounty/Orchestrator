@@ -196,6 +196,9 @@ def burp_scan_task(scan_information, scan_type):
 def generate_report_task(Task,scan_information,scan_type):
     if scan_information['report_type']:
             reporting.create_report(scan_information)
+            task_finished(Task)
+    else:
+        task_finished(Task)
     
 @shared_task
 def task_finished(Task):

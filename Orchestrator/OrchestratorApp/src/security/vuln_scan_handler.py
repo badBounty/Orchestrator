@@ -21,11 +21,30 @@ def handle(info):
         handle_single_scan(info)
     return
 
+# From redmine manager list of IPs or URLs
+def handle_url_ip_file(info):
+    scan_information = {
+        'target': 'red_manager_file',
+        'url_to_scan': info['targets'],
+        'language': info['selected_language'],
+        'redmine_project': info['redmine_project'],
+        'invasive_scans': info['use_active_modules'],
+        'assigned_users': info['assigned_users'],
+        'watchers': info['watcher_users']
+    }
+    if info['checkbox_report']:
+        scan_information['report_type'] = info['report_type']
+    if info['scan_type'] == 'file_target':
+        launch_url_scan(scan_information)
+    else:
+        launch_ip_scan(scan_information)
+
 ### FILE WITH IPs ###
 def handle_ip_file(info, f):
     url_list = list()
     for line in f.readlines():
-        url_list.append(line.decode().replace('\r\n',''))
+        line = line.decode().replace('\r','')
+        url_list.append(line.replace('\n',''))
 
     if not info['checkbox_redmine']:
         info['redmine_project'] = 'no_project'
@@ -39,8 +58,69 @@ def handle_ip_file(info, f):
         'assigned_users': info['assigned_users'],
         'watchers': info['watcher_users']
     }
-
+    if info['checkbox_report']:
+        scan_information['report_type'] = info['report_type']
     scan_information['url_to_scan'] = url_list
+    launch_ip_scan(scan_information)
+    return
+
+### FILE WITH URLS ###
+def handle_url_file(info, f):
+    url_list = list()
+    for line in f.readlines():
+        line = line.decode().replace('\r','')
+        url_list.append(line.replace('\n',''))
+
+    if not info['checkbox_redmine']:
+        info['redmine_project'] = 'no_project'
+
+    scan_information = {
+        'target': str(f),
+        'url_to_scan': None,
+        'language': info['selected_language'],
+        'redmine_project': info['redmine_project'],
+        'invasive_scans': info['use_active_modules'],
+        'assigned_users': info['assigned_users'],
+        'watchers': info['watcher_users']
+    }
+    if info['checkbox_report']:
+        scan_information['report_type'] = info['report_type']
+    scan_information['url_to_scan'] = url_list
+    launch_url_scan(scan_information)
+    return
+
+
+#### LAUNCH URL SCAN ###
+def launch_url_scan(scan_information):
+    # Run the scan
+    execution_chord = chord(
+        [
+            # Fast_scans
+            header_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
+            http_method_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
+            #libraries_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
+            #ffuf_task.s(scan_information, 'target').set(queue='fast_queue'),
+            #iis_shortname_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
+            #bucket_finder_task.s(scan_information, 'target').set(queue='fast_queue'),
+            #token_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
+            #css_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
+            #firebase_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
+            #host_header_attack_scan.s(scan_information, 'target').set(queue='fast_queue'),
+            # Slow_scans
+            #cors_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
+            #ssl_tls_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
+            #nmap_script_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
+            #burp_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
+        ],
+        body=generate_report_task.s(scan_information,'target'),
+        immutable=True)
+    execution_chord.apply_async(queue='fast_queue', interval=100)
+
+    return
+
+
+### LAUNCH IP SCAN ###
+def launch_ip_scan(scan_information):
     # Run the scan
     execution_chain = chain(
         chord(
@@ -56,7 +136,7 @@ def handle_ip_file(info, f):
             [
                 # Fast_scans
                 header_scan_task.s('target').set(queue='fast_queue'),
-                #http_method_scan_task.s('target').set(queue='fast_queue'),
+                http_method_scan_task.s('target').set(queue='fast_queue'),
                 #libraries_scan_task.s('target').set(queue='fast_queue'),
                 #ffuf_task.s('target').set(queue='fast_queue'),
                 #iis_shortname_scan_task.s('target').set(queue='fast_queue'),
@@ -70,57 +150,10 @@ def handle_ip_file(info, f):
                 #ssl_tls_scan_task.s('target').set(queue='slow_queue'),
                 #burp_scan_task.s('target').set(queue='slow_queue'),
             ],
-            body=task_finished.s())
+            body=generate_report_task.s(scan_information,'target'))
         )
     execution_chain.apply_async(queue='fast_queue', interval=300)
-
-    return
-
-### FILE WITH URLS ###
-def handle_url_file(info, f):
-    url_list = list()
-    for line in f.readlines():
-        url_list.append(line.decode().replace('\r\n',''))
-
-    if not info['checkbox_redmine']:
-        info['redmine_project'] = 'no_project'
-
-    scan_information = {
-        'target': str(f),
-        'url_to_scan': None,
-        'language': info['selected_language'],
-        'redmine_project': info['redmine_project'],
-        'invasive_scans': info['use_active_modules'],
-        'assigned_users': info['assigned_users'],
-        'watchers': info['watcher_users']
-    }
-
-    scan_information['url_to_scan'] = url_list
-    # Run the scan
-    execution_chord = chord(
-        [
-            # Fast_scans
-            #header_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
-            #http_method_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
-            #libraries_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
-            #ffuf_task.s(scan_information, 'target').set(queue='fast_queue'),
-            #iis_shortname_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
-            #bucket_finder_task.s(scan_information, 'target').set(queue='fast_queue'),
-            #token_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
-            #css_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
-            #firebase_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
-            #host_header_attack_scan.s(scan_information, 'target').set(queue='fast_queue'),
-            # Slow_scans
-            #cors_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
-            #ssl_tls_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
-            #nmap_script_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
-            #burp_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
-        ],
-        body=task_finished.s(),
-        immutable=True)
-    execution_chord.apply_async(queue='fast_queue', interval=300)
-
-    return
+    return 
 
 ### EXISTING TARGET CASE ###
 def handle_target_scan(info):
@@ -145,8 +178,8 @@ def handle_target_scan(info):
     execution_chord = chord(
         [
             # Fast_scans
-            #header_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
-            #http_method_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
+            header_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
+            http_method_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
             #libraries_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
             #ffuf_task.s(scan_information, 'target').set(queue='fast_queue'),
             #iis_shortname_scan_task.s(scan_information, 'target').set(queue='fast_queue'),
@@ -180,8 +213,8 @@ def handle_new_target_scan(info):
         chord(
             [
                 # Fast_scans
-                #header_scan_task.s('target').set(queue='fast_queue'),
-                #http_method_scan_task.s('target').set(queue='fast_queue'),
+                header_scan_task.s('target').set(queue='fast_queue'),
+                http_method_scan_task.s('target').set(queue='fast_queue'),
                 #libraries_scan_task.s('target').set(queue='fast_queue'),
                 #ffuf_task.s('target').set(queue='fast_queue'),
                 #iis_shortname_scan_task.s('target').set(queue='fast_queue'),
@@ -196,7 +229,7 @@ def handle_new_target_scan(info):
                 #nmap_script_scan_task.s('target').set(queue='slow_queue'),
                 #burp_scan_task.s('target').set(queue='slow_queue'),
             ],
-            body=generate_report_task.s(scan_information,'target'))
+            body=generate_report_task.s(info,'target'))
     )
     new_target_chain.apply_async(queue='fast_queue', interval=300)
 
@@ -231,7 +264,7 @@ def handle_single_scan(info):
             # Slow_scans
             #cors_scan_task.s(scan_information,'single').set(queue='slow_queue'),
             #ssl_tls_scan_task.s('single', scan_information).set(queue='slow_queue'),
-            #nmap_script_baseline_task.s(scan_information,'single').set(queue='slow_queue'),
+            nmap_script_baseline_task.s(scan_information,'single').set(queue='slow_queue'),
             #nmap_script_scan_task.s(scan_information,'single').set(queue='slow_queue'),
             #burp_scan_task.s(scan_information,'single').set(queue='slow_queue')
         ],
