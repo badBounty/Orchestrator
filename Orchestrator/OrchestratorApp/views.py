@@ -93,7 +93,6 @@ def vuln_scan_view(request):
 @csrf_exempt
 @require_POST
 def one_shot_scan(request):
-    print('I get a request')
     if request.method == 'POST':
         scan = json.loads(request.body)
         if scan['scan_type'] == 'file_target' or scan['scan_type'] == 'file_ip':

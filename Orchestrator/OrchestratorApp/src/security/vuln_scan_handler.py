@@ -4,12 +4,21 @@ from ...tasks import task_finished
 from celery import chain, chord
 from ..mongo import mongo
 from celery.result import AsyncResult
+from datetime import datetime
 import os
 
 # Here we parse the information and call each scan type
 def handle(info):
     if not info['checkbox_redmine']:
         info['redmine_project'] = 'no_project'
+    if not info['checkbox_report']:
+        info['report_type'] = ''
+    #Validate if start date is created
+    try:
+        info['start_date']
+    except KeyError:
+        info['start_date'] = ''
+
     if info['scan_type'] == 'existing_target':
         # If input is an existing target
         handle_target_scan(info)
@@ -30,10 +39,14 @@ def handle_url_ip_file(info):
         'redmine_project': info['redmine_project'],
         'invasive_scans': info['use_active_modules'],
         'assigned_users': info['assigned_users'],
-        'watchers': info['watcher_users']
+        'watchers': info['watcher_users'],
+        'start_date': info['start_date']
     }
     if info['checkbox_report']:
         scan_information['report_type'] = info['report_type']
+    else:
+        scan_information['report_type'] = None
+
     if info['scan_type'] == 'file_target':
         launch_url_scan(scan_information)
     else:
@@ -56,10 +69,14 @@ def handle_ip_file(info, f):
         'redmine_project': info['redmine_project'],
         'invasive_scans': info['use_active_modules'],
         'assigned_users': info['assigned_users'],
-        'watchers': info['watcher_users']
+        'watchers': info['watcher_users'],
+        'start_date': info['start_date']
     }
     if info['checkbox_report']:
         scan_information['report_type'] = info['report_type']
+    else:
+        scan_information['report_type'] = None
+
     scan_information['url_to_scan'] = url_list
     launch_ip_scan(scan_information)
     return
@@ -81,10 +98,14 @@ def handle_url_file(info, f):
         'redmine_project': info['redmine_project'],
         'invasive_scans': info['use_active_modules'],
         'assigned_users': info['assigned_users'],
-        'watchers': info['watcher_users']
+        'watchers': info['watcher_users'],
+        'start_date': ''
     }
     if info['checkbox_report']:
         scan_information['report_type'] = info['report_type']
+    else:
+        scan_information['report_type'] = None
+
     scan_information['url_to_scan'] = url_list
     launch_url_scan(scan_information)
     return
@@ -114,8 +135,11 @@ def launch_url_scan(scan_information):
         ],
         body=generate_report_task.s(scan_information,'target'),
         immutable=True)
-    execution_chord.apply_async(queue='fast_queue', interval=100)
-
+    if scan_information['start_date']:
+        datetime_object = datetime.strptime(scan_information['start_date'], '%Y-%m-%d %H:%M')
+        execution_chord.apply_async(queue='fast_queue', interval=300,eta=datetime_object)
+    else:
+        execution_chord.apply_async(queue='fast_queue', interval=300)
     return
 
 
@@ -152,7 +176,11 @@ def launch_ip_scan(scan_information):
             ],
             body=generate_report_task.s(scan_information,'target'))
         )
-    execution_chain.apply_async(queue='fast_queue', interval=300)
+    if scan_information['start_date']:
+        datetime_object = datetime.strptime(scan_information['start_date'], '%Y-%m-%d %H:%M')
+        execution_chain.apply_async(queue='fast_queue', interval=300,eta=datetime_object)
+    else:
+        execution_chain.apply_async(queue='fast_queue', interval=300)
     return 
 
 ### EXISTING TARGET CASE ###
@@ -161,13 +189,14 @@ def handle_target_scan(info):
         'target': info['existing_target_choice'],
         'url_to_scan': info['existing_target_choice'],
         'language': info['selected_language'],
+        'report_type': info['report_type'],
         'redmine_project': info['redmine_project'], 
         'invasive_scans': info['use_active_modules'],
         'assigned_users': info['assigned_users'],
-        'watchers': info['watcher_users']
+        'watchers': info['watcher_users'],
+        'start_date': info['start_date']
     }
-    if info['checkbox_report']:
-        scan_information['report_type'] = info['report_type']
+
     subdomains_http = mongo.get_responsive_http_resources(scan_information['target'])
     only_urls = list()
     for subdomain in subdomains_http:
@@ -196,7 +225,11 @@ def handle_target_scan(info):
         ],
         body=generate_report_task.s(scan_information,'target'),
         immutable=True)
-    execution_chord.apply_async(queue='fast_queue', interval=300)
+    if scan_information['start_date']:
+        datetime_object = datetime.strptime(scan_information['start_date'], '%Y-%m-%d %H:%M')
+        execution_chord.apply_async(queue='fast_queue', interval=300,eta=datetime_object)
+    else:
+        execution_chord.apply_async(queue='fast_queue', interval=300)
     return
 
 ### NEW TARGET CASE ###
@@ -231,8 +264,11 @@ def handle_new_target_scan(info):
             ],
             body=generate_report_task.s(info,'target'))
     )
-    new_target_chain.apply_async(queue='fast_queue', interval=300)
-
+    if info['start_date']:
+        datetime_object = datetime.strptime(info['start_date'], '%Y-%m-%d %H:%M')
+        new_target_chain.apply_async(queue='fast_queue', interval=300,eta=datetime_object)
+    else:
+        new_target_chain.apply_async(queue='fast_queue', interval=300)
     return
 
 ### SINGLE URL CASE ###
@@ -241,13 +277,14 @@ def handle_single_scan(info):
         'target': info['single_target_choice'],
         'url_to_scan': info['single_target_choice'],
         'language': info['selected_language'],
+        'report_type': info['report_type'],
         'redmine_project': info['redmine_project'],
         'invasive_scans': info['use_active_modules'],
         'assigned_users': info['assigned_users'],
-        'watchers': info['watcher_users']
+        'watchers': info['watcher_users'],
+        'start_date': info['start_date']
     }
-    if info['checkbox_report']:
-        scan_information['report_type'] = info['report_type']
+
     execution_chord = chord(
         [
             # Fast_scans
@@ -269,5 +306,10 @@ def handle_single_scan(info):
             #burp_scan_task.s(scan_information,'single').set(queue='slow_queue')
         ],
         body=generate_report_task.s(scan_information,'single'))
-    execution_chord.apply_async(queue='fast_queue', interval=300)
+    
+    if scan_information['start_date']:
+        datetime_object = datetime.strptime(scan_information['start_date'], '%Y-%m-%d %H:%M')
+        execution_chord.apply_async(queue='fast_queue', interval=300,eta=datetime_object)
+    else:
+        execution_chord.apply_async(queue='fast_queue', interval=300)
     return
