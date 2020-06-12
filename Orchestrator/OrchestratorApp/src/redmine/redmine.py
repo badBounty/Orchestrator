@@ -55,13 +55,11 @@ def create_new_issue(vulnerability):
 
 
 def create_report_issue(info,file_dir,missing_finding):
-    message = 'RECORDAR, ABRIRLO Y GUARDARLO DE NUEVO PORQUE TIENE EL XML ROTO POR LA GENERACION\n'
-    message+= 'The following findings were not found: '+ missing_finding
+    message = ''
     try:
         f = redmine_client.file.new()
         f.project_id = 'testing'
-        f.path = '/root/Desktop/Orchestrator/Orchestrator/OrchestratorApp/src/reporting/out/ips.txt'
-        time.sleep(300)
+        f.path = ''
         f.filename = 'test5.txt'
         f.description = message
         #f.content_type = 'application/vnd.ms-word.document.macroEnabled.12'
