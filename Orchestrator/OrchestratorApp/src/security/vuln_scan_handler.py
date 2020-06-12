@@ -4,7 +4,7 @@ from ...tasks import task_finished
 from celery import chain, chord
 from ..mongo import mongo
 from celery.result import AsyncResult
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 
 # Here we parse the information and call each scan type
@@ -137,7 +137,8 @@ def launch_url_scan(scan_information):
         immutable=True)
     if scan_information['start_date']:
         datetime_object = datetime.strptime(scan_information['start_date'], '%Y-%m-%d %H:%M')
-        execution_chord.apply_async(queue='fast_queue', interval=300,eta=datetime_object)
+        date_scan = datetime_object + timedelta(hours=3)
+        execution_chord.apply_async(queue='fast_queue', interval=300,eta=date_scan)
     else:
         execution_chord.apply_async(queue='fast_queue', interval=300)
     return
@@ -178,7 +179,8 @@ def launch_ip_scan(scan_information):
         )
     if scan_information['start_date']:
         datetime_object = datetime.strptime(scan_information['start_date'], '%Y-%m-%d %H:%M')
-        execution_chain.apply_async(queue='fast_queue', interval=300,eta=datetime_object)
+        date_scan = datetime_object + timedelta(hours=3)
+        execution_chain.apply_async(queue='fast_queue', interval=300,eta=date_scan)
     else:
         execution_chain.apply_async(queue='fast_queue', interval=300)
     return 
@@ -227,7 +229,8 @@ def handle_target_scan(info):
         immutable=True)
     if scan_information['start_date']:
         datetime_object = datetime.strptime(scan_information['start_date'], '%Y-%m-%d %H:%M')
-        execution_chord.apply_async(queue='fast_queue', interval=300,eta=datetime_object)
+        date_scan = datetime_object + timedelta(hours=3)
+        execution_chord.apply_async(queue='fast_queue', interval=300,eta=date_scan)
     else:
         execution_chord.apply_async(queue='fast_queue', interval=300)
     return
@@ -265,8 +268,9 @@ def handle_new_target_scan(info):
             body=generate_report_task.s(info,'target'))
     )
     if info['start_date']:
-        datetime_object = datetime.strptime(info['start_date'], '%Y-%m-%d %H:%M')
-        new_target_chain.apply_async(queue='fast_queue', interval=300,eta=datetime_object)
+        datetime_object = datetime.strptime(scan_information['start_date'], '%Y-%m-%d %H:%M')
+        date_scan = datetime_object + timedelta(hours=3)
+        new_target_chain.apply_async(queue='fast_queue', interval=300,eta=date_scan)
     else:
         new_target_chain.apply_async(queue='fast_queue', interval=300)
     return
@@ -289,7 +293,7 @@ def handle_single_scan(info):
         [
             # Fast_scans
             header_scan_task.s(scan_information,'single').set(queue='fast_queue'),
-            http_method_scan_task.s(scan_information,'single').set(queue='fast_queue'),
+            #http_method_scan_task.s(scan_information,'single').set(queue='fast_queue'),
             #libraries_scan_task.s(scan_information,'single').set(queue='fast_queue'),
             #ffuf_task.s(scan_information,'single').set(queue='fast_queue'),
             #iis_shortname_scan_task.s(scan_information,'single').set(queue='fast_queue'),
@@ -301,7 +305,7 @@ def handle_single_scan(info):
             # Slow_scans
             #cors_scan_task.s(scan_information,'single').set(queue='slow_queue'),
             #ssl_tls_scan_task.s('single', scan_information).set(queue='slow_queue'),
-            nmap_script_baseline_task.s(scan_information,'single').set(queue='slow_queue'),
+            #nmap_script_baseline_task.s(scan_information,'single').set(queue='slow_queue'),
             #nmap_script_scan_task.s(scan_information,'single').set(queue='slow_queue'),
             #burp_scan_task.s(scan_information,'single').set(queue='slow_queue')
         ],
@@ -309,7 +313,8 @@ def handle_single_scan(info):
     
     if scan_information['start_date']:
         datetime_object = datetime.strptime(scan_information['start_date'], '%Y-%m-%d %H:%M')
-        execution_chord.apply_async(queue='fast_queue', interval=300,eta=datetime_object)
+        date_scan = datetime_object + timedelta(hours=3)
+        execution_chord.apply_async(queue='fast_queue', interval=300,eta=date_scan)
     else:
         execution_chord.apply_async(queue='fast_queue', interval=300)
     return
