@@ -11,16 +11,19 @@ from ..comms import image_creator
 from .. import constants
 from ..slack import slack_sender
 from ..redmine import redmine
+from ...objects.vulnerability import Vulnerability
 
 
-def handle_target(target, url_list, language):
+def handle_target(info):
     print('------------------- TARGET HEADER SCAN STARTING -------------------')
     slack_sender.send_simple_message("Header scan started against target: %s. %d alive urls found!"
-                                     % (target, len(url_list)))
-    print('Found ' + str(len(url_list)) + ' targets to scan')
-    for url in url_list:
-        print('Scanning ' + url['url_with_http'])
-        scan_target(url['target'], url['url_with_http'], language)
+                                     % (info['target'], len(info['url_to_scan'])))
+    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+    for url in info['url_to_scan']:
+        sub_info = info
+        sub_info['url_to_scan'] = url
+        print('Scanning ' + url)
+        scan_target(sub_info, sub_info['url_to_scan'])
     print('-------------------  TARGET HEADER SCAN FINISHED -------------------')
     return
 
@@ -50,73 +53,40 @@ def check_header_value(header_to_scan, value_received):
     return True
 
 
-def add_header_value_vulnerability(scan_info, scanned_url, timestamp, header, img_b64):
-    vuln_name = None
-    redmine_description = None
-    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
-        if header == 'Strict-Transport-Security':
-            vuln_name = constants.HSTS_ENGLISH
-            redmine_description = constants.REDMINE_HSTS
-        elif header == 'x-frame-options':
-            vuln_name = constants.X_FRAME_OPTIONS_INVALID_ENGLISH
-            redmine_description = constants.REDMINE_X_FRAME_OPTIONS_INVALID
-        else:
-            vuln_name = constants.INVALID_VALUE_ON_HEADER_ENGLISH
-            redmine_description = constants.REDMINE_INVALID_VALUE_ON_HEADER
-    if scan_info['language'] == constants.LANGUAGE_SPANISH:
-        if header == 'Strict-Transport-Security':
-            vuln_name = constants.HSTS_SPANISH
-            redmine_description = constants.REDMINE_HSTS
-        elif header == 'x-frame-options':
-            vuln_name = constants.X_FRAME_OPTIONS_INVALID_SPANISH
-            redmine_description = constants.REDMINE_X_FRAME_OPTIONS_INVALID
-        else:
-            vuln_name = constants.INVALID_VALUE_ON_HEADER_SPANISH
-            redmine_description = constants.REDMINE_INVALID_VALUE_ON_HEADER
+def add_header_value_vulnerability(scan_info, img_string, description):
+    vulnerability = Vulnerability(constants.INVALID_VALUE_ON_HEADER, scan_info, description)
+    vulnerability.add_image_string(img_string)
 
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     random_filename = uuid.uuid4().hex
     output_dir = ROOT_DIR + '/tools_output/' + random_filename + '.png'
-    im = Image.open(BytesIO(base64.b64decode(img_b64)))
+    im = Image.open(BytesIO(base64.b64decode(img_string)))
     im.save(output_dir, 'PNG')
-    redmine.create_new_issue(vuln_name, redmine_description % scanned_url,
-                             scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'],output_dir,'headers-result.png')
+
+    vulnerability.add_attachment(output_dir, 'headers-result.png')
+
+    slack_sender.send_simple_vuln(vulnerability)
+    redmine.create_new_issue(vulnerability)
     os.remove(output_dir)
-    mongo.add_vulnerability(scan_info['target'], scanned_url,vuln_name, timestamp, scan_info['language'], None, img_b64)
+    mongo.add_vulnerability(vulnerability)
 
 
-def add_header_missing_vulnerability(scan_info, scanned_url, timestamp, header, img_b64):
-    vuln_name = None
-    redmine_description = None
-    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
-        if header == 'Strict-Transport-Security':
-            vuln_name = constants.HSTS_ENGLISH
-            redmine_description = constants.REDMINE_HSTS
-        elif header == 'x-frame-options':
-            vuln_name = constants.X_FRAME_OPTIONS_NOT_PRESENT_ENGLISH
-            redmine_description = constants.REDMINE_X_FRAME_OPTIONS_NOT_PRESENT
-        else:
-            vuln_name = constants.HEADER_NOT_FOUND_ENGLISH
-            redmine_description = constants.REDMINE_HEADER_NOT_FOUND
-    if scan_info['language'] == constants.LANGUAGE_SPANISH:
-        if header == 'Strict-Transport-Security':
-            vuln_name = constants.HSTS_SPANISH
-            redmine_description = constants.REDMINE_HSTS
-        elif header == 'x-frame-options':
-            vuln_name = constants.X_FRAME_OPTIONS_NOT_PRESENT_SPANISH
-            redmine_description = constants.REDMINE_X_FRAME_OPTIONS_NOT_PRESENT
-        else:
-            vuln_name = constants.HEADER_NOT_FOUND_SPANISH
-            redmine_description = constants.REDMINE_HEADER_NOT_FOUND
+def add_header_missing_vulnerability(scan_info, img_string, description):
+    vulnerability = Vulnerability(constants.HEADER_NOT_FOUND, scan_info, description)
+    vulnerability.add_image_string(img_string)
 
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     random_filename = uuid.uuid4().hex
     output_dir = ROOT_DIR+'/tools_output/' + random_filename + '.png'
-    im = Image.open(BytesIO(base64.b64decode(img_b64)))
+    im = Image.open(BytesIO(base64.b64decode(img_string)))
     im.save(output_dir, 'PNG')
-    redmine.create_new_issue(vuln_name, redmine_description % scanned_url, scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'],output_dir,'headers-result.png')
+
+    vulnerability.add_attachment(output_dir, 'headers-result.png')
+
+    slack_sender.send_simple_vuln(vulnerability)
+    redmine.create_new_issue(vulnerability)
     os.remove(output_dir)
-    mongo.add_vulnerability(scan_info['target'], scanned_url, vuln_name, timestamp, scan_info['language'], None, img_b64)
+    mongo.add_vulnerability(vulnerability)
 
 
 def scan_target(scan_info, url_to_scan):
@@ -134,25 +104,27 @@ def scan_target(scan_info, url_to_scan):
 
     important_headers = ['Content-Security-Policy', 'X-XSS-Protection', 'x-frame-options', 'X-Content-Type-options',
                          'Strict-Transport-Security', 'Access-Control-Allow-Origin']
-    reported = False
+    reported_invalid = False
+    reported_exists = False
+    message_invalid = "Headers with invalid values were found at %s \n" % url_to_scan
+    message_exists = "Headers were not found at %s \n" % url_to_scan
     if response.status_code != 404:
         for header in important_headers:
             try:
                 # If the header exists
                 if response.headers[header]:
                     if not check_header_value(header, response.headers[header]):
-                        slack_sender.send_simple_vuln("Header %s was found with invalid value at %s"
-                                                      % (header, url_to_scan))
+                        message_invalid = message_invalid + "Header %s was found with invalid value \n" % header
                         # No header differenciation, so we do this for now
-                        if not reported:
-                            timestamp = datetime.now()
-                            add_header_value_vulnerability(scan_info, url_to_scan, timestamp, header, img_b64)
-                            reported = True
+                        if not reported_invalid:
+                            reported_invalid = True
             except KeyError:
-                slack_sender.send_simple_vuln("Header %s was not found at %s"
-                                              % (header, url_to_scan))
-                if not reported:
-                    timestamp = datetime.now()
-                    add_header_missing_vulnerability(scan_info, url_to_scan, timestamp, header, img_b64)
-                    reported = True
+                message_exists = message_exists + "Header %s was not found \n" % header
+                if not reported_exists:
+                    reported_exists = True
+
+        if reported_exists:
+            add_header_missing_vulnerability(scan_info, img_b64, message_exists)
+        if reported_invalid:
+            add_header_value_vulnerability(scan_info, img_b64, message_invalid)
     return

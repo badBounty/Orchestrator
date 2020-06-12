@@ -6,6 +6,7 @@ from ..slack import slack_sender
 from ..mongo import mongo
 from ..redmine import redmine
 from datetime import datetime
+from ...objects.vulnerability import Vulnerability
 
 endpoint = 'https://api.wappalyzer.com/lookup/v1/?url='
 
@@ -47,16 +48,11 @@ def get_cves_and_last_version(librarie):
         return {}, ""
 
 
-def add_libraries_vulnerability(scan_info, scanned_url, libraries, message):
-    timestamp = datetime.now()
-    finding_name = ''
-    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
-        finding_name = constants.OUTDATED_3RD_LIBRARIES_ENGLISH
-    else:
-        finding_name = constants.OUTDATED_3RD_LIBRARIES_SPANISH
-    redmine.create_new_issue(finding_name, constants.REDMINE_OUTDATED_3RD_LIBRARIES % (scanned_url, str(message)),
-                             scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
-    mongo.add_vulnerability(scan_info['target'], scanned_url, finding_name, timestamp, scan_info['language'], str(libraries))
+def add_libraries_vulnerability(scan_info, message):
+    vulnerability = Vulnerability(constants.OUTDATED_3RD_LIBRARIES, scan_info, message)
+    slack_sender.send_simple_vuln(vulnerability)
+    redmine.create_new_issue(vulnerability)
+    mongo.add_vulnerability(vulnerability)
 
 
 def fastPrint(libraries):
@@ -85,21 +81,23 @@ def analyze(scan_info, url_to_scan):
             lib['cves'], lib['last_version'] = get_cves_and_last_version(lib)
 
         message = fastPrint(libraries)
-        slack_sender.send_simple_vuln("Found libraries at %s : \n%s" % (url_to_scan, message))
-        add_libraries_vulnerability(scan_info, url_to_scan, libraries, message)
+        add_libraries_vulnerability(scan_info,  message)
         print('\nActive Scan completed\n')
     except Exception as e:
         print('\nSomethig went wrong! :' + '\n' + str(e))
 
 
-def handle_target(target, url_list, language):
+def handle_target(info):
     print('------------------- TARGET LIBRARIES SCAN STARTING -------------------')
-    print('Found ' + str(len(url_list)) + ' targets to scan')
+    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     slack_sender.send_simple_message("Libraries scan started against target: %s. %d alive urls found!"
-                                     % (target, len(url_list)))
-    for url in url_list:
-        print('Scanning ' + url['url_with_http'])
-        analyze(url['target'], url['url_with_http'], language)
+                                     % (info['target'], len(info['url_to_scan'])))
+    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+    for url in info['url_to_scan']:
+        sub_info = info
+        sub_info['url_to_scan'] = url
+        print('Scanning ' + url)
+        analyze(sub_info, sub_info['url_to_scan'])
     print('-------------------  TARGET LIBRARIES SCAN FINISHED -------------------')
     return
 

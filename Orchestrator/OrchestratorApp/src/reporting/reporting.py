@@ -2,20 +2,23 @@ import os
 from . import reportGenerator
 from collections import defaultdict
 from ..mongo import mongo
-
+from ..redmine import redmine
+import zipfile
+import uuid
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def create_report(client,info,findings=None):
-    if findings:
-        findings = get_findings(info['target'], info['selected_language'])
-    language = info['selected_language']
+def create_report(info):
+    language = info['language']
     reportType = info['report_type']
-    client = client
-    file_dir,missing_finding = reportGenerator.crearReporte(language, reportType, client, findings)
-    return file_dir,missing_finding
-
+    target = info['target']
+    findings = get_findings(target, language)
+    file_dir,missing_finding = reportGenerator.crearReporte(language, reportType, findings)
+    print("------------- Saving report in redmine -------------")
+    #redmine.create_report_issue(info,file_dir,missing_finding)
+    print("------------- DONE !!! -------------")
+    return
 
 def get_findings(target, language):
     default_dict = defaultdict(list)

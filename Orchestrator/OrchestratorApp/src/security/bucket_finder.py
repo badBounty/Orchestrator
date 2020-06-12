@@ -9,6 +9,7 @@ from ..utils import utils
 from .. import constants
 from ..mongo import mongo
 from ..redmine import redmine
+from ...objects.vulnerability import Vulnerability
 
 regions = ['us-east-2', 'us-east-1', 'us-west-1', 'us-west-2', 'ap-east-1', 'ap-south-1', 'ap-northeast-3',
            'ap-northeast-2', 'ap-southeast-1', 'ap-southeast-2', 'ap-northeast-1', 'ca-central-1', 'cn-north-1',
@@ -18,14 +19,16 @@ regions = ['us-east-2', 'us-east-1', 'us-west-1', 'us-west-2', 'ap-east-1', 'ap-
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-def handle_target(target, url_list, language):
+def handle_target(info):
     print('------------------- S3BUCKET TARGET SCAN STARTING -------------------')
     slack_sender.send_simple_message("Bucket finder scan started against target: %s. %d alive urls found!"
-                                     % (target, len(url_list)))
-    print('Found ' + str(len(url_list)) + ' targets to scan')
-    for url in url_list:
-        print('Scanning ' + url['url_with_http'])
-        scan_target(url['target'], url['url_with_http'], language)
+                                     % (info['target'], len(info['url_to_scan'])))
+    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+    for url in info['url_to_scan']:
+        sub_info = info
+        sub_info['url_to_scan'] = url
+        print('Scanning ' + url)
+        scan_target(sub_info, sub_info['url_to_scan'])
     print('------------------- S3BUCKET TARGET SCAN FINISHED -------------------')
     return
 
@@ -63,29 +66,14 @@ def scan_target(scan_information, url_to_scan):
 # target: tesla.com, url_to_scan: vpn.tesla.com, javascript: un_javascript
 
 
-def add_vulnerability_to_mongo(scanned_url, vulnerability, bucket_name, scan_info):
+def add_vulnerability_to_mongo(scanned_url, finding_name, bucket_name, description , scan_info):
     timestamp = datetime.now()
-    vuln_name = None
+    vuln_name = constants.BUCKET
 
-    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
-        if vulnerability == 'ls':
-            vuln_name = constants.BUCKET_LS_ENGLISH
-        elif vulnerability == 'nf':
-            vuln_name = constants.BUCKET_NF_ENGLISH
-        elif vulnerability == 'cprm':
-            vuln_name = constants.BUCKET_CPRM_ENGLISH
-    elif scan_info['language'] == constants.LANGUAGE_SPANISH:
-        if vulnerability == 'ls':
-            vuln_name = constants.BUCKET_LS_SPANISH
-        elif vulnerability == 'nf':
-            vuln_name = constants.BUCKET_NF_SPANISH
-        elif vulnerability == 'cprm':
-            vuln_name = constants.BUCKET_CPRM_SPANISH
-
-    redmine.create_new_issue(vuln_name, constants.REDMINE_BUCKET % (bucket_name, scanned_url),
-                             scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
-    mongo.add_vulnerability(scan_info['target'], scan_info['url_to_scan'], vuln_name,
-                            timestamp, scan_info['language'], 'Bucket ' + bucket_name + ' found at ' + scanned_url)
+    vulnerability = Vulnerability(vuln_name, scan_info, description)
+    slack_sender.send_simple_vuln(vulnerability)
+    redmine.create_new_issue(vulnerability)
+    mongo.add_vulnerability(vulnerability)
     return
 
 
@@ -98,14 +86,15 @@ def get_ls_buckets(bucket_list, scanned_url, scan_information):
             continue
         try:
             output = subprocess.check_output('aws s3 ls s3://' + bucket, shell=True, stderr=subprocess.STDOUT)
-            slack_sender.send_simple_vuln('Bucket ' + bucket + ' found at ' + scanned_url + ' with ls allowed')
-            add_vulnerability_to_mongo(scanned_url, 'ls', bucket, scan_information)
+            description = 'Bucket %s allows content listing. Found at %s from %s' \
+                          % (bucket, scanned_url, scan_information['url_to_scan'])
+            add_vulnerability_to_mongo(scanned_url, 'ls', bucket, description, scan_information)
             ls_allowed_buckets.append(bucket)
         except subprocess.CalledProcessError as e:
             if 'does not exist' in e.output.decode():
-                slack_sender.send_simple_vuln(
-                    'Bucket ' + bucket + ' found at ' + scanned_url + ' being used but does not exist')
-                add_vulnerability_to_mongo(scanned_url, 'nf', bucket, scan_information)
+                description = 'Bucket %s is being used but it does not exist. Found at %s from %s' \
+                              % (bucket, scanned_url, scan_information['url_to_scan'])
+                add_vulnerability_to_mongo(scanned_url, 'nf', bucket, description, scan_information)
                 does_not_exist_buckets.append(bucket)
             continue
     return ls_allowed_buckets, does_not_exist_buckets
@@ -118,8 +107,9 @@ def get_cprm_buckets(bucket_list, scanned_url, scan_information):
         try:
             output = subprocess.check_output('aws s3 cp test.txt s3://' + bucket, shell=True, stderr=subprocess.DEVNULL)
             subprocess.check_output('aws s3 rm s3://' + bucket + '/test.txt', shell=True)
-            slack_sender.send_simple_vuln('Bucket ' + bucket + ' found at ' + scanned_url + ' with cprm allowed')
-            add_vulnerability_to_mongo(scanned_url, 'cprm', bucket, scan_information)
+            description = 'Bucket %s allows copy and remove operations. Found at %s from %s' \
+                          % (bucket, scanned_url, scan_information['url_to_scan'])
+            add_vulnerability_to_mongo(scanned_url, 'cprm', bucket, description, scan_information)
             cprm_allowed_buckets.append(bucket)
         except subprocess.CalledProcessError as e:
             continue

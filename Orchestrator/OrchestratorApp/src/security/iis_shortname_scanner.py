@@ -12,14 +12,19 @@ from ..comms import image_creator
 from ..slack import slack_sender
 from ..redmine import redmine
 from .. import constants
+from ...objects.vulnerability import Vulnerability
 
 
-def handle_target(target, url_list, language):
+def handle_target(info):
     print('------------------- IIS SHORTNAME SCAN STARTING -------------------')
-    print('Found ' + str(len(url_list)) + ' targets to scan')
-    slack_sender.send_simple_message("Check and scann : %s. %d alive urls found!"% (target, len(url_list)))
-    for url in url_list:
-        scan_target(url['target'], url['url_with_http'], language)
+    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+    slack_sender.send_simple_message("Check and scann : %s. %d alive urls found!"% (info['target'], len(info['url_to_scan'])))
+    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+    for url in info['url_to_scan']:
+        sub_info = info
+        sub_info['url_to_scan'] = url
+        print('Scanning ' + url)
+        scan_target(sub_info, sub_info['url_to_scan'])
     print('-------------------  IIS SHORTNAME SCAN FINISHED -------------------')
     return
 
@@ -51,15 +56,15 @@ def scan_target(scan_info, url_to_scan):
                 output_dir = ROOT_DIR + '/tools_output/' + random_filename + '.png'
                 im = Image.open(BytesIO(base64.b64decode(img_str)))
                 im.save(output_dir, 'PNG')
-                timestamp = datetime.now()
-                vuln_name = constants.IIS_SHORTNAME_MICROSOFT_ENGLISH if 'eng' == scan_info['language'] else constants.IIS_SHORTNAME_MICROSOFT_SPANISH
-                redmine_description = constants.REDMINE_IIS
-                slack_sender.send_simple_vuln("IIS Microsoft files and directories enumeration found at %s", url_to_scan)
-                redmine.create_new_issue(vuln_name, redmine_description % url_to_scan,
-                                         scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'],output_dir,'IIS-Result.png')
 
-                mongo.add_vulnerability(scan_info['target'], url_to_scan, vuln_name, timestamp, scan_info['language'],
-                                        message, img_str)
+                vulnerability = Vulnerability(constants.IIS_SHORTNAME_MICROSOFT, scan_info,
+                                              "IIS Microsoft files and directories enumeration found at %s" % scan_info['url_to_scan'])
+
+                vulnerability.add_image_string(img_str)
+                vulnerability.add_attachment(output_dir, 'IIS-Result.png')
+                slack_sender.send_simple_vuln(vulnerability)
+                redmine.create_new_issue(vulnerability)
+                mongo.add_vulnerability(vulnerability)
                 os.remove(output_dir)
     except KeyError:
         print("No server header was found")

@@ -29,7 +29,7 @@ def run_nmap(target_name, subdomain):
     random_filename = uuid.uuid4().hex
     OUTPUT_DIR = ROOT_DIR + '/tools_output'
     PROJECT_DIR = OUTPUT_DIR + '/' + target_name
-
+    
     nmap_process = subprocess.run(
         ['nmap', '-sV', '-Pn', '--top-ports=1000', '-oA', PROJECT_DIR + '/' + random_filename, subdomain])
 

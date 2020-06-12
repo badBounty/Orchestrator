@@ -10,16 +10,26 @@ from ..mongo import mongo
 from .. import constants
 from ..slack import slack_sender
 from ..redmine import redmine
+from ...objects.vulnerability import Vulnerability
 
 
-def handle_target(target, url_list, language):
+def handle_target(info):
     print('------------------- TARGET SSL/TLS SCAN STARTING -------------------')
-    print('Found ' + str(len(url_list)) + ' targets to scan')
+    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     slack_sender.send_simple_message("SSL/TLS scan started against target: %s. %d alive urls found!"
-                                     % (target, len(url_list)))
-    for url in url_list:
-        print('Scanning ' + url['url_with_port'])
-        scan_target(url['target'], url['name'], url['url_with_port'], language)
+                                     % (info['target'], len(info['url_to_scan'])))
+    valid_ports = ['443']
+    for url in info['url_to_scan']:
+        sub_info = info
+        sub_info['url_to_scan'] = url
+
+        split_url = url.split('/')
+        try:
+            final_url = split_url[2]
+        except IndexError:
+            final_url = url
+        for port in valid_ports:
+            scan_target(sub_info, url, final_url+':'+port)
     print('-------------------  TARGET SSL/TLS SCAN FINISHED -------------------')
     return
 
@@ -30,7 +40,10 @@ def handle_single(scan_info):
     slack_sender.send_simple_message("SSL/TLS scan started against %s" % url)
     valid_ports = ['443']
     split_url = url.split('/')
-    final_url = split_url[2]
+    try:
+        final_url = split_url[2]
+    except IndexError:
+        final_url = url
     print('------------------- SINGLE SSL/TLS SCAN STARTING -------------------')
     for port in valid_ports:
         scan_target(scan_info, url, final_url+':'+port)
@@ -42,14 +55,11 @@ def checker(scan_info, url_with_port, result):
     timestamp = datetime.now()
     # testssl has a bunch of vulns, we could test more
     if result['id'] == 'SSLv2' and result['finding'] != 'not offered':
-        slack_sender.send_simple_vuln("SSLv2 is available at %s" % url_with_port)
-        add_vulnerability(scan_info, url_with_port, timestamp)
+        add_vulnerability(scan_info, "SSLv2 is available at %s" % url_with_port)
     elif result['id'] == 'SSLv3' and result['finding'] != 'not offered':
-        slack_sender.send_simple_vuln("SSLv3 is available at %s" % url_with_port)
-        add_vulnerability(scan_info, url_with_port, timestamp)
+        add_vulnerability(scan_info, "SSLv3 is available at %s" % url_with_port)
     elif result['id'] == 'TLS1' and result['finding'] != 'not offered':
-        slack_sender.send_simple_vuln("TLS1.0 is available at %s" % url_with_port)
-        add_vulnerability(scan_info, url_with_port, timestamp)
+        add_vulnerability(scan_info, "TLS1.0 is available at %s" % url_with_port)
 
 
 def cleanup(path):
@@ -60,19 +70,12 @@ def cleanup(path):
     return
 
 
-def add_vulnerability(scan_info, scanned_url, timestamp):
-    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
-        redmine.create_new_issue(constants.SSL_TLS_ENGLISH, constants.REDMINE_SSL_TLS % scanned_url,
-                                 scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
-        mongo.add_vulnerability(scan_info['target'], scanned_url,
-                                constants.SSL_TLS_ENGLISH,
-                                timestamp, scan_info['language'])
-    if scan_info['language'] == constants.LANGUAGE_SPANISH:
-        redmine.create_new_issue(constants.SSL_TLS_SPANISH, constants.REDMINE_SSL_TLS % scanned_url,
-                                 scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
-        mongo.add_vulnerability(scan_info['target'], scanned_url,
-                                constants.SSL_TLS_SPANISH,
-                                timestamp, scan_info['language'])
+def add_vulnerability(scan_info, message):
+    vulnerability = Vulnerability(constants.SSL_TLS, scan_info, message)
+
+    slack_sender.send_simple_vuln(vulnerability)
+    redmine.create_new_issue(vulnerability)
+    mongo.add_vulnerability(vulnerability)
 
 
 # In cases where single url is provided, port will default to 80 or 443 in most cases

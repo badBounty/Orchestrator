@@ -8,12 +8,13 @@ import uuid
 from time import sleep
 from PIL import Image
 from io import BytesIO
-from datetime import datetime
 from ..slack import slack_sender
 from ..comms import image_creator
 from .. import constants
 from ..mongo import mongo
 from ..redmine import redmine
+from ...objects.vulnerability import Vulnerability
+from ...__init__ import wordlist
 
 
 def cleanup(path):
@@ -26,25 +27,34 @@ def cleanup(path):
     return
 
 
-def handle_target(target, url_list, language):
+def handle_target(info):
     print('------------------- NMAP SCRIPT TARGET SCAN STARTING -------------------')
     slack_sender.send_simple_message("Nmap scripts started against target: %s. %d alive urls found!"
-                                     % (target, len(url_list)))
-    print('Found ' + str(len(url_list)) + ' targets to scan')
-    for url in url_list:
-        print('Scanning ' + url['url_with_http'])
-        host = url['url_with_http'].split('/')[2]
-        print('Outdated software')
-        outdated_software(url['target'], host, language)
-        print('Web versions')
-        web_versions(url['target'], host, language)
-        print('SSH FTP Bruteforce')
-        ssh_ftp_brute_login(url,host, language, True) # SHH
-        sleep(10)
-        ssh_ftp_brute_login(url,host, language, False) # FTP
-        ftp_anon_login(url,host, language) # FTP ANON
-        print('Default accounts')
-        default_account(url,host, language) # Default creds in web console
+                                     % (info['target'], len(info['url_to_scan'])))
+    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+    scanned_hosts = list()
+    for url in info['url_to_scan']:
+        sub_info = info
+        sub_info['url_to_scan'] = url
+        try:
+            host = url.split('/')[2]
+        except IndexError:
+            host = url
+        print('Scanning ' + url)
+        print('------------------- NMAP OUTDATED SOFTWARE -------------------')
+        if host not in scanned_hosts:
+            outdated_software(sub_info, host)
+            print('------------------- NMAP WEB VERSIONS -------------------')
+            web_versions(sub_info, host)
+            if sub_info['invasive_scans']:
+                print('------------------- NMAP SSH FTP BRUTE FORCE -------------------')
+                ssh_ftp_brute_login(sub_info, host, True)#SHH
+                sleep(10)
+                ssh_ftp_brute_login(sub_info, host, False)#FTP
+                ftp_anon_login(sub_info, host)#FTP ANON
+                print('------------------- NMAP DEFAULT ACCOUNTS -------------------')
+                default_account(sub_info,host)#Default creds in web console
+        scanned_hosts.append(host)
     print('------------------- NMAP SCRIPT TARGET SCAN FINISHED -------------------')
     return
 
@@ -56,70 +66,58 @@ def handle_single(scan_info):
     # We receive the url with http/https, we will get only the host so nmap works
     host = url.split('/')[2]
     print('------------------- NMAP OUTDATED SOFTWARE -------------------')
-    #outdated_software(scan_info, host)
+    outdated_software(scan_info, host)
     print('------------------- NMAP WEB VERSIONS -------------------')
-    #web_versions(scan_info, host)
+    web_versions(scan_info, host)
     if scan_info['invasive_scans']:
         print('------------------- NMAP SSH FTP BRUTE FORCE -------------------')
-        #ssh_ftp_brute_login(scan_info, host, True)#SHH
+        ssh_ftp_brute_login(scan_info, host, True)#SHH
         sleep(10)
-        #ssh_ftp_brute_login(scan_info, host, False)#FTP
-        #ftp_anon_login(scan_info, host)#FTP ANON
+        ssh_ftp_brute_login(scan_info, host, False)#FTP
+        ftp_anon_login(scan_info, host)#FTP ANON
         print('------------------- NMAP DEFAULT ACCOUNTS -------------------')
         default_account(scan_info,host)#Default creds in web console
     print('------------------- NMAP_SCRIPT SCAN FINISHED -------------------')
     return
 
 
-def add_vuln_to_mongo(scan_info, scanned_url, scan_type, extra_info, img_str=None):
-    timestamp = datetime.now()
+def add_vuln_to_mongo(scan_info, scan_type, description, img_str=None):
     vuln_name = ""
-    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
-        if scan_type == 'outdated_software':
-            vuln_name = constants.OUTDATED_SOFTWARE_NMAP_ENGLISH
-        elif scan_type == 'http_passwd':
-            vuln_name = constants.HTTP_PASSWD_NMAP_ENGLISH
-        elif scan_type == 'web_versions':
-            vuln_name = constants.WEB_VERSIONS_NMAP_ENGLISH
-        elif scan_type == 'ftp_anonymous':
-            vuln_name = constants.ANONYMOUS_ACCESS_FTP_ENGLISH
-        elif scan_type == 'ssh_credentials':
-            vuln_name = constants.DEFAULT_CREDENTIALS_ENGLISH
-        elif scan_type == "ftp_credentials":
-            vuln_name = constants.CREDENTIALS_ACCESS_FTP_ENGLISH
-        elif scan_type == "default_creds":
-            vuln_name = constants.DEFAULT_CREDENTIALS_ENGLISH
-    elif scan_info['language'] == constants.LANGUAGE_SPANISH:
-        if scan_type == 'outdated_software':
-            vuln_name = constants.OUTDATED_SOFTWARE_NMAP_SPANISH
-        elif scan_type == 'http_passwd':
-            vuln_name = constants.HTTP_PASSWD_NMAP_SPANISH
-        elif scan_type == 'web_versions':
-            vuln_name = constants.WEB_VERSIONS_NMAP_SPANISH
-        elif scan_type == 'ftp_anonymous':
-            vuln_name = constants.ANONYMOUS_ACCESS_FTP_SPANISH
-        elif scan_type == 'ssh_credentials':
-            vuln_name = constants.DEFAULT_CREDENTIALS_SPANISH
-        elif scan_type == "ftp_credentials":
-            vuln_name = constants.DEFAULT_CREDENTIALS_SPANISH
-        elif scan_type == "default_creds":
-            vuln_name = constants.DEFAULT_CREDENTIALS_SPANISH
+    if scan_type == 'outdated_software':
+        vuln_name = constants.OUTDATED_SOFTWARE_NMAP
+    elif scan_type == 'http_passwd':
+        vuln_name = constants.HTTP_PASSWD_NMAP
+    elif scan_type == 'web_versions':
+        vuln_name = constants.WEB_VERSIONS_NMAP
+    elif scan_type == 'ftp_anonymous':
+        vuln_name = constants.ANON_ACCESS_FTP
+    elif scan_type == 'ssh_credentials':
+        vuln_name = constants.DEFAULT_CREDS
+    elif scan_type == "ftp_credentials":
+        vuln_name = constants.CRED_ACCESS_FTP
+    elif scan_type == "default_creds":
+        vuln_name = constants.DEFAULT_CREDS
+    elif scan_type == 'plaintext_services':
+        vuln_name = constants.PLAINTEXT_COMUNICATION
+    elif scan_type == 'unnecessary_services':
+        vuln_name = constants.UNNECESSARY_SERVICES
 
-    slack_sender.send_simple_vuln("Nmap " + scan_type + " script found: \n" + str(extra_info))
+    vulnerability = Vulnerability(vuln_name, scan_info, description)
+    vulnerability.add_image_string(img_str)
+
     if img_str:
         ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
         random_filename = uuid.uuid4().hex
         output_dir = ROOT_DIR+'/tools_output/' + random_filename + '.png'
         im = Image.open(BytesIO(base64.b64decode(img_str)))
         im.save(output_dir, 'PNG')
-        redmine.create_new_issue(vuln_name, extra_info, scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'],output_dir,'nmap-result.png')
+        vulnerability.add_attachment(output_dir, 'nmap-result.png')
         os.remove(output_dir)
-    else:
-        redmine.create_new_issue(vuln_name, extra_info, scan_info['redmine_project'], scan_info['assigned_users'], scan_info['watchers'])
-    mongo.add_vulnerability(scan_info['target'], scanned_url,
-                            vuln_name, timestamp, scan_info['language'], extra_info, img_str)
-    return
 
+    slack_sender.send_simple_vuln(vulnerability)
+    redmine.create_new_issue(vulnerability)
+    mongo.add_vulnerability(vulnerability)
+    return
 
 def outdated_software(scan_info, url_to_scan):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -131,12 +129,14 @@ def outdated_software(scan_info, url_to_scan):
     text = outdated_software_process.stdout.decode()
     text = text.split('\n')
 
-    extra_info = list()
+    extra_info = "Outdated software nmap result: \n"
+    outdated_software_found = False
     for line in text:
         if 'CVE' in line:
-            extra_info.append(line)
-    if extra_info:
-        add_vuln_to_mongo(scan_info, url_to_scan, 'outdated_software', extra_info)
+            outdated_software_found = True
+            extra_info = extra_info + line
+    if outdated_software_found:
+        add_vuln_to_mongo(scan_info, 'outdated_software', extra_info)
     return
 
 
@@ -154,12 +154,16 @@ def web_versions(scan_info, url_to_scan):
          'http-passwd.root=/test/', url_to_scan], capture_output=True)
     text_httpd_passwd = http_passwd_subprocess.stdout.decode()
     text_httpd_passwd = text_httpd_passwd.split('\n')
-    extra_info_httpd_passwd = list()
+    extra_info_httpd_passwd = 'Http-passwd.nse nmap result: \n'
+    traversal_found = False
     for i in range(0, len(text_httpd_passwd)):
         if 'Directory traversal found' in text_httpd_passwd[i]:
-            extra_info_httpd_passwd.append(text_httpd_passwd[i-1] + " \n " + text_httpd_passwd[i] + " \n " + text_httpd_passwd[i+1])
-    if extra_info_httpd_passwd:
-        add_vuln_to_mongo(scan_info, url_to_scan, 'http_passwd', extra_info_httpd_passwd)
+            traversal_found = True
+            extra_info_httpd_passwd = extra_info_httpd_passwd + text_httpd_passwd[i-1] + " \n " +\
+                                      text_httpd_passwd[i] + " \n " +\
+                                      text_httpd_passwd[i+1]
+    if traversal_found:
+        add_vuln_to_mongo(scan_info, 'http_passwd', extra_info_httpd_passwd)
 
     web_versions_subprocess = subprocess.run(
         ['nmap', '-sV', '-Pn', '-vvv', '--top-ports=500', '--script',
@@ -168,29 +172,34 @@ def web_versions(scan_info, url_to_scan):
     text_web_versions = str(web_versions_subprocess.stdout.decode())
     text_web_versions = text_web_versions.split('\n')
 
-    extra_info_web_versions = list()
+    extra_info_web_versions = 'Nmap web-versions script: \n'
+    web_versions_found = False
     for i in range(0, len(text_web_versions)):
         if 'The following JSONP endpoints were detected' in text_web_versions[i] and 'ERROR' not in text_web_versions[i]:
-            extra_info_web_versions.append(text_web_versions[i-1] + " \n " +
-                                           text_web_versions[i] + " \n " + text_web_versions[i+1])
+            web_versions_found = True
+            extra_info_web_versions = extra_info_web_versions + text_web_versions[i-1] + " \n " +\
+                                           text_web_versions[i] + " \n " + text_web_versions[i+1]
         if 'http-open-redirect' in text_web_versions[i] and 'ERROR' not in text_web_versions[i]:
-            extra_info_web_versions.append(text_web_versions[i] + " \n " +
-                                           text_web_versions[i+1])
+            web_versions_found = True
+            extra_info_web_versions = extra_info_web_versions + text_web_versions[i] + " \n " +\
+                                           text_web_versions[i+1]
         if 'http-vuln-cve2017-5638' in text_web_versions[i] and 'ERROR' not in text_web_versions[i]:
-            extra_info_web_versions.append(text_web_versions[i] + " \n " +
-                                           text_web_versions[i+1] + " \n " + text_web_versions[i+2])
+            web_versions_found = True
+            extra_info_web_versions = extra_info_web_versions + text_web_versions[i] + " \n " +\
+                                           text_web_versions[i+1] + " \n " + text_web_versions[i+2]
         if 'http-vuln-cve2017-1001000' in text_web_versions[i] and 'ERROR' not in text_web_versions[i]:
-            extra_info_web_versions.append(text_web_versions[i] + " \n " +
-                                           text_web_versions[i+1] + " \n " + text_web_versions[i+2])
-    if extra_info_web_versions:
-        add_vuln_to_mongo(scan_info, url_to_scan, 'web_versions', extra_info_web_versions)
+            web_versions_found = True
+            extra_info_web_versions = extra_info_web_versions + text_web_versions[i] + " \n " +\
+                                           text_web_versions[i+1] + " \n " + text_web_versions[i+2]
+    if web_versions_found:
+        add_vuln_to_mongo(scan_info, 'web_versions', extra_info_web_versions)
     return
 
 
 def ssh_ftp_brute_login(scan_info, url_to_scan, is_ssh):
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     timeout = 'timeout=5s'
-    time_limit = '180' #seconds
+    time_limit = '0' #seconds
     if is_ssh:
         brute = ROOT_DIR + '/tools/nmap/server_versions/ssh-brute.nse'
         port = '-p22'
@@ -199,15 +208,14 @@ def ssh_ftp_brute_login(scan_info, url_to_scan, is_ssh):
         brute = ROOT_DIR + '/tools/nmap/server_versions/ftp-brute.nse'
         port = '-p21'
         end_name = '.ftp.brute'
-    users = ROOT_DIR + '/tools/usernames-shortlist.txt'
-    password = ROOT_DIR + '/tools/default-pass.txt'
+    users = wordlist['ssh_ftp_user']
+    password = wordlist['ssh_ftp_pass']
     random_filename = uuid.uuid4().hex
     output_dir = ROOT_DIR + '/tools_output/'+random_filename+end_name
     cleanup(output_dir)
     brute_subprocess = subprocess.run(
         ['nmap', '-Pn', '-sV', port, '--script', brute, '--script-args',
          'userdb='+users+','+'passdb='+password+','+timeout+','+'brute.delay='+time_limit+','+'brute.retries=1', '-oA', output_dir,url_to_scan])
-    print(brute_subprocess)
     with open(output_dir + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()
@@ -218,7 +226,7 @@ def ssh_ftp_brute_login(scan_info, url_to_scan, is_ssh):
         if "Valid credentials" in message:
             name = "ssh_credentials" if is_ssh else "ftp_credentials"
             img_str = image_creator.create_image_from_file(output_dir + '.nmap')
-            add_vuln_to_mongo(scan_info, url_to_scan, name, message, img_str)
+            add_vuln_to_mongo(scan_info, name, message, img_str)
     except KeyError:
         message = None
     cleanup(output_dir)
@@ -242,7 +250,7 @@ def ftp_anon_login(scan_info,url_to_scan):
         message = json_data['nmaprun']['host']['ports']['port']['script']['@output']
         if "Anonymous FTP login allowed" in message:
             img_str = image_creator.create_image_from_file(output_dir + '.nmap')
-            add_vuln_to_mongo(scan_info, url_to_scan, "ftp_anonymous", message, img_str)
+            add_vuln_to_mongo(scan_info, "ftp_anonymous", message, img_str)
     except KeyError:
         message = None
     cleanup(output_dir)
@@ -311,9 +319,8 @@ def default_account(scan_info,url_to_scan):
                         message+=scp['@output']
         except KeyError:
             pass
-    print(message)
     if message:
         img_str = image_creator.create_image_from_string(message)
-        add_vuln_to_mongo(scan_info, url_to_scan, "default_creds", message, img_str)
+        add_vuln_to_mongo(scan_info, "default_creds", message, img_str)
     cleanup(output_dir)
     return

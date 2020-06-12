@@ -7,18 +7,21 @@ from .. import constants
 from ..mongo import mongo
 from ..slack import slack_sender
 from ..redmine import redmine
+from ...objects.vulnerability import Vulnerability
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-def handle_target(target, url_list, language):
+def handle_target(info):
     print('------------------- HOST HEADER ATTACK TARGET SCAN STARTING -------------------')
     slack_sender.send_simple_message("Host header attack scan started against target: %s. %d alive urls found!"
-                                     % (target, len(url_list)))
-    print('Found ' + str(len(url_list)) + ' targets to scan')
-    for url in url_list:
-        print('Scanning ' + url['url_with_http'])
-        scan_target(url['target'], url['url_with_http'], language)
+                                     % (info['target'], len(info['url_to_scan'])))
+    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+    for url in info['url_to_scan']:
+        sub_info = info
+        sub_info['url_to_scan'] = url
+        print('Scanning ' + url)
+        scan_target(sub_info, sub_info['url_to_scan'])
     print('------------------- HOST HEADER ATTACK TARGET SCAN FINISHED -------------------')
     return
 
@@ -31,17 +34,13 @@ def handle_single(scan_info):
     return
 
 
-def add_vulnerability_to_mongo(scan_info, scanned_url, extra_info):
-    timestamp = datetime.now()
-    vuln_name = ""
-    if scan_info['language'] == constants.LANGUAGE_ENGLISH:
-        vuln_name = constants.HOST_HEADER_ATTACK_ENGLISH
-    elif scan_info['language'] == constants.LANGUAGE_SPANISH:
-        vuln_name = constants.HOST_HEADER_ATTACK_SPANISH
+def add_vulnerability_to_mongo(scan_info):
+    vulnerability = Vulnerability(constants.HOST_HEADER_ATTACK, scan_info,
+                                  "Host header attack possible at url %s" % scan_info['url_to_scan'])
 
-    redmine.create_new_issue(vuln_name, constants.REDMINE_HOST_HEADER_ATTACK % scanned_url,
-                             scan_info['redmine_url'], scan_info['assigned_users'], scan_info['watchers'])
-    mongo.add_vulnerability(scan_info['target'], scanned_url, vuln_name, timestamp, scan_info['language'], extra_info)
+    slack_sender.send_simple_vuln(vulnerability)
+    redmine.create_new_issue(vulnerability)
+    mongo.add_vulnerability(vulnerability)
     return
 
 
@@ -79,7 +78,5 @@ def scan_target(scan_info, url_to_scan):
     # If it's vulnerable to host
     # header attack, appends the information to the output file.
     if host_header_attack == 1:
-        slack_sender.send_simple_message(
-            "Host header attack possible at url %s" % url_to_scan)
-        add_vulnerability_to_mongo(scan_info, url_to_scan, 'Found at url %s' % url_to_scan)
+        add_vulnerability_to_mongo(scan_info)
 

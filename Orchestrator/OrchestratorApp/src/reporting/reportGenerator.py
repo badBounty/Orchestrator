@@ -6,6 +6,9 @@
 #   Tipo Reporte: S o F (indica si es Estado o Final)
 #   json con los titulos de los findings a buscar
 import datetime,docx,json,os,ast,base64,time
+
+import gc
+
 from copy import deepcopy
 from docx.shared import Inches
 from .. import constants
@@ -21,7 +24,7 @@ eng = False
 estado = True
 # Estos indices son para copiar el finding de inicio a fin varian segundo el tipo de reporte
 indexNros = (0, 0, 0)
-missing_findings=[]
+missing_findings=""
 # Documento
 doc = docx.Document()
 
@@ -29,32 +32,6 @@ doc = docx.Document()
 ############################################################
 # PARA REPORTES ESTADO DE AVANCE EN ESPAÑOL O FINAL SLATAM #
 ############################################################
-# Se agrega la informacion del cliente dependiente del tipo de reporte
-def setClientInDoc(doc, estado, client):
-    if client:
-        if estado:
-            cliText = doc.tables[0].cell(1, 1).text.replace("<CLIENTE>", client)
-            doc.tables[0].cell(1, 1).text = cliText
-            footerCli = doc.sections[0].footer.tables[0].cell(0, 1).paragraphs[0].runs[0].text.replace("<CLIENTE>",
-                                                                                                       client)
-            doc.sections[0].footer.tables[0].cell(0, 1).paragraphs[0].runs[0].text = footerCli
-        else:
-            cliText = doc.tables[1].cell(0, 0).paragraphs[0].text.replace("<CLIENTE>", client)
-            doc.tables[1].cell(0, 0).paragraphs[0].text = cliText
-            headerText = doc.sections[0].header.paragraphs[0].runs[3].text.replace("<CLIENTE>", client)
-            doc.sections[0].header.paragraphs[0].runs[3].text = headerText
-            # Declaracion de responsabilidad
-            for i in range(3, 7):
-                paraText = doc.paragraphs[i].text.replace("<CLIENTE>", client)
-                doc.paragraphs[i].text = paraText
-            # Privado y confidencial
-            for i in range(31, 34):
-                paraText = doc.paragraphs[i].text.replace("<CLIENTE>", client)
-                doc.paragraphs[i].text = paraText
-                # Resumen ejecutivo
-                paraText = doc.paragraphs[54].text.replace("<CLIENTE>", client)
-                doc.paragraphs[54].text = paraText
-
 
 # Buscamos la nota en el listado de los paragraph
 def agregarNota(p, nota):
@@ -78,18 +55,9 @@ def delete_screenshot(image_path):
 
 def add_cves(jsonFinding):
     message=""
-    if jsonFinding['TITLE'] == constants.OUTDATED_3RD_LIBRARIES_SPANISH or jsonFinding['TITLE'] == constants.OUTDATED_3RD_LIBRARIES_ENGLISH:
+    if jsonFinding['TITLE'] == constants.OUTDATED_3RD_LIBRARIES['spanish_name'] or jsonFinding['TITLE'] == constants.OUTDATED_3RD_LIBRARIES['english_name']:
         if jsonFinding['extra_info'] != None :
-            for info in ast.literal_eval(jsonFinding['extra_info']):
-                info_title= "\nName: "+info['name']
-                version = info['versions'][0] if info['versions'] else ""
-                last_version = info['last_version']
-                if version or last_version:
-                    info_title+=' Version: '+version+' Last Version :'+last_version
-                message+="\t"+info_title+'\n'
-                for cve in info['cves']:
-                    cve_info='CVE ID: '+cve['CVE ID']+' - Vulnerability: '+cve['Vulnerability Type(s)']+'- CVSS Score: '+cve['Score']
-                    message+="\t\t"+cve_info+'\n'
+            message = jsonFinding['extra_info']
     return message
 
 # Agregar info en celda sin romper formato
@@ -121,7 +89,7 @@ def addFindingInfo(table, language, urls):
     else:
         # Al ser un solo recurso va en singular
         resourcesTitle.text = constants.recursoAfectadoSin_EN if language else constants.recursoAfectadoSin_ES
-        paragraph.text = urls
+        paragraph.text = urls[0]
 
 
 def clonarTemplateYAgregarFinding(doc, indexNros, language, jsonFinding):
@@ -220,9 +188,9 @@ def clonarTemplateYAgregarFinding(doc, indexNros, language, jsonFinding):
     addFindingInfo(new_tbl, language, urls)
 
 
-def crearReporte(language, reportType, client, findings):
-    eng = True if language == "eng" else False
-    estado = True if reportType == "S" else False
+def crearReporte(language, reportType, findings):
+    eng = True if language == 'eng' else False
+    estado = True if reportType == 'S' else False
     global doc,missing_findings
     # Template a utilizar acorde al tipo de reporte que se necesite generar, va a variar dependiendo del idioma, avance o final
     if not eng:
@@ -243,7 +211,6 @@ def crearReporte(language, reportType, client, findings):
 
     # Itero sobre la lista recibida si el finding existe lo agrego sino pongo un mensaje de alerta
     print("Generando Reporte espere")
-    setClientInDoc(doc, estado, client)
     for finding in findings:
         # Obtenemos finding de la KB
         json_value = mongo.get_specific_finding_info(finding, language)
@@ -252,19 +219,22 @@ def crearReporte(language, reportType, client, findings):
         else:
             #TODO mensaje a slack
             print("The following finding was not found: "+finding['title'])
-            missing_findings.append(finding)
+            missing_findings += finding['title']+'\n'
+        gc.collect()
     print("Se genero el reporte con los findings que fueron encontrados")
-    d1 = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    d1 = datetime.datetime.now().strftime('%Y%m%d')
     name = ""
     # Muy probable que esto cambie
     if not eng:
         if estado:
-            name += client + "REPORTE_DE_ESTADO_" + d1 + ".docm"
+            name += "REPORTE_DE_ESTADO_" + d1 + ".docx"
             doc.save(ROOT_DIR + '/out/' + name)
         else:
-            name += client + "REPORTE_FINAL_" + d1 + ".docm"
+            name += "REPORTE_FINAL_" + d1 + ".docx"
             doc.save(ROOT_DIR + '/out/' + name)
     else:
-        name += client + "REPORTE_CON_FINDINGS_INGLES-" + d1 + ".docm"
+        name += "REPORTE_CON_FINDINGS_INGLES-" + d1 + ".docx"
         doc.save(ROOT_DIR + '/out/' + name)
-    return ROOT_DIR + '/out/' + name,missing_findings
+    gc.collect()
+    path = ROOT_DIR + '/out/' + name
+    return path,missing_findings

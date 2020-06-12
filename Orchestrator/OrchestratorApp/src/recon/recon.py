@@ -58,7 +58,7 @@ def run_recon(target_name, project_name='None', user_name='None'):
 
 
 def parse_results(project_dir):
-    filenames = [project_dir + '/amass_out.txt', project_dir + '/subfinder_out.txt', project_dir + '/sublist3r_out.txt']
+    filenames = [project_dir + '/subfinder_out.txt', project_dir + '/sublist3r_out.txt']#, project_dir + '/amass_out.txt', ]
     with open(project_dir + '/all.txt', 'w') as outfile:
         for fname in filenames:
             with open(fname) as infile:

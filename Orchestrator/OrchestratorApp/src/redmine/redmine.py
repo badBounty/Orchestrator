@@ -1,13 +1,15 @@
 from redminelib import Redmine
 import redminelib
-import datetime
-import os
-from ...__init__ import redmine
+
+from ...__init__ import redmine_client
 
 
 # Projects under orchestrator
 def get_project_names():
-    projects = redmine.project.all()
+    if redmine_client is None:
+        return []
+        
+    projects = redmine_client.project.all()
     project_names = list()
     for project in projects:
         project_names.append((project.identifier, project.name))
@@ -15,7 +17,9 @@ def get_project_names():
 
 
 def get_users():
-    project = redmine.project.get('vulnerability-management')
+    if redmine_client is None:
+        return []
+    project = redmine_client.project.get('vulnerability-management')
     available_users = list()
     for user in project['memberships']:
         available_users.append((user['user'].id, user['user'].name))
@@ -23,21 +27,24 @@ def get_users():
     return available_users
 
 
-def create_new_issue(vuln_name, description, project_name, assigned_users, watchers, attachment_path=None, attachment_name=None):
+def create_new_issue(vulnerability):
+    if redmine_client is None:
+        return
+    project_name = vulnerability.redmine['project_id']
     if project_name == 'no_project':
         return
-    watchers = [int(i) for i in watchers]
-    issue = redmine.issue.new()
-    issue.project_id = project_name             # orchestator-test-proj ?
-    issue.subject = vuln_name                   # Nombre de la obs
-    issue.tracker_id = 0                        # [0,1,2: Finding, 3:Consulta, 4: Notificacion de estado]
-    issue.description = description             # Descripcion
-    issue.status_id = 1                         # [0: Borrador, 1: Nuevo QA Pendiente]
-    issue.priority_id = 3                       # [1: Informational, 2: Low, 3: Medium, 4: High, 5: Critical]
-    issue.assigned_to_id = int(assigned_users[0])                   # Id de la asignacion, Orchestrator es 17
-    issue.watcher_user_ids = watchers               # Ids de los watchers, Orchestrator es 17
-    if attachment_path is not None:
-        issue.uploads = [{'path': attachment_path, 'filename': attachment_name}]
+    issue = redmine_client.issue.new()
+    issue.project_id = project_name                              # project name
+    issue.subject = vulnerability.vulnerability_name             # Nombre de la obs
+    issue.tracker_id = vulnerability.redmine['tracker_id']       # [0,1,2: Finding, 3:Consulta, 4: Notificacion de estado]
+    issue.description = vulnerability.custom_description         # Descripcion
+    issue.status_id = vulnerability.redmine['status_id']         # [0: Borrador, 1: Nuevo QA Pendiente]
+    issue.priority_id = vulnerability.redmine['priority_id']     # [1: Informational, 2: Low, 3: Medium, 4: High, 5: Critical]
+    issue.assigned_to_id = vulnerability.redmine['assigned_to']  # Id de la asignacion, Orchestrator es 17
+    issue.watcher_user_ids = vulnerability.redmine['watchers']   # Ids de los watchers, Orchestrator es 17
+    if vulnerability.redmine['attachment_path'] is not None:
+        issue.uploads = [{'path': vulnerability.redmine['attachment_path'],
+                          'filename': vulnerability.redmine['attachment_name']}]
     try:
         issue.save()
     except Exception as e:
@@ -45,3 +52,19 @@ def create_new_issue(vuln_name, description, project_name, assigned_users, watch
         print(e)
         print("CONTINUING WITH THE SCAN")
         pass
+
+
+def create_report_issue(info,file_dir,missing_finding):
+    message = 'RECORDAR, ABRIRLO Y GUARDARLO DE NUEVO PORQUE TIENE EL XML ROTO POR LA GENERACION\n'
+    message+= 'The following findings were not found: '+ missing_finding
+    try:
+        f = redmine_client.file.new()
+        f.project_id = 'testing'
+        f.path = '/root/Desktop/Orchestrator/Orchestrator/OrchestratorApp/src/reporting/out/ips.txt'
+        time.sleep(300)
+        f.filename = 'test5.txt'
+        f.description = message
+        #f.content_type = 'application/vnd.ms-word.document.macroEnabled.12'
+        f.save()
+    except Exception as e:
+        print(e)

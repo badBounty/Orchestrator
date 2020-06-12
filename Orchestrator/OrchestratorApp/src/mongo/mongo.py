@@ -9,6 +9,18 @@ def get_workspaces():
     workspaces = db.resources.distinct('from_workspace')
     return workspaces
 
+# In this case the target will be a filename
+def get_ips_with_web_interface(target):
+    db = client.Orchestrator
+    ips_to_check = db.resources.find({'target_name': target})
+    urls_to_send = list()
+    for ip in ips_to_check:
+        if 'Port:80' in ip['extra_info']:
+            urls_to_send.append('http://' + ip['subdomain'])
+        if 'Port:443' in ip['extra_info']:
+            urls_to_send.append('https://' + ip['subdomain'])
+            
+    return urls_to_send
 
 def get_responsive_http_resources(target):
     db = client.Orchestrator
@@ -208,28 +220,29 @@ def add_images_to_subdomain(subdomain, http_image, https_image):
 
 
 # ------------------- VULNERABILITY -------------------
-def add_vulnerability(target_name, subdomain, vulnerability_name, current_time, language,
-                      extra_info=None, img_str=None):
+def add_vulnerability(vulnerability):
     db = client.Orchestrator
-    exists = db.vulnerabilities.find_one({'target_name': target_name, 'subdomain': subdomain,
-                                          'vulnerability_name': vulnerability_name,
-                                          'language': language})
+    exists = db.vulnerabilities.find_one({'target_name': vulnerability.target, 'subdomain': vulnerability.scanned_url,
+                                          'vulnerability_name': vulnerability.vulnerability_name,
+                                          'language': vulnerability.language})
     if exists:
         db.vulnerabilities.update_one({'_id': exists.get('_id')}, {'$set': {
-            'last_seen': current_time,
-            'extra_info': extra_info,
-            'img_str': img_str
+            'last_seen': vulnerability.time,
+            'extra_info': vulnerability.custom_description,
+            'image_string': vulnerability.image_string,
+            'file_string': vulnerability.file_string
         }})
     else:
         resource = {
-            'target_name': target_name,
-            'subdomain': subdomain,
-            'vulnerability_name': vulnerability_name,
-            'extra_info': extra_info,
-            'image_string': img_str,
-            'date_found': current_time,
-            'last_seen': current_time,
-            'language': language
+            'target_name': vulnerability.target,
+            'subdomain': vulnerability.scanned_url,
+            'vulnerability_name': vulnerability.vulnerability_name,
+            'extra_info': vulnerability.custom_description,
+            'image_string': vulnerability.image_string,
+            'file_string': vulnerability.file_string,
+            'date_found': vulnerability.time,
+            'last_seen': vulnerability.time,
+            'language': vulnerability.language
         }
         db.vulnerabilities.insert_one(resource)
     return
@@ -308,6 +321,10 @@ def get_specific_finding_info(finding, language):
     else:
         return None
 
+def get_observation_for_object(vuln_name,language):
+    db = client.Orchestrator
+    finding_kb = db.observations.find_one({'TITLE': vuln_name, 'LANGUAGE': language})
+    return finding_kb
 
 def find_last_version_of_librarie(name):
     db = client.Orchestrator
