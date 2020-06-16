@@ -44,7 +44,7 @@ REDMINE_PASSWORD = settings['REDMINE_PASSWORD']
 # Redmine connection
 try:
     redmine_client = redminelib.Redmine(str(REDMINE_URL), username=str(REDMINE_USER), password=str(REDMINE_PASSWORD),
-                  requests={'verify': False})
+                  requests={'verify': False,'timeout': None})
     projects = redmine_client.project.all()
 except requests.exceptions.MissingSchema:
     redmine_client = None

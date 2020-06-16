@@ -3,8 +3,6 @@ from . import reportGenerator
 from collections import defaultdict
 from ..mongo import mongo
 from ..redmine import redmine
-import zipfile
-import uuid
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -16,7 +14,7 @@ def create_report(info):
     findings = get_findings(target, language)
     file_dir,missing_finding = reportGenerator.crearReporte(language, reportType, findings)
     print("------------- Saving report in redmine -------------")
-    #redmine.create_report_issue(info,file_dir,missing_finding)
+    redmine.create_report_issue(info,file_dir,missing_finding)
     print("------------- DONE !!! -------------")
     return
 

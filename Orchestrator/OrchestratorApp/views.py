@@ -12,7 +12,7 @@ from .src.comms import download
 from .src.reporting import reporting
 from .src.security import vuln_scan_handler
 
-from .__init__ import slack_web_client
+from .__init__ import slack_web_client,redmine_client
 
 import json
 import os

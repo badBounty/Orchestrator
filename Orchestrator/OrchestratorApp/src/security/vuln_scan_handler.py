@@ -293,7 +293,7 @@ def handle_single_scan(info):
         [
             # Fast_scans
             header_scan_task.s(scan_information,'single').set(queue='fast_queue'),
-            #http_method_scan_task.s(scan_information,'single').set(queue='fast_queue'),
+            http_method_scan_task.s(scan_information,'single').set(queue='fast_queue'),
             #libraries_scan_task.s(scan_information,'single').set(queue='fast_queue'),
             #ffuf_task.s(scan_information,'single').set(queue='fast_queue'),
             #iis_shortname_scan_task.s(scan_information,'single').set(queue='fast_queue'),
