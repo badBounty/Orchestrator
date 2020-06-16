@@ -227,13 +227,13 @@ def crearReporte(language, reportType, findings):
     # Muy probable que esto cambie
     if not eng:
         if estado:
-            name += "REPORTE_DE_ESTADO_" + d1 + ".docx"
+            name += "REPORTE_DE_ESTADO_" + d1 + ".docm"
             doc.save(ROOT_DIR + '/out/' + name)
         else:
-            name += "REPORTE_FINAL_" + d1 + ".docx"
+            name += "REPORTE_FINAL_" + d1 + ".docm"
             doc.save(ROOT_DIR + '/out/' + name)
     else:
-        name += "REPORTE_CON_FINDINGS_INGLES-" + d1 + ".docx"
+        name += "REPORTE_CON_FINDINGS_INGLES-" + d1 + ".docm"
         doc.save(ROOT_DIR + '/out/' + name)
     gc.collect()
     path = ROOT_DIR + '/out/' + name
