@@ -16,6 +16,13 @@ def create_report(info):
     print("------------- Saving report in redmine -------------")
     redmine.create_report_issue(info,file_dir,missing_finding)
     print("------------- DONE !!! -------------")
+    print("------------- Deleting report form source -------------")
+    try:
+        os.remove(file_dir)
+    except FileNotFoundError:
+        print("File %s is supposed to exist!" % file_dir)
+        return
+    print("------------- DONE ------------------------------------")
     return
 
 def get_findings(target, language):
