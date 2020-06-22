@@ -133,7 +133,7 @@ def launch_url_scan(scan_information):
             nmap_script_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
             #burp_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
         ],
-        body=generate_report_task.s(scan_information,'target'),
+        body=generate_report_task.s(scan_information,'target').set(queue='slow_queue'),
         immutable=True)
     if scan_information['start_date']:
         datetime_object = datetime.strptime(scan_information['start_date'], '%Y-%m-%d %H:%M')
@@ -175,7 +175,7 @@ def launch_ip_scan(scan_information):
                 ssl_tls_scan_task.s('target').set(queue='slow_queue'),
                 #burp_scan_task.s('target').set(queue='slow_queue'),
             ],
-            body=generate_report_task.s(scan_information,'target'))
+            body=generate_report_task.s(scan_information,'target').set(queue='slow_queue'))
         )
     if scan_information['start_date']:
         datetime_object = datetime.strptime(scan_information['start_date'], '%Y-%m-%d %H:%M')
@@ -225,7 +225,7 @@ def handle_target_scan(info):
             nmap_script_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
             #burp_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
         ],
-        body=generate_report_task.s(scan_information,'target'),
+        body=generate_report_task.s(scan_information,'target').set(queue='slow_queue'),
         immutable=True)
     if scan_information['start_date']:
         datetime_object = datetime.strptime(scan_information['start_date'], '%Y-%m-%d %H:%M')
@@ -265,7 +265,7 @@ def handle_new_target_scan(info):
                 nmap_script_scan_task.s('target').set(queue='slow_queue'),
                 #burp_scan_task.s('target').set(queue='slow_queue'),
             ],
-            body=generate_report_task.s(info,'target'))
+            body=generate_report_task.s(info,'target').set(queue='slow_queue'))
     )
     if info['start_date']:
         datetime_object = datetime.strptime(scan_information['start_date'], '%Y-%m-%d %H:%M')
@@ -309,7 +309,7 @@ def handle_single_scan(info):
             #nmap_script_scan_task.s(scan_information,'single').set(queue='slow_queue'),
             #burp_scan_task.s(scan_information,'single').set(queue='slow_queue')
         ],
-        body=generate_report_task.s(scan_information,'single'))
+        body=generate_report_task.s(scan_information,'single').set(queue='slow_queue'))
     
     if scan_information['start_date']:
         datetime_object = datetime.strptime(scan_information['start_date'], '%Y-%m-%d %H:%M')
