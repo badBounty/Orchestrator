@@ -1,4 +1,4 @@
-from ...__init__ import slack_web_client, slack_channel_name
+from Orchestrator.settings import slack_web_client, slack_channel_name
 
 
 def send_new_domain_found_message(domain_name, ip):

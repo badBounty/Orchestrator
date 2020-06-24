@@ -1,6 +1,6 @@
 import json, requests, itertools, collections, os
 from bs4 import BeautifulSoup
-from ...__init__ import WAPPALIZE_KEY
+from Orchestrator.settings import WAPPALIZE_KEY
 from .. import constants
 from ..slack import slack_sender
 from ..mongo import mongo

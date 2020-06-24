@@ -10,7 +10,7 @@ import os,gc
 from .src.recon import recon, nmap, aquatone
 from .src.security import header_scan, http_method_scan, ssl_tls_scan,\
     cors_scan, ffuf, libraries_scan, bucket_finder, token_scan, css_scan,\
-    firebase_scan, nmap_script_scan,nmap_script_baseline, host_header_attack,iis_shortname_scanner, burp_scan
+    firebase_scan, nmap_script_scan,nmap_script_baseline, host_header_attack,iis_shortname_scanner, burp_scan, nessus_scan
 from .src.slack import slack_sender
 from .src.mongo import mongo
 from .src.comms import email_handler
@@ -197,9 +197,16 @@ def burp_scan_task(scan_information, scan_type):
         burp_scan.handle_target(scan_information)
 
 @shared_task
+def nessus_scan_task(scan_information, scan_type):
+    if scan_type == 'single':
+        nessus_scan.handle_single(scan_information)
+    elif scan_type == 'target':
+        nessus_scan.handle_target(scan_information)
+
+@shared_task
 def generate_report_task(Task,scan_information,scan_type):
     if scan_information['report_type']:
-            reporting.create_report(scan_information)
+            #reporting.create_report(scan_information)
             task_finished(Task)
     else:
         task_finished(Task)

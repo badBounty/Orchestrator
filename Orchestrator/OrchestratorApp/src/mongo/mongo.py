@@ -1,7 +1,6 @@
 from pymongo import MongoClient
 from ..slack import slack_sender
-from ...__init__ import client
-
+from Orchestrator.settings import client
 
 # ------------------- GETTERS -------------------
 def get_workspaces():

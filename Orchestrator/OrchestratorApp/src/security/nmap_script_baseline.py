@@ -14,7 +14,7 @@ from .. import constants
 from ..mongo import mongo
 from ..redmine import redmine
 from ...objects.vulnerability import Vulnerability
-from ...__init__ import wordlist
+from Orchestrator.settings import wordlist
 
 
 def cleanup(path):

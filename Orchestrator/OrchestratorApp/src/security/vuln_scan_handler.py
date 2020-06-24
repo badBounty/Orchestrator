@@ -1,5 +1,5 @@
 from ...tasks import subdomain_finder_task, url_resolver_task, recon_handle_task, prepare_info_for_target_scan, prepare_info_after_nmap
-from ...tasks import header_scan_task, http_method_scan_task, cors_scan_task, libraries_scan_task, ssl_tls_scan_task, ffuf_task, nmap_script_scan_task, iis_shortname_scan_task, bucket_finder_task, token_scan_task, css_scan_task, firebase_scan_task, host_header_attack_scan, burp_scan_task,nmap_script_baseline_task,generate_report_task
+from ...tasks import header_scan_task, http_method_scan_task, cors_scan_task, libraries_scan_task, ssl_tls_scan_task, ffuf_task, nmap_script_scan_task, iis_shortname_scan_task, bucket_finder_task, token_scan_task, css_scan_task, firebase_scan_task, host_header_attack_scan, burp_scan_task,nmap_script_baseline_task,generate_report_task,nessus_scan_task
 from ...tasks import task_finished
 from celery import chain, chord
 from ..mongo import mongo
@@ -38,6 +38,7 @@ def handle_url_ip_file(info):
         'language': info['selected_language'],
         'redmine_project': info['redmine_project'],
         'invasive_scans': info['use_active_modules'],
+        'nessus_scan': info['use_nessus_scan'],
         'assigned_users': info['assigned_users'],
         'watchers': info['watcher_users'],
         'start_date': info['start_date']
@@ -68,6 +69,7 @@ def handle_ip_file(info, f):
         'language': info['selected_language'],
         'redmine_project': info['redmine_project'],
         'invasive_scans': info['use_active_modules'],
+        'nessus_scan': info['use_nessus_scan'],
         'assigned_users': info['assigned_users'],
         'watchers': info['watcher_users'],
         'start_date': info['start_date']
@@ -97,6 +99,7 @@ def handle_url_file(info, f):
         'language': info['selected_language'],
         'redmine_project': info['redmine_project'],
         'invasive_scans': info['use_active_modules'],
+        'nessus_scan': info['use_nessus_scan'],
         'assigned_users': info['assigned_users'],
         'watchers': info['watcher_users'],
         'start_date': ''
@@ -131,6 +134,7 @@ def launch_url_scan(scan_information):
             cors_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
             ssl_tls_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
             nmap_script_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
+            #nessus_scan_task.s(scan_information,'target').set(queue='slow_queue'),
             #burp_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
         ],
         body=generate_report_task.s(scan_information,'target').set(queue='slow_queue'),
@@ -173,6 +177,7 @@ def launch_ip_scan(scan_information):
                 # Slow_scans
                 cors_scan_task.s('target').set(queue='slow_queue'),
                 ssl_tls_scan_task.s('target').set(queue='slow_queue'),
+                #nessus_scan_task.s(scan_information,'target').set(queue='slow_queue'),
                 #burp_scan_task.s('target').set(queue='slow_queue'),
             ],
             body=generate_report_task.s(scan_information,'target').set(queue='slow_queue'))
@@ -194,6 +199,7 @@ def handle_target_scan(info):
         'report_type': info['report_type'],
         'redmine_project': info['redmine_project'], 
         'invasive_scans': info['use_active_modules'],
+        'nessus_scan': info['use_nessus_scan'],
         'assigned_users': info['assigned_users'],
         'watchers': info['watcher_users'],
         'start_date': info['start_date']
@@ -223,6 +229,7 @@ def handle_target_scan(info):
             cors_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
             ssl_tls_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
             nmap_script_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
+            #nessus_scan_task.s(scan_information,'target').set(queue='slow_queue'),
             #burp_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
         ],
         body=generate_report_task.s(scan_information,'target').set(queue='slow_queue'),
@@ -263,6 +270,7 @@ def handle_new_target_scan(info):
                 cors_scan_task.s('target').set(queue='slow_queue'),
                 ssl_tls_scan_task.s('target').set(queue='slow_queue'),
                 nmap_script_scan_task.s('target').set(queue='slow_queue'),
+                #nessus_scan_task.s(scan_information,'target').set(queue='slow_queue'),
                 #burp_scan_task.s('target').set(queue='slow_queue'),
             ],
             body=generate_report_task.s(info,'target').set(queue='slow_queue'))
@@ -284,6 +292,7 @@ def handle_single_scan(info):
         'report_type': info['report_type'],
         'redmine_project': info['redmine_project'],
         'invasive_scans': info['use_active_modules'],
+        'nessus_scan': info['use_nessus_scan'],
         'assigned_users': info['assigned_users'],
         'watchers': info['watcher_users'],
         'start_date': info['start_date']
@@ -292,8 +301,8 @@ def handle_single_scan(info):
     execution_chord = chord(
         [
             # Fast_scans
-            header_scan_task.s(scan_information,'single').set(queue='fast_queue'),
-            http_method_scan_task.s(scan_information,'single').set(queue='fast_queue'),
+            #header_scan_task.s(scan_information,'single').set(queue='fast_queue'),
+            #http_method_scan_task.s(scan_information,'single').set(queue='fast_queue'),
             #libraries_scan_task.s(scan_information,'single').set(queue='fast_queue'),
             #ffuf_task.s(scan_information,'single').set(queue='fast_queue'),
             #iis_shortname_scan_task.s(scan_information,'single').set(queue='fast_queue'),
@@ -304,9 +313,10 @@ def handle_single_scan(info):
             #host_header_attack_scan.s(scan_information,'single').set(queue='fast_queue'),
             # Slow_scans
             #cors_scan_task.s(scan_information,'single').set(queue='slow_queue'),
-            #ssl_tls_scan_task.s('single', scan_information).set(queue='slow_queue'),
+            #ssl_tls_scan_task.s(scan_information, 'single').set(queue='slow_queue'),
             #nmap_script_baseline_task.s(scan_information,'single').set(queue='slow_queue'),
             #nmap_script_scan_task.s(scan_information,'single').set(queue='slow_queue'),
+            nessus_scan_task.s(scan_information,'single').set(queue='slow_queue'),
             #burp_scan_task.s(scan_information,'single').set(queue='slow_queue')
         ],
         body=generate_report_task.s(scan_information,'single').set(queue='slow_queue'))

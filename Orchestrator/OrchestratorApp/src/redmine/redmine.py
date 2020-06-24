@@ -1,8 +1,7 @@
 from redminelib import Redmine
+from Orchestrator.settings import redmine_client
 import redminelib
 import uuid
-
-from ...__init__ import redmine_client
 
 
 # Projects under orchestrator

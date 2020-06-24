@@ -4,7 +4,7 @@ import json
 from ..recon import recon_handler
 from ..security import vuln_scan_handler
 from ..mongo import mongo
-from ...__init__ import slack_web_client
+from Orchestrator.settings import slack_web_client
 
 
 def receive_message(message):

@@ -2,7 +2,7 @@ from django.core.mail import EmailMessage
 from datetime import datetime
 import json
 import os
-from ...__init__ import email_config
+from Orchestrator.settings import email_config
 
 def send_email(file_dir,missing_findings,email_to):
 	if not email_config['HOST_USER']:
