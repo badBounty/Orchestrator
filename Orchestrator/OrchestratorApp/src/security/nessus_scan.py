@@ -103,7 +103,7 @@ def add_vulnerability(scan_info,json_data,header):
                 mongo.add_vulnerability(vulnerability)
 
 def scan_target(scan_info):
-    scan_name = 'NESSUS-'+scan_info['redmine_project']+'-'+uuid.uuid4().hex
+    scan_name = scan_info['redmine_project']+'-'+uuid.uuid4().hex
     #Connect to the nessus
     r = requests.post(login_url,data={'username':username,'password':password},verify=verify)
     # Getting the session token

@@ -12,6 +12,11 @@ BURP_SCAN = {
     'spanish_name': 'Burp scan',
 }
 
+NESSUS_SCAN = {
+    'english_name': 'Nessus scan',
+    'spanish_name': 'Nessus scan',
+}
+
 ### VULNERABILITIES ###
 INVALID_VALUE_ON_HEADER = {
     'english_name': 'Insecure HTTP Response Header Configuration',
