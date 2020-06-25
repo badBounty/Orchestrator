@@ -165,6 +165,7 @@ try:
         raise Exception('Couldn\'t connect to the nessus server, check the credentials in the settings file')
 except KeyError:
     raise Exception('Couldn\'t connect to the nessus server, check the credentials in the settings file')
+    pass
 except Exception:
     print('Nessus connection failed, check the settings file or the VPN connection')
     pass
