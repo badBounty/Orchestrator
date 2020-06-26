@@ -22,6 +22,14 @@ create_url = nessus_info['URL']+'/scans'
 scan_url = nessus_info['URL']+'/scans/'
 # POST - STOP -- URL/scans/{SCAN_ID}/stop
 
+header = {'X-Cookie':'',
+            'X-API-Token':nessus_info['API'],
+            'Content-Type':'application/json'
+        }
+def perform_login():
+    r = requests.post(login_url,data={'username':username,'password':password},verify=verify)
+    return 'token='+json.loads(r.text)['token']
+
 def get_only_url(url):
     split_url = url.split('/')
     try:
@@ -105,12 +113,9 @@ def add_vulnerability(scan_info,json_data,header):
 def scan_target(scan_info):
     scan_name = scan_info['redmine_project']+'-'+uuid.uuid4().hex
     #Connect to the nessus
-    r = requests.post(login_url,data={'username':username,'password':password},verify=verify)
+    token = perform_login()
     # Getting the session token
-    header = {'X-Cookie':'token='+json.loads(r.text)['token'],
-                'X-API-Token':nessus_info['API'],
-                'Content-Type':'application/json'
-            }
+    header['X-Cookie']=token
     # Create the scan
     json_scan =  {
         'uuid':nessus_info['SCAN_TEMPLATE'],
@@ -137,6 +142,16 @@ def scan_target(scan_info):
         time.sleep(180)
         resp = requests.get(scan_url+scan_id,verify=verify,headers=header)
         json_scan = json.loads(resp.text)
+        #Credentials expired getting new ones
+        try:
+            json_scan['error']
+            token = perform_login()
+            # Getting the session token
+            header['X-Cookie']=token
+            resp = requests.get(scan_url+scan_id,verify=verify,headers=header)
+            json_scan = json.loads(resp.text)
+        except KeyError:
+            pass
         scan_status = json_scan['info']['status']
     if json_scan['info']['status'] == 'completed':
         add_vulnerability(scan_info, json_scan,header)
