@@ -10,7 +10,8 @@ import os,gc
 from .src.recon import recon, nmap, aquatone
 from .src.security import header_scan, http_method_scan, ssl_tls_scan,\
     cors_scan, ffuf, libraries_scan, bucket_finder, token_scan, css_scan,\
-    firebase_scan, nmap_script_scan,nmap_script_baseline, host_header_attack,iis_shortname_scanner, burp_scan, nessus_scan
+    firebase_scan, nmap_script_scan,nmap_script_baseline, host_header_attack,\
+    iis_shortname_scanner, burp_scan, nessus_scan, acunetix_scan
 from .src.slack import slack_sender
 from .src.mongo import mongo
 from .src.comms import email_handler
@@ -36,6 +37,8 @@ def prepare_info_for_target_scan(task, info):
         'language': info['selected_language'],
         'redmine_project': info['redmine_project'], 
         'invasive_scans': info['use_active_modules'],
+        'nessus_scan': info['use_nessus_scan'],
+        'acunetix_scan': info['use_acunetix_scan'],
         'assigned_users': info['assigned_users'],
         'watchers': info['watcher_users']
     }
@@ -54,6 +57,8 @@ def prepare_info_after_nmap(info):
         'language': info['selected_language'],
         'redmine_project': info['redmine_project'], 
         'invasive_scans': info['use_active_modules'],
+        'nessus_scan': info['use_nessus_scan'],
+        'acunetix_scan': info['use_acunetix_scan'],
         'assigned_users': info['assigned_users'],
         'watchers': info['watcher_users']
     }
@@ -202,6 +207,13 @@ def nessus_scan_task(scan_information, scan_type):
         nessus_scan.handle_single(scan_information)
     elif scan_type == 'target':
         nessus_scan.handle_target(scan_information)
+
+@shared_task
+def acunetix_scan_task(scan_information, scan_type):
+    if scan_type == 'single':
+        acunetix_scan.handle_single(scan_information)
+    elif scan_type == 'target':
+        acunetix_scan.handle_target(scan_information)
 
 @shared_task
 def generate_report_task(Task,scan_information,scan_type):

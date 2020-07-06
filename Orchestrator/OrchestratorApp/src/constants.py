@@ -17,6 +17,11 @@ NESSUS_SCAN = {
     'spanish_name': 'Nessus scan',
 }
 
+ACUNETIX_SCAN = {
+    'english_name': 'Acunetix scan',
+    'spanish_name': 'Acunetix scan',
+}
+
 ### VULNERABILITIES ###
 INVALID_VALUE_ON_HEADER = {
     'english_name': 'Insecure HTTP Response Header Configuration',

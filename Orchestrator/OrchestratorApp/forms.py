@@ -53,6 +53,8 @@ class VulnerabilityScanForm(forms.Form):
 											help_text= "Enables intrusive nmap scripts (SSH/FTP/Default login)")
 	use_nessus_scan = forms.BooleanField(required=False, initial=True, label='Nessus scan',
 											help_text= "Launchs a Black Box nessus scan")
+	use_acunetix_scan = forms.BooleanField(required=False, initial=True, label='Acunetix scan',
+											help_text= "Launchs a Black Box acunetix scan")
 	### Email selection
 	checkbox_email = forms.BooleanField(label='Email notification ', required=False, initial=False,
 	 widget=forms.CheckboxInput(attrs={"onchange":'enable_checkbox_div(\'id_checkbox_email\', \'email_div\' )'}))

@@ -169,3 +169,22 @@ except KeyError:
 except Exception:
     print('Nessus connection failed, check the settings file or the VPN connection')
     pass
+
+acunetix_info = settings['ACUNETIX']
+acunetix = False
+try:
+    login_url = acunetix_info['URL']+'/api/v1/me/login'
+    login_json = {
+        'email':acunetix_info['USER'],
+        'password':acunetix_info['PASSWORD_HASH'],
+        'remember_me':acunetix_info['REMEMBER_ME'],
+        'logout_previous':acunetix_info['LOGOUT_PREVIOUS']
+    }
+    response = requests.post(login_url,json=login_json,verify=False)
+    if response.status_code == 204:
+        acunetix = True
+    else:
+        raise Exception('Couldn\'t connect to the acunetix server, check the credentials in the settings file')
+except Exception:
+    print('ACUNETIX connection failed, check the settings file or the VPN connection')
+    pass

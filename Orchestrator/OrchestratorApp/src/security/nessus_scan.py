@@ -90,8 +90,8 @@ def add_vulnerability(scan_info,json_data,header):
         #Get the vulnerabilities for the scanned host
         r = requests.get(scan_url+scan_id+'/hosts/'+str(nessus_hosts['host_id']),verify=verify,headers=header) 
         for host_vuln in json.loads(r.text)['vulnerabilities']:
-            #Only update the vulnerabilities with severity medium or more
-            if host_vuln['severity'] >= 2:
+            #Only update the vulnerabilities with severity medium or more and not in a black list
+            if host_vuln['severity'] >= nessus_info['WHITE_LIST_SEVERITY'] and host_vuln['plugin_name'] not in nessus_info['BLACK_LIST']:
                 name = "[NESSUS SCAN] - "+ host_vuln['plugin_name']
                 plug_id = str(host_vuln['plugin_id'])
                 #Get full detail of the vulnerability
