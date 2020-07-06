@@ -82,7 +82,7 @@ def add_vulnerability(scan_info,scan_id,vulns):
         #Checking if is not a vulnerability already reported by other tool
         if res['title'] not in acunetix_info['BLACK_LIST']:
             affected_urls = ('\n'.join(res['resourceAf'])+'\n'+''.join(res['request_info']))
-            name = "[ACUNETIX SCAN] - "+ res['title']
+            name = {'english_name':constants.ACUNETIX_SCAN['english_name']+ res['title']}
             description = 'Acunetix scan completed against %s' % info['url_to_scan'] +'\n Affecteds URLS>'
             vulnerability = Vulnerability(name, info, description+affected_urls)
             slack_sender.send_simple_vuln(vulnerability)

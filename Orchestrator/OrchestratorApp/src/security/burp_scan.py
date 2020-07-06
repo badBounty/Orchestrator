@@ -63,7 +63,7 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
     description = 'Burp scan completed against %s' % scan_info['url_to_scan'] +'\n'
     for issue in json_data['issues']['issue']:
         if issue['name'] not in burp_config['blacklist_findings']:
-            name = "[BURP SCAN] - "+ issue['name']
+            name = {'english_name':constants.BURP_SCAN['english_name']+ issue['name']}
             extra='Burp Request: \n'+base64.b64decode(issue['requestresponse']['request']['#text']).decode("utf-8")
             vulnerability = Vulnerability(name, scan_info, description+extra)
             vulnerability.add_file_string(file_string)

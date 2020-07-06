@@ -8,18 +8,18 @@ LANGUAGE_SPANISH = 'spa'
 
 ### GENERAL ###
 BURP_SCAN = {
-    'english_name': 'Burp scan',
-    'spanish_name': 'Burp scan',
+    'english_name': '[BURP SCAN] - ',
+    'spanish_name': '[BURP SCAN] - ',
 }
 
 NESSUS_SCAN = {
-    'english_name': 'Nessus scan',
-    'spanish_name': 'Nessus scan',
+    'english_name': '[NESSUS SCAN] - ',
+    'spanish_name': '[NESSUS SCAN] - ',
 }
 
 ACUNETIX_SCAN = {
-    'english_name': 'Acunetix scan',
-    'spanish_name': 'Acunetix scan',
+    'english_name': '[ACUNETIX SCAN] - ',
+    'spanish_name': '[ACUNETIX SCAN] - ',
 }
 
 ### VULNERABILITIES ###
