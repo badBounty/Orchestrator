@@ -83,25 +83,36 @@ def add_vuln_to_mongo(scan_info, scan_type, description, img_str):
 
 def check_ports_and_report(scan_info,ports,scan_type,json_scan,img_str):
     message=''
+    nmap_ports = list()
+    ports_numbers = list()
     try:
-        for port in json_scan['nmaprun']['host']['ports']['port']:
+        if type(json_scan['nmaprun']['host']['ports']['port']) == list:
+            nmap_ports += json_scan['nmaprun']['host']['ports']['port']
+            ports_numbers = [port['@portid'] for port in nmap_ports]
+        else:
+            nmap_ports.append(json_scan['nmaprun']['host']['ports']['port'])
+        for port in nmap_ports:
             if port['@portid'] in ports and port['state']['@state'] == 'open':
                 message+= 'Port: '+port['@portid']+'\n'
                 message+= 'Service: '+port['service']['@name']+'\n'
-                message+= 'Product: '+port['service']['@product']+'\n'
-                message+= 'Version: '+port['service']['@version']+'\n\n'
-                add_vuln_to_mongo(scan_info, scan_type, message, img_str)
-    except KeyError:
+                if '@product' in port['service']:
+                    message+= 'Product: '+port['service']['@product']+'\n'
+                if '@version' in port['service']:
+                    message+= 'Version: '+port['service']['@version']+'\n\n'
+                http_and_https = (port['@portid'] == '80' and all(elem in ports_numbers  for elem in ['80','443']))
+                if not http_and_https:
+                    add_vuln_to_mongo(scan_info, scan_type, message, img_str)
+    except KeyError as e:
         message = None
     return
 
 def basic_scan(scan_info, url_to_scan):
     plaintext_ports=["21","23","80"]
-    remote_ports=["135","513","514","1433","3306","3389"]
+    remote_ports=["135","445","513","514","1433","3306","3389"]
     random_filename = uuid.uuid4().hex
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     output_dir = ROOT_DIR + '/tools_output/'+random_filename
-    basic_scan = subprocess.run(['nmap','-Pn','-sV','-sS','-vvv','--top-ports=1000','-oA',output_dir,url_to_scan])
+    basic_scan = subprocess.run(['nmap','-Pn','-sV','-sS','-vvv','--top-ports=1000','-oA',output_dir,url_to_scan], capture_output=True)
     with open(output_dir + '.xml') as xml_file:
         my_dict = xmltodict.parse(xml_file.read())
     xml_file.close()
