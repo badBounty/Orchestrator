@@ -10,6 +10,7 @@ import requests
 import json
 import re
 import uuid
+import copy
 
 username = nessus_info['USER']
 password = nessus_info['PASSWORD']
@@ -45,7 +46,8 @@ def is_not_ip(url):
 
 def handle_target(info):
     if info['nessus_scan'] and nessus:
-        print('------------------- NESSUS TARGET SCAN STARTING -------------------')
+        print("Module Nessus scan started against target: %s. %d alive urls found!"
+                                        % (info['target'], len(info['url_to_scan'])))
         targets = len(info['url_to_scan'])
         url_list = info['url_to_scan']
         slack_sender.send_simple_message("Nessus scan started against target: %s. %d alive urls found!"
@@ -66,21 +68,20 @@ def handle_target(info):
         sub_info['nessus_target'] = urls
         print('Scanning ' + urls)
         scan_target(sub_info)
-        print('------------------- NESSUS TARGET SCAN FINISHED -------------------')
+        print('Module Nessus Scan finished against %s'% info['target'])
     return
 
 
 def handle_single(scan_information):
     if scan_information['nessus_scan'] and nessus and is_not_ip(scan_information['url_to_scan']):
-        print('------------------- NESSUS SINGLE SCAN STARTING -------------------')
+        print('Module Nessus Single Scan Starting against %s' % scan_information['url_to_scan'])
         slack_sender.send_simple_message("Nessus scan started against %s" % scan_information['url_to_scan'])
         url_plain = get_only_url(scan_information['url_to_scan'])
         scan_information['nessus_target'] = url_plain
         scan_information['url_to_scan'] = list().append(scan_information['url_to_scan'])
         scan_target(scan_information)
-        print('------------------- NESSUS SINGLE SCAN FINISHED -------------------')
-    else:
-        print('Scan not started: the url was an IP number or couldn\'t connect to the nessus server')
+        print('Module Nessus Single Scan Finished against %s' % scan_information['url_to_scan'])
+
     return
 
 def add_vulnerability(scan_info,json_data,header):
@@ -93,7 +94,8 @@ def add_vulnerability(scan_info,json_data,header):
         for host_vuln in json.loads(r.text)['vulnerabilities']:
             #Only update the vulnerabilities with severity medium or more and not in a black list
             if host_vuln['severity'] >= nessus_info['WHITE_LIST_SEVERITY'] and host_vuln['plugin_name'] not in nessus_info['BLACK_LIST']:
-                name = {'english_name':constants.NESSUS_SCAN['english_name']+ host_vuln['plugin_name']}
+                name = copy.deepcopy(constants.NESSUS_SCAN)
+                name['english_name'] = name['english_name']+ host_vuln['plugin_name']
                 plug_id = str(host_vuln['plugin_id'])
                 #Get full detail of the vulnerability
                 r = requests.get(scan_url+scan_id+'/plugins/'+plug_id,verify=verify,headers=header)

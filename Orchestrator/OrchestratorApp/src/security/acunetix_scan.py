@@ -44,14 +44,17 @@ def is_url(url):
 
 def handle_target(info):
     if info['acunetix_scan'] and acunetix:
-        print('------------------- ACUNETIX TARGET SCAN STARTING -------------------')
+        info_copy = copy.deepcopy(info)
+        print("Module Acunetix scan started against target: %s. %d alive urls found!"% (info['target'], len(info['url_to_scan'])))
         slack_sender.send_simple_message("Acunetix scan started against target: %s. %d alive urls found!"
                                         % (info['target'], len(info['url_to_scan'])))
         print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
         full_list = info['url_to_scan']
-        for url in full_list:
-            info['url_to_scan'] = [url]
-            scan_target(info)
+        for a,b,c,d  in zip(*[iter(full_list)]*4):
+            small_list=[a,b,c,d]
+            info_for_scan = copy.deepcopy(info_copy)
+            info_for_scan['url_to_scan'] = small_list
+            scan_target(info_for_scan)
         print('------------------- ACUNETIX TARGET SCAN FINISHED -------------------')
     return
 
@@ -93,9 +96,7 @@ def add_vulnerability(scan_info,scan_id,vulns):
 def start_acu_scan(scan_info,headers,session):
     id_list = list()
     for url in scan_info['url_to_scan']:        
-        target_json = {'address':url,
-                        'description':'Created by orchestrator'
-            }
+        target_json = {'address':url,'description':'Created by orchestrator one-shot'}
         #Creating target to scan
         r = session.post(basic_url+create_target_url,json=target_json,verify=verify,headers=headers)
         target_id = json.loads(r.text)['target_id']

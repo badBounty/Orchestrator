@@ -27,10 +27,9 @@ def cleanup(path):
 
 
 def handle_target(info):
-    print('------------------- NMAP SCRIPT TARGET SCAN STARTING -------------------')
+    print('Module Nmap Scripts started against target: %s. %d alive urls found!'% (info['target'], len(info['url_to_scan'])))
     slack_sender.send_simple_message("Nmap scripts started against target: %s. %d alive urls found!"
                                      % (info['target'], len(info['url_to_scan'])))
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     scanned_hosts = list()
     for url in info['url_to_scan']:
         sub_info = info
@@ -40,43 +39,37 @@ def handle_target(info):
         except IndexError:
             host = url
         print('Scanning ' + url)
-        print('------------------- NMAP OUTDATED SOFTWARE -------------------')
         if host not in scanned_hosts:
             outdated_software(sub_info, host)
-            print('------------------- NMAP WEB VERSIONS -------------------')
             web_versions(sub_info, host)
             if sub_info['invasive_scans']:
-                print('------------------- NMAP SSH FTP BRUTE FORCE -------------------')
-                ssh_ftp_brute_login(sub_info, host, True)#SHH
-                sleep(10)
-                ssh_ftp_brute_login(sub_info, host, False)#FTP
-                ftp_anon_login(sub_info, host)#FTP ANON
-                print('------------------- NMAP DEFAULT ACCOUNTS -------------------')
+                if wordlist['ssh_ftp_user'] and wordlist['ssh_ftp_pass']:
+                    ssh_ftp_brute_login(sub_info, host, True)#SHH
+                    sleep(10)
+                    ssh_ftp_brute_login(sub_info, host, False)#FTP
+                    ftp_anon_login(sub_info, host)#FTP ANON
                 default_account(sub_info,host)#Default creds in web console
         scanned_hosts.append(host)
-    print('------------------- NMAP SCRIPT TARGET SCAN FINISHED -------------------')
+    print('Module Nmap Scripts finished against %s'% info['target'])
     return
 
 
 def handle_single(scan_info):
-    print('------------------- NMAP SCRIPT SCAN STARTING -------------------')
     url = scan_info['url_to_scan']
+    print('Module Nmap Scripts (single) scan started against %s' % url)
     slack_sender.send_simple_message("Nmap scripts started against %s" % url)
     # We receive the url with http/https, we will get only the host so nmap works
     host = url.split('/')[2]
-    print('------------------- NMAP OUTDATED SOFTWARE -------------------')
     outdated_software(scan_info, host)
-    print('------------------- NMAP WEB VERSIONS -------------------')
     web_versions(scan_info, host)
     if scan_info['invasive_scans']:
-        print('------------------- NMAP SSH FTP BRUTE FORCE -------------------')
-        ssh_ftp_brute_login(scan_info, host, True)#SHH
-        sleep(10)
-        ssh_ftp_brute_login(scan_info, host, False)#FTP
-        ftp_anon_login(scan_info, host)#FTP ANON
-        print('------------------- NMAP DEFAULT ACCOUNTS -------------------')
+        if wordlist['ssh_ftp_user'] and wordlist['ssh_ftp_pass']:
+            ssh_ftp_brute_login(scan_info, host, True)#SHH
+            sleep(10)
+            ssh_ftp_brute_login(scan_info, host, False)#FTP
+            ftp_anon_login(scan_info, host)#FTP ANON
         default_account(scan_info,host)#Default creds in web console
-    print('------------------- NMAP_SCRIPT SCAN FINISHED -------------------')
+    print('Module Nmap Scripts (single) scan finished against %s' % url)
     return
 
 

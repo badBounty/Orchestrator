@@ -96,7 +96,7 @@ def one_shot_scan(request):
     if request.method == 'POST':
         scan = json.loads(request.body)
         if scan['scan_type'] == 'file_target' or scan['scan_type'] == 'file_ip':
-            vuln_scan_handler.handle_url_ip_file(scan)
+            vuln_scan_handler.handle_url_ip(scan)
         else:
             vuln_scan_handler.handle(scan)
         return JsonResponse({'message': 'Running scan'})

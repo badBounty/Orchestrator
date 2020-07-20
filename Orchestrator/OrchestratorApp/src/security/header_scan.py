@@ -15,16 +15,15 @@ from ...objects.vulnerability import Vulnerability
 
 
 def handle_target(info):
-    print('------------------- TARGET HEADER SCAN STARTING -------------------')
+    print('Module Header Scan starting against ' + str(len(info['url_to_scan'])) + ' targets')
     slack_sender.send_simple_message("Header scan started against target: %s. %d alive urls found!"
                                      % (info['target'], len(info['url_to_scan'])))
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
         print('Scanning ' + url)
         scan_target(sub_info, sub_info['url_to_scan'])
-    print('-------------------  TARGET HEADER SCAN FINISHED -------------------')
+    print('Module Header Scan finished')
     return
 
 
@@ -92,7 +91,6 @@ def add_header_missing_vulnerability(scan_info, img_string, description):
 def scan_target(scan_info, url_to_scan):
     try:
         response = requests.get(url_to_scan)
-        print('------------- SAVING RESPONSE TO IMAGE -----------------')
         message = 'Response Headers From: ' + url_to_scan+'\n'
         for h in response.headers:
             message += h + " : " + response.headers[h]+'\n'

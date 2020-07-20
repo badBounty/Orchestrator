@@ -14,8 +14,7 @@ from ...objects.vulnerability import Vulnerability
 
 
 def handle_target(info):
-    print('------------------- TARGET SSL/TLS SCAN STARTING -------------------')
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+    print('Module SSL/TLS scan started against target: %s. %d alive urls found!'% (info['target'], len(info['url_to_scan'])))
     slack_sender.send_simple_message("SSL/TLS scan started against target: %s. %d alive urls found!"
                                      % (info['target'], len(info['url_to_scan'])))
     valid_ports = ['443']
@@ -30,7 +29,7 @@ def handle_target(info):
             final_url = url
         for port in valid_ports:
             scan_target(sub_info, url, final_url+':'+port)
-    print('-------------------  TARGET SSL/TLS SCAN FINISHED -------------------')
+    print('Module SSL/TLS finished against %s'% info['target'])
     return
 
 
@@ -44,15 +43,14 @@ def handle_single(scan_info):
         final_url = split_url[2]
     except IndexError:
         final_url = url
-    print('------------------- SINGLE SSL/TLS SCAN STARTING -------------------')
+    print("SSL/TLS (single) scan started against %s" % url)
     for port in valid_ports:
         scan_target(scan_info, url, final_url+':'+port)
-    print('------------------- SINGLE SSL/TLS SCAN FINISHED -------------------')
+    print("SSL/TLS (single) scan finished against %s" % url)
     return
 
 
 def checker(scan_info, url_with_port, result):
-    timestamp = datetime.now()
     # testssl has a bunch of vulns, we could test more
     if result['id'] == 'SSLv2' and result['finding'] != 'not offered':
         add_vulnerability(scan_info, "SSLv2 is available at %s" % url_with_port)
@@ -72,7 +70,6 @@ def cleanup(path):
 
 def add_vulnerability(scan_info, message):
     vulnerability = Vulnerability(constants.SSL_TLS, scan_info, message)
-
     slack_sender.send_simple_vuln(vulnerability)
     redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
@@ -88,8 +85,8 @@ def scan_target(scan_info, url, url_with_port):
 
     cleanup(OUTPUT_FULL_NAME)
     # We first run the subprocess that creates the xml output file
-    testssl_process = subprocess.run(
-       ['bash', TOOL_DIR, '--fast', '--warnings=off', '-oj', OUTPUT_FULL_NAME, url_with_port])
+    subprocess.run(
+       ['bash', TOOL_DIR, '--fast', '--warnings=off', '-oj', OUTPUT_FULL_NAME, url_with_port], capture_output = True)
 
     with open(OUTPUT_FULL_NAME) as f:
         results = json.load(f)

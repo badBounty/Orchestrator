@@ -1,4 +1,4 @@
-import json, requests, itertools, collections, os
+import json, requests, itertools, collections, os, traceback
 from bs4 import BeautifulSoup
 from Orchestrator.settings import WAPPALIZE_KEY
 from .. import constants
@@ -16,7 +16,6 @@ def get_latest_version(name):
 
 
 def get_cves_and_last_version(librarie):
-    cve_list = []
     version = librarie["versions"][0] if librarie["versions"] else ""
     name = librarie["name"]
     name = "Internet Information Server" if name == "IIS" else name
@@ -44,7 +43,6 @@ def get_cves_and_last_version(librarie):
                   range(max(map(len, result.values())))]
         return result, last_version
     else:
-        print("No CVE'S found for: " + librarie['name'])
         return {}, ""
 
 
@@ -76,35 +74,38 @@ def analyze(scan_info, url_to_scan):
     headers = {'x-api-key': WAPPALIZE_KEY}
     try:
         response = requests.get(target, headers=headers)
-        libraries = response.json()[0]['applications']
-        for lib in libraries:
-            lib['cves'], lib['last_version'] = get_cves_and_last_version(lib)
+        if response.json():
+            libraries = response.json()[0]['applications']
+            for lib in libraries:
+                lib['cves'], lib['last_version'] = get_cves_and_last_version(lib)
 
-        message = fastPrint(libraries)
-        add_libraries_vulnerability(scan_info,  message)
-        print('\nActive Scan completed\n')
+            message = fastPrint(libraries)
+            add_libraries_vulnerability(scan_info,  message)
+    except KeyError:
+        return
     except Exception as e:
-        print('\nSomethig went wrong! :' + '\n' + str(e))
+        error_string = traceback.format_exc()
+        print('Libraries scan error '+str(e))
 
 
 def handle_target(info):
-    print('------------------- TARGET LIBRARIES SCAN STARTING -------------------')
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
-    slack_sender.send_simple_message("Libraries scan started against target: %s. %d alive urls found!"
-                                     % (info['target'], len(info['url_to_scan'])))
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
-    for url in info['url_to_scan']:
-        sub_info = info
-        sub_info['url_to_scan'] = url
-        print('Scanning ' + url)
-        analyze(sub_info, sub_info['url_to_scan'])
-    print('-------------------  TARGET LIBRARIES SCAN FINISHED -------------------')
+    if WAPPALIZE_KEY:
+        print('Module libraries scan started against '+ str(len(info['url_to_scan'])) + ' targets')
+        slack_sender.send_simple_message("Libraries scan started against target: %s. %d alive urls found!"
+                                        % (info['target'], len(info['url_to_scan'])))
+        for url in info['url_to_scan']:
+            sub_info = info
+            sub_info['url_to_scan'] = url
+            print('Scanning ' + url)
+            analyze(sub_info, sub_info['url_to_scan'])
+        print('Module libraries scan finished')
     return
 
 
 def handle_single(scan_info):
-    print('------------------- SINGLE LIBRARIES SCAN STARTING -------------------')
-    slack_sender.send_simple_message("Libraries scan started against %s" % scan_info['url_to_scan'])
-    analyze(scan_info, scan_info['url_to_scan'])
-    print('------------------- SINGLE LIBRARIES SCAN FINISHED -------------------')
+    if WAPPALIZE_KEY:
+        print('Module libraries scan (single) started against %s' % scan_info['url_to_scan'])
+        slack_sender.send_simple_message("Libraries scan started against %s" % scan_info['url_to_scan'])
+        analyze(scan_info, scan_info['url_to_scan'])
+        print('Module libraries scan (single) finished')
     return

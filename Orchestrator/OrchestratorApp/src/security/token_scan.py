@@ -1,7 +1,4 @@
-import os
-import re
-import requests
-import urllib3
+import os,re,requests,urllib3,traceback
 from datetime import datetime
 
 from ..slack import slack_sender
@@ -15,31 +12,28 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def handle_target(info):
-    print('------------------- TOKEN FINDER TARGET SCAN STARTING -------------------')
+    print('Module Token finder started against target: %s. %d alive urls found!' % (info['target'], len(info['url_to_scan'])))
     slack_sender.send_simple_message("Token finder scan started against target: %s. %d alive urls found!"
                                      % (info['target'], len(info['url_to_scan'])))
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
         print('Scanning ' + url)
         scan_target(sub_info, sub_info['url_to_scan'])
-    print('------------------- TOKEN FINDER TARGET SCAN FINISHED -------------------')
+    print('Module Token finder finished')
     return
 
 
 def handle_single(scan_info):
-    print('------------------- TOKEN FINDER SINGLE SCAN STARTING -------------------')
+    print('Module Token finder (single) scan started against %s' % scan_info['url_to_scan'])
     slack_sender.send_simple_message("Token finder scan started against %s" % scan_info['url_to_scan'])
     scan_target(scan_info, scan_info['url_to_scan'])
-    print('------------------- TOKEN FINDER SINGLE SCAN FINISHED -------------------')
+    print('Module Token finder finished')
     return
 
 
 def add_token_found_vuln(scan_info, message):
-    timestamp = datetime.now()
     vulnerability = Vulnerability(constants.TOKEN_SENSITIVE_INFO, scan_info, message)
-
     slack_sender.send_simple_vuln(vulnerability)
     redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
@@ -47,11 +41,8 @@ def add_token_found_vuln(scan_info, message):
 
 def scan_target(scan_info, url_for_scanning):
     # We scan javascript files
-    print('Searching for javascript files...')
-    javascript_files_found = utils.get_js_files_linkfinder(url_for_scanning)
-    print(str(len(javascript_files_found)) + ' javascript files found')
+    javascript_files_found = utils.get_js_files(url_for_scanning)
     for javascript in javascript_files_found:
-        print('Scanning %s' % javascript)
         scan_for_tokens(scan_info, url_for_scanning, javascript)
     return
 
@@ -60,10 +51,11 @@ def scan_for_tokens(scan_info, scanned_url, javascript):
     try:
         response = requests.get(javascript, verify=False, timeout=3)
     except Exception:
+        error_string = traceback.format_exc()
+        print('Error found in: '+error_string)
         return
 
     # We now scan the javascript file for tokens
-
     tokens_found = list()
 
     # Generic tokens

@@ -1,7 +1,4 @@
-import re
-import requests
-import urllib3
-import subprocess
+import re,requests,urllib3,subprocess,traceback
 from datetime import datetime
 
 from ..slack import slack_sender
@@ -20,24 +17,23 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def handle_target(info):
-    print('------------------- S3BUCKET TARGET SCAN STARTING -------------------')
+    print('Module S3 Bucket scan started against target: %s. %d alive urls found!' % (info['target'], len(info['url_to_scan'])))
     slack_sender.send_simple_message("Bucket finder scan started against target: %s. %d alive urls found!"
                                      % (info['target'], len(info['url_to_scan'])))
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
         print('Scanning ' + url)
         scan_target(sub_info, sub_info['url_to_scan'])
-    print('------------------- S3BUCKET TARGET SCAN FINISHED -------------------')
+    print('Module S3 Bucket scan finished')
     return
 
 
 def handle_single(scan_information):
-    print('------------------- S3BUCKET SINGLE SCAN STARTING -------------------')
+    print('Module S3 Bucket scan (single) started against %s' % scan_information['target'])
     slack_sender.send_simple_message("Bucket finder scan started against %s" % scan_information['target'])
     scan_target(scan_information, scan_information['url_to_scan'])
-    print('------------------- S3BUCKET SINGLE SCAN FINISHED -------------------')
+    print('Module S3 Bucket scan (single) finished')
     return
 
 
@@ -52,24 +48,17 @@ def filter_invalids(some_list):
 
 def scan_target(scan_information, url_to_scan):
     # We first search for buckets inside the html code
-    print('Scanning html file...')
     get_buckets(scan_information, url_to_scan)
     # We now scan javascript files
-    print('Searching for javascript files..')
-    javascript_files_found = utils.get_js_files_linkfinder(url_to_scan)
-    print(str(len(javascript_files_found)) + ' javascript files found')
-    for javascript in javascript_files_found:
-        print('Scanning %s' % javascript)
-        get_buckets(scan_information, javascript)
+    javascript_files_found = utils.get_js_files(url_to_scan)
+    if javascript_files_found:
+        for javascript in javascript_files_found:
+            get_buckets(scan_information, javascript)
     return
-
-# target: tesla.com, url_to_scan: vpn.tesla.com, javascript: un_javascript
 
 
 def add_vulnerability_to_mongo(scanned_url, finding_name, bucket_name, description , scan_info):
-    timestamp = datetime.now()
     vuln_name = constants.BUCKET
-
     vulnerability = Vulnerability(vuln_name, scan_info, description)
     slack_sender.send_simple_vuln(vulnerability)
     redmine.create_new_issue(vulnerability)
@@ -85,7 +74,7 @@ def get_ls_buckets(bucket_list, scanned_url, scan_information):
         if any(x.isupper() for x in bucket):
             continue
         try:
-            output = subprocess.check_output('aws s3 ls s3://' + bucket, shell=True, stderr=subprocess.STDOUT)
+            subprocess.check_output('aws s3 ls s3://' + bucket, shell=True, stderr=subprocess.STDOUT)
             description = 'Bucket %s allows content listing. Found at %s from %s' \
                           % (bucket, scanned_url, scan_information['url_to_scan'])
             add_vulnerability_to_mongo(scanned_url, 'ls', bucket, description, scan_information)
@@ -105,13 +94,14 @@ def get_cprm_buckets(bucket_list, scanned_url, scan_information):
     cprm_allowed_buckets = []
     for bucket in bucket_list:
         try:
-            output = subprocess.check_output('aws s3 cp test.txt s3://' + bucket, shell=True, stderr=subprocess.DEVNULL)
+            subprocess.check_output('aws s3 cp test.txt s3://' + bucket, shell=True, stderr=subprocess.DEVNULL)
             subprocess.check_output('aws s3 rm s3://' + bucket + '/test.txt', shell=True)
             description = 'Bucket %s allows copy and remove operations. Found at %s from %s' \
                           % (bucket, scanned_url, scan_information['url_to_scan'])
             add_vulnerability_to_mongo(scanned_url, 'cprm', bucket, description, scan_information)
             cprm_allowed_buckets.append(bucket)
         except subprocess.CalledProcessError as e:
+            print('Error called process error at bucket finder')
             continue
     return cprm_allowed_buckets
 
@@ -124,6 +114,8 @@ def get_buckets(scan_information, url_to_scan):
     except requests.exceptions.ReadTimeout:
         return
     except Exception as e:
+        error_string = traceback.format_exc()
+        print('Error in: '+error_string)
         return
 
     # Buckets can come in different ways
@@ -171,7 +163,5 @@ def get_buckets(scan_information, url_to_scan):
         bucket_list[i] = bucket_list[i].replace('/', '')
 
     # We now have to check the buckets
-    ls_allowed, does_not_exist = get_ls_buckets(bucket_list, url_to_scan, scan_information)
-    cprm_allowed = get_cprm_buckets(bucket_list, url_to_scan, scan_information)
-    access_denied = list(set(bucket_list) - set(ls_allowed) - set(cprm_allowed) - set(does_not_exist))
-
+    get_ls_buckets(bucket_list, url_to_scan, scan_information)
+    get_cprm_buckets(bucket_list, url_to_scan, scan_information)

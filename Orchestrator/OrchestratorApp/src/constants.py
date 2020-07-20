@@ -10,26 +10,29 @@ LANGUAGE_SPANISH = 'spa'
 BURP_SCAN = {
     'english_name': '[BURP SCAN] - ',
     'spanish_name': '[BURP SCAN] - ',
+    'status': 12
 }
 
 NESSUS_SCAN = {
     'english_name': '[NESSUS SCAN] - ',
     'spanish_name': '[NESSUS SCAN] - ',
+    'status' : 12 
 }
 
 ACUNETIX_SCAN = {
     'english_name': '[ACUNETIX SCAN] - ',
     'spanish_name': '[ACUNETIX SCAN] - ',
+    'status' : 12
 }
 
 ### VULNERABILITIES ###
 INVALID_VALUE_ON_HEADER = {
-    'english_name': 'Insecure HTTP Response Header Configuration',
+    'english_name': 'Insecure HTTP Response Header Configuration (Invalid value)',
     'spanish_name': 'Inadecuada configuración de encabezados de seguridad',
     'status' : 1
 }
 HEADER_NOT_FOUND = {
-    'english_name': 'Insecure HTTP Response Header Configuration',
+    'english_name': 'Insecure HTTP Response Header Configuration (Not found)',
     'spanish_name': 'Inadecuada configuración de encabezados de seguridad',
     'status': 1
 }

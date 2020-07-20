@@ -31,7 +31,7 @@ def handle(info):
     return
 
 # From redmine manager list of IPs or URLs
-def handle_url_ip_file(info):
+def handle_url_ip(info):
     scan_information = {
         'target': 'red_manager_file',
         'url_to_scan': info['targets'],
@@ -139,7 +139,7 @@ def launch_url_scan(scan_information):
             nmap_script_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
             nessus_scan_task.s(scan_information,'target').set(queue='slow_queue'),
             acunetix_scan_task.s(scan_information,'target').set(queue='slow_queue'),
-            #burp_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
+            burp_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
         ],
         body=generate_report_task.s(scan_information,'target').set(queue='slow_queue'),
         immutable=True)
@@ -181,6 +181,7 @@ def launch_ip_scan(scan_information):
                 # Slow_scans
                 cors_scan_task.s('target').set(queue='slow_queue'),
                 ssl_tls_scan_task.s('target').set(queue='slow_queue'),
+                #nessus_scan_task.s(scan_information,'target').set(queue='slow_queue'),
                 #burp_scan_task.s('target').set(queue='slow_queue'),
             ],
             body=generate_report_task.s(scan_information,'target').set(queue='slow_queue'))
@@ -235,7 +236,7 @@ def handle_target_scan(info):
             nmap_script_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
             nessus_scan_task.s(scan_information,'target').set(queue='slow_queue'),
             acunetix_scan_task.s(scan_information,'target').set(queue='slow_queue'),
-            #burp_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
+            burp_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
         ],
         body=generate_report_task.s(scan_information,'target').set(queue='slow_queue'),
         immutable=True)
@@ -310,7 +311,7 @@ def handle_single_scan(info):
             # Fast_scans
             header_scan_task.s(scan_information,'single').set(queue='fast_queue'),
             http_method_scan_task.s(scan_information,'single').set(queue='fast_queue'),
-            #libraries_scan_task.s(scan_information,'single').set(queue='fast_queue'),
+            libraries_scan_task.s(scan_information,'single').set(queue='fast_queue'),
             ffuf_task.s(scan_information,'single').set(queue='fast_queue'),
             iis_shortname_scan_task.s(scan_information,'single').set(queue='fast_queue'),
             bucket_finder_task.s(scan_information,'single').set(queue='fast_queue'),
@@ -325,7 +326,7 @@ def handle_single_scan(info):
             nmap_script_scan_task.s(scan_information,'single').set(queue='slow_queue'),
             nessus_scan_task.s(scan_information,'single').set(queue='slow_queue'),
             acunetix_scan_task.s(scan_information,'single').set(queue='slow_queue'),
-            #burp_scan_task.s(scan_information,'single').set(queue='slow_queue')
+            burp_scan_task.s(scan_information,'single').set(queue='slow_queue')
         ],
         body=generate_report_task.s(scan_information,'single').set(queue='slow_queue'))
     

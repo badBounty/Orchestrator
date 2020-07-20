@@ -4,6 +4,7 @@ from .. import constants
 from ..slack import slack_sender
 from ..redmine import redmine
 from ...objects.vulnerability import Vulnerability
+from Orchestrator.settings import wordlist
 
 import subprocess
 import os
@@ -20,32 +21,31 @@ def cleanup(path):
 
 
 def handle_target(info):
-    print('------------------- FFUF SCAN STARTING -------------------')
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
-    slack_sender.send_simple_message("Directory bruteforce scan started against target: %s. %d alive urls found!"
-                                     % (info['target'], len(info['url_to_scan'])))
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
-    for url in info['url_to_scan']:
-        sub_info = info
-        sub_info['url_to_scan'] = url
-        print('Scanning ' + url)
-        scan_target(sub_info, sub_info['url_to_scan'])
-    print('-------------------  FFUF SCAN FINISHED -------------------')
+    if wordlist['ffuf_list']:
+        print('Module ffuf starting against  '+ str(len(info['url_to_scan'])) + ' targets')
+        print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+        slack_sender.send_simple_message("Directory bruteforce scan started against target: %s. %d alive urls found!"
+                                        % (info['target'], len(info['url_to_scan'])))
+        for url in info['url_to_scan']:
+            sub_info = info
+            sub_info['url_to_scan'] = url
+            print('Scanning ' + url)
+            scan_target(sub_info, sub_info['url_to_scan'])
+        print('Module ffuf finished')
     return
 
 
 def handle_single(scan_info):
-    print('------------------- FFUF SCAN STARTING -------------------')
-    slack_sender.send_simple_message("Directory bruteforce scan started against %s" % scan_info['url_to_scan'])
-    scan_target(scan_info, scan_info['url_to_scan'])
-    print('------------------- FFUF SCAN FINISHED -------------------')
+    if wordlist['ffuf_list']:
+        print('Module ffuf (single) started against %s' % scan_info['url_to_scan'])
+        slack_sender.send_simple_message("Directory bruteforce scan started against %s" % scan_info['url_to_scan'])
+        scan_target(scan_info, scan_info['url_to_scan'])
+        print('Module ffuf (single) finished')
     return
 
 
 def add_vulnerability(scan_info, affected_resource, description):
-    timestamp = datetime.now()
     vulnerability = Vulnerability(constants.ENDPOINT, scan_info, description)
-
     slack_sender.send_simple_vuln(vulnerability)
     redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
@@ -62,9 +62,9 @@ def scan_target(scan_info, url_with_http):
     if url_with_http[-1] != '/':
         url_with_http = url_with_http + '/'
 
-    ffuf_process = subprocess.run(
-        [TOOL_DIR, '-w', WORDLIST_DIR, '-u', url_with_http + 'FUZZ', '-c', '-v',
-         '-o', JSON_RESULT])
+    subprocess.run(
+        [TOOL_DIR, '-w', WORDLIST_DIR, '-u', url_with_http + 'FUZZ', '-c', '-v','-mc','200,403',
+         '-o', JSON_RESULT],capture_output=True)
 
     with open(JSON_RESULT) as json_file:
         json_data = json.load(json_file)

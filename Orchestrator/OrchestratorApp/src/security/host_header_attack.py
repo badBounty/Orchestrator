@@ -1,6 +1,7 @@
 import urllib3
 import requests
 import tldextract
+import traceback
 from datetime import datetime
 
 from .. import constants
@@ -13,31 +14,28 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def handle_target(info):
-    print('------------------- HOST HEADER ATTACK TARGET SCAN STARTING -------------------')
+    print('Module Host Header Attack scan started against target: %s. %d alive urls found!'% (info['target'], len(info['url_to_scan'])))
     slack_sender.send_simple_message("Host header attack scan started against target: %s. %d alive urls found!"
                                      % (info['target'], len(info['url_to_scan'])))
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
         print('Scanning ' + url)
         scan_target(sub_info, sub_info['url_to_scan'])
-    print('------------------- HOST HEADER ATTACK TARGET SCAN FINISHED -------------------')
+    print('Module Host Header Attack finished')
     return
 
 
 def handle_single(scan_info):
-    print('------------------- HOST HEADER ATTACK SCAN STARTING -------------------')
+    print('Module Host Header Attack (single) scan started against %s' % scan_info['url_to_scan'])
     slack_sender.send_simple_message("Host header attack scan started against %s" % scan_info['url_to_scan'])
     scan_target(scan_info, scan_info['url_to_scan'])
-    print('------------------- HOST HEADER ATTACK SCAN FINISHED -------------------')
+    print('Module Host Header Attack finished')
     return
 
 
 def add_vulnerability_to_mongo(scan_info):
-    vulnerability = Vulnerability(constants.HOST_HEADER_ATTACK, scan_info,
-                                  "Host header attack possible at url %s" % scan_info['url_to_scan'])
-
+    vulnerability = Vulnerability(constants.HOST_HEADER_ATTACK, scan_info,"Host header attack possible at url")
     slack_sender.send_simple_vuln(vulnerability)
     redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
@@ -48,7 +46,15 @@ def scan_target(scan_info, url_to_scan):
     try:
         # Sends the request to test if it's vulnerable to a Host Header Attack
         response = requests.get(url_to_scan, verify=False, headers={'Host': 'test.com'}, timeout=3)
-    except Exception as e:
+    except requests.exceptions.ReadTimeout:
+        return
+    except requests.exceptions.ConnectionError:
+        return
+    except requests.exceptions.TooManyRedirects:
+        return
+    except Exception:
+        error_string = traceback.format_exc()
+        print('Error found in: '+error_string)
         return
 
     host_header_attack = 0

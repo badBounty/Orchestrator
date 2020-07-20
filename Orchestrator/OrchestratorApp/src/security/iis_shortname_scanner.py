@@ -1,6 +1,4 @@
-import requests
-import os
-import subprocess
+import requests,os,subprocess,traceback
 import base64
 from PIL import Image
 from io import BytesIO
@@ -16,31 +14,32 @@ from ...objects.vulnerability import Vulnerability
 
 
 def handle_target(info):
-    print('------------------- IIS SHORTNAME SCAN STARTING -------------------')
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
+    print('Module IIS Shortname starting against '+ str(len(info['url_to_scan'])) + ' targets')
     slack_sender.send_simple_message("Check and scann : %s. %d alive urls found!"% (info['target'], len(info['url_to_scan'])))
-    print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     for url in info['url_to_scan']:
         sub_info = info
         sub_info['url_to_scan'] = url
         print('Scanning ' + url)
         scan_target(sub_info, sub_info['url_to_scan'])
-    print('-------------------  IIS SHORTNAME SCAN FINISHED -------------------')
+    print('Module IIS Shortname finished')
     return
 
 
 def handle_single(scan_info):
-    print('------------------- IIS SHORTNAME SCAN STARTING -------------------')
+    print('Module IIS Shortname (single) scan started against %s' % scan_info['url_to_scan'])
     slack_sender.send_simple_message("IIS ShortName Scanner scan started against %s" % scan_info['url_to_scan'])
     scan_target(scan_info, scan_info['url_to_scan'])
-    print('------------------- IIS SHORTNAME SCAN FINISHED -------------------')
+    print('Module IIS Shortname (single) finished')
     return
 
 
 def scan_target(scan_info, url_to_scan):
     try:
         resp = requests.get(url_to_scan)
+    except requests.exceptions.SSLError:
+        return
     except Exception:
+        error_string = traceback.format_exc()
         return
     try:
         if 'IIS' in resp.headers['Server']:
@@ -67,5 +66,7 @@ def scan_target(scan_info, url_to_scan):
                 mongo.add_vulnerability(vulnerability)
                 os.remove(output_dir)
     except KeyError:
-        print("No server header was found")
+        pass
+    except Exception:
+        pass
     return
