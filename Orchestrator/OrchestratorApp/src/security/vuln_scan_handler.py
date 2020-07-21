@@ -181,8 +181,8 @@ def launch_ip_scan(scan_information):
                 # Slow_scans
                 cors_scan_task.s('target').set(queue='slow_queue'),
                 ssl_tls_scan_task.s('target').set(queue='slow_queue'),
-                #nessus_scan_task.s(scan_information,'target').set(queue='slow_queue'),
-                #burp_scan_task.s('target').set(queue='slow_queue'),
+                nessus_scan_task.s(scan_information,'target').set(queue='slow_queue'),
+                burp_scan_task.s('target').set(queue='slow_queue'),
             ],
             body=generate_report_task.s(scan_information,'target').set(queue='slow_queue'))
         )
@@ -278,7 +278,7 @@ def handle_new_target_scan(info):
                 nmap_script_scan_task.s('target').set(queue='slow_queue'),
                 nessus_scan_task.s('target').set(queue='slow_queue'),
                 acunetix_scan_task.s('target').set(queue='slow_queue'),
-                #burp_scan_task.s('target').set(queue='slow_queue'),
+                burp_scan_task.s('target').set(queue='slow_queue'),
             ],
             body=generate_report_task.s(info,'target').set(queue='slow_queue'))
     )
