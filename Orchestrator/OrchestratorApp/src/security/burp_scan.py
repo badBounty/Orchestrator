@@ -86,7 +86,6 @@ def scan_target(scan_info):
         proc1 = subprocess.Popen(['ps','aux'],stdout=subprocess.PIPE)
         proc2 = subprocess.Popen(['grep', 'burp-rest-api.sh'], stdin=proc1.stdout,stdout=subprocess.PIPE, stderr=subprocess.PIPE)    
         proc_list = proc2.stdout.readline().decode('utf-8').split()
-        print(proc_list)
         proc1.kill()
         proc2.kill()
         if burp_config['bash_folder'] != proc_list[len(proc_list)-1]:
