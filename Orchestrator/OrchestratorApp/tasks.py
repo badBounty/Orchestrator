@@ -5,7 +5,7 @@ from celery import group
 
 from time import sleep
 import datetime as dt
-import os,gc
+import os,gc,copy
 
 from .src.recon import recon, nmap, aquatone
 from .src.security import header_scan, http_method_scan, ssl_tls_scan,\
@@ -51,12 +51,11 @@ def prepare_info_for_target_scan(task, info):
 
 @shared_task
 def prepare_info_after_nmap(info):
-    print(info)
     web_ips = mongo.get_ips_with_web_interface(info)
-    print(web_ips)
-    info['url_to_scan'] = web_ips
-    print(info)
-    return info
+    scan_information = copy.deepcopy(info)
+    scan_information['url_to_scan'] = web_ips
+    print(scan_information)
+    return scan_information
 
 
 @shared_task
