@@ -5,7 +5,7 @@ from celery import chain, chord
 from ..mongo import mongo
 from celery.result import AsyncResult
 from datetime import datetime, timedelta
-import os
+import os,copy
 
 # Here we parse the information and call each scan type
 def handle(info):
@@ -52,7 +52,12 @@ def handle_url_ip(info):
     if info['scan_type'] == 'file_target':
         launch_url_scan(scan_information)
     else:
+        scan_info = copy.deepcopy(scan_information)
+        for ip in scan_info['url_to_scan']:
+            scan_info['domain'] = ip
+            mongo.add_simple_ip_resource(scan_info)
         launch_ip_scan(scan_information)
+
 
 ### FILE WITH IPs ###
 def handle_ip_file(info, f):
