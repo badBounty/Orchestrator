@@ -5,7 +5,7 @@ from celery import chain, chord
 from ..mongo import mongo
 from celery.result import AsyncResult
 from datetime import datetime, timedelta
-import os
+import os,copy
 
 # Here we parse the information and call each scan type
 def handle(info):
@@ -42,17 +42,23 @@ def handle_url_ip(info):
         'acunetix_scan': info['use_acunetix_scan'],
         'assigned_users': info['assigned_users'],
         'watchers': info['watcher_users'],
-        'start_date': info['start_date']
+        'start_date': info['start_date'],
+        'type': info['scan_type'],
     }
     if info['checkbox_report']:
         scan_information['report_type'] = info['report_type']
     else:
         scan_information['report_type'] = None
 
-    if info['scan_type'] == 'file_target':
+    if scan_information['type'] == 'file_target':
         launch_url_scan(scan_information)
     else:
+        scan_info = copy.deepcopy(scan_information)
+        for ip in scan_info['url_to_scan']:
+            scan_info['domain'] = ip
+            mongo.add_simple_ip_resource(scan_info)
         launch_ip_scan(scan_information)
+
 
 ### FILE WITH IPs ###
 def handle_ip_file(info, f):
@@ -162,7 +168,7 @@ def launch_ip_scan(scan_information):
                 nmap_script_scan_task.s(scan_information, 'target').set(queue='slow_queue')
             ],
             body=task_finished.s(),
-            mmutable=True),
+            mmutable=True),    
         # Based on the previous output, ips with port 80 and 443 will be scanned
         prepare_info_after_nmap.si(scan_information),
         chord(

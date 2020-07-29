@@ -24,9 +24,9 @@ def sleepy(duration):
     
 @shared_task
 def recon_handle_task(target):
-    #recon.run_recon(target)
-    #subdomains = mongo.get_target_alive_subdomains(target)
-    #aquatone.start_aquatone(subdomains)
+    recon.run_recon(target)
+    subdomains = mongo.get_target_alive_subdomains(target)
+    aquatone.start_aquatone(subdomains)
     return
 
 @shared_task
@@ -51,21 +51,12 @@ def prepare_info_for_target_scan(task, info):
 
 @shared_task
 def prepare_info_after_nmap(info):
-    scan_information = {
-        'target': info['new_target_choice'],
-        'url_to_scan': info['new_target_choice'],
-        'language': info['selected_language'],
-        'redmine_project': info['redmine_project'], 
-        'invasive_scans': info['use_active_modules'],
-        'nessus_scan': info['use_nessus_scan'],
-        'acunetix_scan': info['use_acunetix_scan'],
-        'assigned_users': info['assigned_users'],
-        'watchers': info['watcher_users']
-    }
-    web_ips = mongo.get_ips_with_web_interface(scan_information['target'])
-    scan_information['url_to_scan'] = web_ips
-    print(scan_information)
-    return scan_information
+    print(info)
+    web_ips = mongo.get_ips_with_web_interface(info)
+    print(web_ips)
+    info['url_to_scan'] = web_ips
+    print(info)
+    return info
 
 
 @shared_task
@@ -218,7 +209,7 @@ def acunetix_scan_task(scan_information, scan_type):
 @shared_task
 def generate_report_task(Task,scan_information,scan_type):
     if scan_information['report_type']:
-            #reporting.create_report(scan_information)
+            reporting.create_report(scan_information)
             task_finished(Task)
     else:
         task_finished(Task)

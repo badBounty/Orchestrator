@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 from ..slack import slack_sender
 from Orchestrator.settings import client
+from datetime import datetime
 
 # ------------------- GETTERS -------------------
 def get_workspaces():
@@ -9,16 +10,22 @@ def get_workspaces():
     return workspaces
 
 # In this case the target will be a filename
-def get_ips_with_web_interface(target):
+def get_ips_with_web_interface(info):
     db = client.Orchestrator
-    ips_to_check = db.resources.find({'target_name': target})
     urls_to_send = list()
-    for ip in ips_to_check:
-        if 'Port:80' in ip['extra_info']:
-            urls_to_send.append('http://' + ip['subdomain'])
-        if 'Port:443' in ip['extra_info']:
-            urls_to_send.append('https://' + ip['subdomain'])
-            
+    for ip in info['url_to_scan']:
+        resource = db.resources.find_one({'domain': ip})    
+        if type(resource['nmap_information']) != list:
+            if resource['nmap_information']['@portid'] == '80':
+                urls_to_send.append('http://'+info['url_to_scan'])
+            if resource['nmap_information']['@portid'] == '443':
+                urls_to_send.append('https://'+info['url_to_scan'])
+        else:
+            for information in resource['nmap_information']:
+                if information['@portid'] == '80':
+                    urls_to_send.append('http://'+info['url_to_scan'])
+                if information['@portid'] == '443':
+                    urls_to_send.append('https://'+info['url_to_scan'])
     return urls_to_send
 
 def get_responsive_http_resources(target):
@@ -332,3 +339,51 @@ def find_last_version_of_librarie(name):
         return librarie[0]['version']
     else:
         return ''
+
+def add_simple_ip_resource(scan_info):
+    db = client.Orchestrator
+    exists = db.resources.find_one({'domain': scan_info['domain'], 'subdomain': scan_info['url_to_scan']})
+    timestamp = datetime.now()
+    if not exists:
+        resource ={
+                'domain': scan_info['domain'],
+                'subdomain': scan_info['domain'],
+                'is_alive': True,
+                'ip': scan_info['domain'],
+                'additional_info':{
+                    'isp': None,
+                    'asn': None,
+                    'country': None,
+                    'region': None,
+                    'city': None,
+                    'org': None,
+                    'geoloc': '0 , 0'
+                },
+                'first_seen': timestamp,
+                'last_seen': timestamp,
+                'scanned': False,
+                'type': scan_info['type'],
+                'has_urls': False,
+                'responsive_urls': '',
+                'nmap_information': None
+        }
+        db.resources.insert_one(resource)
+    else:
+        db.resources.update_one({'_id': exists.get('_id')},
+         {'$set': 
+            {
+            'last_seen': timestamp
+            }})
+
+def add_nmap_information_to_subdomain(scan_information, nmap_json):
+    db = client.Orchestrator
+    resource = db.resources.find_one({'domain': scan_information['domain'], 'subdomain': scan_information['url_to_scan']})
+    if not resource:
+        print('ERROR adding nmap information to resource, resource not found')
+        return
+    db.resource.update_one({'_id': resource.get('_id')},
+         {'$set': 
+            {
+                'nmap_information': nmap_json
+            }})
+    return
