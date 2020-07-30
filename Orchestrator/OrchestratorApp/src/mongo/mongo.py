@@ -1,36 +1,38 @@
-from pymongo import MongoClient
 from ..slack import slack_sender
-from Orchestrator.settings import client
 from datetime import datetime
+from OrchestratorApp import MONGO_CLIENT
+from Orchestrator.settings import MONGO_INFO
+
+resources = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['RESOURCES_COLLECTION']]
+observations = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['OBSERVATIONS_COLLECTION']]
+vulnerabilities = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['VULNERABILITIES_COLLECTION']]
+libraries_versions = MONGO_CLIENT[MONGO_INFO['DATABASE']]['libraries_versions']
 
 # ------------------- GETTERS -------------------
 def get_workspaces():
-    db = client.Orchestrator
-    workspaces = db.resources.distinct('from_workspace')
+    workspaces = resources.distinct('from_workspace')
     return workspaces
 
 # In this case the target will be a filename
 def get_ips_with_web_interface(info):
-    db = client.Orchestrator
     urls_to_send = list()
     for ip in info['url_to_scan']:
-        resource = db.resources.find_one({'domain': ip})    
+        resource = resources.find_one({'domain': ip})    
         if type(resource['nmap_information']) != list:
             if resource['nmap_information']['@portid'] == '80':
-                urls_to_send.append('http://'+info['url_to_scan'])
+                urls_to_send.append('http://'+ip)
             if resource['nmap_information']['@portid'] == '443':
-                urls_to_send.append('https://'+info['url_to_scan'])
+                urls_to_send.append('https://'+ip)
         else:
             for information in resource['nmap_information']:
                 if information['@portid'] == '80':
-                    urls_to_send.append('http://'+info['url_to_scan'])
+                    urls_to_send.append('http://'+ip)
                 if information['@portid'] == '443':
-                    urls_to_send.append('https://'+info['url_to_scan'])
+                    urls_to_send.append('https://'+ip)
     return urls_to_send
 
 def get_responsive_http_resources(target):
-    db = client.Orchestrator
-    subdomains = db.resources.find({'domain': target, 'has_urls': 'True'})
+    subdomains = resources.find({'domain': target, 'has_urls': 'True'})
     subdomain_list = list()
     for subdomain in subdomains:
         for url_with_http in subdomain['responsive_urls'].split(';'):
@@ -46,28 +48,24 @@ def get_responsive_http_resources(target):
 
 
 def get_targets():
-    db = client.Orchestrator
-    domains = db.resources.distinct('domain')
+    domains = resources.distinct('domain')
     return domains
 
 
 def get_targets_with_vulns():
-    db = client.Orchestrator
-    domains = db.vulnerabilities.distinct('target_name')
+    domains = vulnerabilities.distinct('target_name')
     return domains
 
 
 def get_target_last_scan(target):
-    db = client.Orchestrator
-    latest_record = db.resources.find({'domain': target}).sort([('last_seen', -1)]).limit(1)
+    latest_record = resources.find({'domain': target}).sort([('last_seen', -1)]).limit(1)
     latest_record = latest_record[0]
 
     return latest_record
 
 
 def get_target_alive_subdomains(target):
-    db = client.Orchestrator
-    subdomains = db.resources.find({'domain': target, 'is_alive': 'True'})
+    subdomains = resources.find({'domain': target, 'is_alive': 'True'})
     subdomain_list = list()
     for subdomain in subdomains:
         current_subdomain = {
@@ -80,8 +78,7 @@ def get_target_alive_subdomains(target):
 
 
 def get_workspace_resources(target):
-    db = client.Orchestrator
-    workspace_resources = db.resources.find({'domain': target})
+    workspace_resources = resources.find({'domain': target})
     resources_found = list()
     for resource in workspace_resources:
         current_resource = {
@@ -110,12 +107,9 @@ def get_workspace_resources(target):
 # ------------------- RECON -------------------
 def add_recon_resource(workspace, user, name, is_alive, discovery_date, last_seen, ip, domain, isp, asn, country,
                        region, city, organization, latitude, longitude):
-    # Our table is called resources
-    db = client.Orchestrator
-
-    exists = db.resources.find_one({'name': name})
+    exists = resources.find_one({'name': name})
     if exists:
-        db.resources.update_one({'_id': exists.get('_id')}, {'$set': {
+        resources.update_one({'_id': exists.get('_id')}, {'$set': {
             'is_alive': is_alive,
             'last_seen': last_seen,
             'ip': ip,
@@ -157,22 +151,20 @@ def add_recon_resource(workspace, user, name, is_alive, discovery_date, last_see
         }
         # if is_alive == 'True':
         # slack_sender.send_new_domain_found_message(name, ip)
-        db.resources.insert_one(resource)
+        resources.insert_one(resource)
 
 
 # Add available ports
 def add_ports_to_subdomain(subdomain, port_list):
-    db = client.Orchestrator
-    subdomain = db.resources.find_one({'name': subdomain})
+    subdomain = resources.find_one({'name': subdomain})
     if port_list:
-
         if type(port_list) is dict:
             try:
                 extra_info = port_list['@portid'] + ' ' + port_list['service']['@name'] + ' ' + \
                              port_list['service']['@product']
             except KeyError:
                 extra_info = port_list['@portid'] + ' ' + port_list['service']['@name']
-            db.resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
+            resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
                 'open_ports': port_list['@portid'],
                 'extra_nmap': extra_info}})
             return
@@ -188,28 +180,26 @@ def add_ports_to_subdomain(subdomain, port_list):
                 extra_info.append(port['@portid'] + ' ' + port['service']['@name'])
         ports_to_add = ';'.join(map(str, open_ports))
         extra_to_add = ';'.join(map(str, extra_info))
-        db.resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
+        resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
             'open_ports': ports_to_add,
             'extra_nmap': extra_to_add}})
         return
 
     else:
-        db.resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
+        resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
             'open_ports': 'None',
             'extra_nmap': 'None'}})
         return
 
 
 def add_scan_screen_to_subdomain(subdomain,img_b64):
-    db = client.Orchestrator
-    subdomain = db.resources.find_one({'name': subdomain})
-    db.resources.update_one({'_id': subdomain.get('_id')}, {'$set': {'scan_screen': img_b64}})
+    subdomain = resources.find_one({'name': subdomain})
+    resources.update_one({'_id': subdomain.get('_id')}, {'$set': {'scan_screen': img_b64}})
 
 
 def add_urls_to_subdomain(subdomain, has_urls, url_list):
-    db = client.Orchestrator
-    subdomain = db.resources.find_one({'name': subdomain})
-    db.resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
+    subdomain = resources.find_one({'name': subdomain})
+    resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
         'has_urls': str(has_urls),
         'responsive_urls': url_list}})
 
@@ -217,9 +207,8 @@ def add_urls_to_subdomain(subdomain, has_urls, url_list):
 
 
 def add_images_to_subdomain(subdomain, http_image, https_image):
-    db = client.Orchestrator
-    subdomain = db.resources.find_one({'name': subdomain})
-    db.resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
+    subdomain = resources.find_one({'name': subdomain})
+    resources.update_one({'_id': subdomain.get('_id')}, {'$set': {
         'http_image': http_image,
         'https_image': https_image}})
     return
@@ -227,12 +216,11 @@ def add_images_to_subdomain(subdomain, http_image, https_image):
 
 # ------------------- VULNERABILITY -------------------
 def add_vulnerability(vulnerability):
-    db = client.Orchestrator
-    exists = db.vulnerabilities.find_one({'target_name': vulnerability.target, 'subdomain': vulnerability.scanned_url,
+    exists = vulnerabilities.find_one({'target_name': vulnerability.target, 'subdomain': vulnerability.scanned_url,
                                           'vulnerability_name': vulnerability.vulnerability_name,
                                           'language': vulnerability.language})
     if exists:
-        db.vulnerabilities.update_one({'_id': exists.get('_id')}, {'$set': {
+        vulnerabilities.update_one({'_id': exists.get('_id')}, {'$set': {
             'last_seen': vulnerability.time,
             'extra_info': vulnerability.custom_description,
             'image_string': vulnerability.image_string,
@@ -250,13 +238,12 @@ def add_vulnerability(vulnerability):
             'last_seen': vulnerability.time,
             'language': vulnerability.language
         }
-        db.vulnerabilities.insert_one(resource)
+        vulnerabilities.insert_one(resource)
     return
 
 
 def get_vulns_from_target(target):
-    db = client.Orchestrator
-    resources = db.vulnerabilities.find({'target_name': target})
+    resources = vulnerabilities.find({'target_name': target})
     resources_list = list()
     for resource in resources:
         to_add = {
@@ -277,8 +264,7 @@ def get_vulns_from_target(target):
 
 def get_ssl_scannable_resources(target):
     valid_ports = ['443', '8000', '8080', '8443']
-    db = client.Orchestrator
-    subdomains = db.resources.find({'domain': target, 'is_alive': 'True'})
+    subdomains = resources.find({'domain': target, 'is_alive': 'True'})
     subdomain_list = list()
     for subdomain in subdomains:
         for port in subdomain['open_ports'].split(';'):
@@ -295,8 +281,7 @@ def get_ssl_scannable_resources(target):
 
 # ------------------- REPORTING -------------------
 def get_vulns_with_language(target, language):
-    db = client.Orchestrator
-    resources = db.vulnerabilities.find({'target_name': target, 'language': language})
+    resources = vulnerabilities.find({'target_name': target, 'language': language})
     resources_list = list()
     for resource in resources:
         to_add = {
@@ -314,9 +299,8 @@ def get_vulns_with_language(target, language):
 
 
 def get_specific_finding_info(finding, language):
-    db = client.Orchestrator
     #Finding Info KB
-    finding_kb = db.observations.find({'TITLE': finding['title'], 'LANGUAGE': language})
+    finding_kb = observations.find({'TITLE': finding['title'], 'LANGUAGE': language})
     if finding_kb:
         for f_kb in finding_kb:
             finding_to_send = f_kb
@@ -328,21 +312,18 @@ def get_specific_finding_info(finding, language):
         return None
 
 def get_observation_for_object(vuln_name,language):
-    db = client.Orchestrator
-    finding_kb = db.observations.find_one({'TITLE': vuln_name, 'LANGUAGE': language})
+    finding_kb = observations.find_one({'TITLE': vuln_name, 'LANGUAGE': language})
     return finding_kb
 
 def find_last_version_of_librarie(name):
-    db = client.Orchestrator
-    librarie = db.libraries_versions.find({'name':name})
+    librarie = libraries_versions.find({'name':name})
     if librarie:
         return librarie[0]['version']
     else:
         return ''
 
 def add_simple_ip_resource(scan_info):
-    db = client.Orchestrator
-    exists = db.resources.find_one({'domain': scan_info['domain'], 'subdomain': scan_info['url_to_scan']})
+    exists = resources.find_one({'domain': scan_info['domain'], 'ip': scan_info['domain']})
     timestamp = datetime.now()
     if not exists:
         resource ={
@@ -367,21 +348,20 @@ def add_simple_ip_resource(scan_info):
                 'responsive_urls': '',
                 'nmap_information': None
         }
-        db.resources.insert_one(resource)
+        resources.insert_one(resource)
     else:
-        db.resources.update_one({'_id': exists.get('_id')},
+        resources.update_one({'_id': exists.get('_id')},
          {'$set': 
             {
             'last_seen': timestamp
             }})
 
 def add_nmap_information_to_subdomain(scan_information, nmap_json):
-    db = client.Orchestrator
-    resource = db.resources.find_one({'domain': scan_information['domain'], 'subdomain': scan_information['url_to_scan']})
+    resource = resources.find_one({'domain': scan_information['domain'], 'ip': scan_information['domain']})
     if not resource:
         print('ERROR adding nmap information to resource, resource not found')
         return
-    db.resource.update_one({'_id': resource.get('_id')},
+    resources.update_one({'_id': resource.get('_id')},
          {'$set': 
             {
                 'nmap_information': nmap_json

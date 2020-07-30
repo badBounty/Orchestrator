@@ -2,6 +2,7 @@ import requests
 import os
 import uuid
 import base64
+import copy
 from PIL import Image
 from io import BytesIO
 from datetime import datetime
@@ -19,7 +20,7 @@ def handle_target(info):
     slack_sender.send_simple_message("Header scan started against target: %s. %d alive urls found!"
                                      % (info['target'], len(info['url_to_scan'])))
     for url in info['url_to_scan']:
-        sub_info = info
+        sub_info = copy.deepcopy(info)
         sub_info['url_to_scan'] = url
         print('Scanning ' + url)
         scan_target(sub_info, sub_info['url_to_scan'])
@@ -28,10 +29,11 @@ def handle_target(info):
 
 
 def handle_single(scan_info):
-    print('------------------- SINGLE HEADER SCAN STARTING -------------------')
+    print('Modole Header Scan (single) started against %s' % scan_info['url_to_scan'])
     slack_sender.send_simple_message("Header scan started against %s" % scan_info['url_to_scan'])
-    scan_target(scan_info, scan_info['url_to_scan'])
-    print('------------------- SINGLE HEADER SCAN FINISHED -------------------')
+    info = copy.deepcopy(scan_info)
+    scan_target(info, info['url_to_scan'])
+    print('Module Header Scan (single) finished')
     return
 
 

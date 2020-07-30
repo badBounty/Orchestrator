@@ -124,10 +124,7 @@ os.environ['C_FORCE_ROOT'] = settings['C_FORCE_ROOT']
 WAPPALIZE_KEY = settings['WAPPALIZE_KEY']
 
 # Mongo connection
-try:
-    client = MongoClient(settings['MONGO_CLIENT'])
-except Exception as e:
-    print(str(e))
+MONGO_INFO = settings['MONGO']
 
 # Slack connection
 try:

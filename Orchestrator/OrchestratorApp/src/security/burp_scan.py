@@ -41,7 +41,7 @@ def handle_target(info):
         slack_sender.send_simple_message("Burp scan started against target: %s. %d alive urls found!"
                                         % (info['target'], len(info['url_to_scan'])))
         for url in info['url_to_scan']:
-            sub_info = info
+            sub_info = copy.deepcopy(info)
             sub_info['url_to_scan'] = url
             print('Scanning ' + url)
             scan_target(sub_info)
@@ -52,7 +52,8 @@ def handle_target(info):
 def handle_single(scan_information):
     print("Module Burp scan started against %s" % scan_information['url_to_scan'])
     slack_sender.send_simple_message("Burp scan started against %s" % scan_information['url_to_scan'])
-    scan_target(scan_information)
+    info = copy.deepcopy(scan_information)
+    scan_target(info)
     print("Module Burp scan finished against %s" % scan_information['url_to_scan'])
     return
 
@@ -76,6 +77,9 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
                 mongo.add_vulnerability(vulnerability)
     except KeyError:
         return
+    except TypeError as e:
+        print(str(e))
+        return
 
 
 def scan_target(scan_info):
@@ -86,9 +90,13 @@ def scan_target(scan_info):
         proc1 = subprocess.Popen(['ps','aux'],stdout=subprocess.PIPE)
         proc2 = subprocess.Popen(['grep', 'burp-rest-api.sh'], stdin=proc1.stdout,stdout=subprocess.PIPE, stderr=subprocess.PIPE)    
         proc_list = proc2.stdout.readline().decode('utf-8').split()
+        if len(proc_list)>1:
+            burp_fold = proc_list[len(proc_list)-1]
+        else:
+            burp_fold = ''
         proc1.kill()
         proc2.kill()
-        if burp_config['bash_folder'] != proc_list[len(proc_list)-1]:
+        if burp_config['bash_folder'] != burp_fold:
             burp_process = subprocess.Popen(burp_config['bash_folder'], stdout=subprocess.PIPE)
             time.sleep(120)
             #GETTING PID FOR TERMINATE JAVA AFTER BURP SCAN

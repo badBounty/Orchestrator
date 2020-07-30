@@ -10,7 +10,7 @@ import subprocess
 import os
 import json
 import uuid
-
+import copy
 
 def cleanup(path):
     try:
@@ -27,7 +27,7 @@ def handle_target(info):
         slack_sender.send_simple_message("Directory bruteforce scan started against target: %s. %d alive urls found!"
                                         % (info['target'], len(info['url_to_scan'])))
         for url in info['url_to_scan']:
-            sub_info = info
+            sub_info = copy.deepcopy(info)
             sub_info['url_to_scan'] = url
             print('Scanning ' + url)
             scan_target(sub_info, sub_info['url_to_scan'])
@@ -39,7 +39,8 @@ def handle_single(scan_info):
     if wordlist['ffuf_list']:
         print('Module ffuf (single) started against %s' % scan_info['url_to_scan'])
         slack_sender.send_simple_message("Directory bruteforce scan started against %s" % scan_info['url_to_scan'])
-        scan_target(scan_info, scan_info['url_to_scan'])
+        info = copy.deepcopy(scan_info)
+        scan_target(info, info['url_to_scan'])
         print('Module ffuf (single) finished')
     return
 

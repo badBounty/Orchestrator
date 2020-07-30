@@ -2,6 +2,7 @@ import urllib3
 import requests
 import re
 import traceback
+import copy
 
 from ..slack import slack_sender
 from .. import constants
@@ -17,7 +18,7 @@ def handle_target(info):
     slack_sender.send_simple_message("Firebase scan started against target: %s. %d alive urls found!"
                                      % (info['target'], len(info['url_to_scan'])))
     for url in info['url_to_scan']:
-        sub_info = info
+        sub_info = copy.deepcopy(info)
         sub_info['url_to_scan'] = url
         print('Scanning ' + url)
         scan_target(sub_info, sub_info['url_to_scan'])
@@ -28,7 +29,8 @@ def handle_target(info):
 def handle_single(scan_info):
     print('Module Firebase (single) scan started against %s' % scan_info['url_to_scan'])
     slack_sender.send_simple_message("Firebase scan started against %s" % scan_info['url_to_scan'])
-    scan_target(scan_info, scan_info['url_to_scan'])
+    info = copy.deepcopy(scan_info)
+    scan_target(info, info['url_to_scan'])
     print('Module Firebase (single) scan')
     return
 

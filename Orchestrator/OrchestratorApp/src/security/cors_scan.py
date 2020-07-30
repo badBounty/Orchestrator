@@ -9,7 +9,7 @@ import os
 import subprocess
 import json
 import uuid
-
+import copy
 
 def cleanup(path):
     try:
@@ -20,6 +20,7 @@ def cleanup(path):
 
 
 def handle_target(info):
+    info = copy.deepcopy(info)
     print('Module CORS Scan started against target: %s. %d alive urls found!'% (info['target'], len(info['url_to_scan'])))
     print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     slack_sender.send_simple_message("CORS scan started against target: %s. %d alive urls found!"
@@ -41,7 +42,8 @@ def handle_target(info):
     return
 
 
-def handle_single(scan_info):
+def handle_single(info):
+    info = copy.deepcopy(info)
     print('Module CORS Scan started against %s' % scan_info['url_to_scan'])
     slack_sender.send_simple_message("CORS scan started against %s" % scan_info['url_to_scan'])
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -70,8 +72,6 @@ def add_vulnerability(scan_info, vuln):
 
 
 def scan_target(scan_info, file_name):
-
-    # Call the tool with the previous file
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     random_filename = uuid.uuid4().hex
     FILE_WITH_JSON_RESULT = ROOT_DIR + '/tools_output/' + random_filename + '.json'

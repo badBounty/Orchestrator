@@ -1,4 +1,4 @@
-import json, requests, itertools, collections, os, traceback
+import json, requests, itertools, collections, os, traceback, copy
 from bs4 import BeautifulSoup
 from Orchestrator.settings import WAPPALIZE_KEY
 from .. import constants
@@ -94,7 +94,7 @@ def handle_target(info):
         slack_sender.send_simple_message("Libraries scan started against target: %s. %d alive urls found!"
                                         % (info['target'], len(info['url_to_scan'])))
         for url in info['url_to_scan']:
-            sub_info = info
+            sub_info = copy.deepcopy(info)
             sub_info['url_to_scan'] = url
             print('Scanning ' + url)
             analyze(sub_info, sub_info['url_to_scan'])
@@ -106,6 +106,7 @@ def handle_single(scan_info):
     if WAPPALIZE_KEY:
         print('Module libraries scan (single) started against %s' % scan_info['url_to_scan'])
         slack_sender.send_simple_message("Libraries scan started against %s" % scan_info['url_to_scan'])
-        analyze(scan_info, scan_info['url_to_scan'])
+        info = copy.deepcopy(scan_info)
+        analyze(info, info['url_to_scan'])
         print('Module libraries scan (single) finished')
     return

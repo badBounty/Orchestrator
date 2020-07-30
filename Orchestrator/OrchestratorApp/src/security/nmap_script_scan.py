@@ -4,6 +4,7 @@ import xmltodict
 import json
 import base64
 import uuid
+import copy
 
 from time import sleep
 from PIL import Image
@@ -32,7 +33,7 @@ def handle_target(info):
                                      % (info['target'], len(info['url_to_scan'])))
     scanned_hosts = list()
     for url in info['url_to_scan']:
-        sub_info = info
+        sub_info = copy.deepcopy(info)
         sub_info['url_to_scan'] = url
         try:
             host = url.split('/')[2]
@@ -55,20 +56,21 @@ def handle_target(info):
 
 
 def handle_single(scan_info):
-    url = scan_info['url_to_scan']
+    info = copy.deepcopy(scan_info)
+    url = info['url_to_scan']
     print('Module Nmap Scripts (single) scan started against %s' % url)
     slack_sender.send_simple_message("Nmap scripts started against %s" % url)
     # We receive the url with http/https, we will get only the host so nmap works
     host = url.split('/')[2]
-    outdated_software(scan_info, host)
-    web_versions(scan_info, host)
-    if scan_info['invasive_scans']:
+    outdated_software(info, host)
+    web_versions(info, host)
+    if info['invasive_scans']:
         if wordlist['ssh_ftp_user'] and wordlist['ssh_ftp_pass']:
-            ssh_ftp_brute_login(scan_info, host, True)#SHH
+            ssh_ftp_brute_login(info, host, True)#SHH
             sleep(10)
-            ssh_ftp_brute_login(scan_info, host, False)#FTP
-            ftp_anon_login(scan_info, host)#FTP ANON
-        default_account(scan_info,host)#Default creds in web console
+            ssh_ftp_brute_login(info, host, False)#FTP
+            ftp_anon_login(info, host)#FTP ANON
+        default_account(info,host)#Default creds in web console
     print('Module Nmap Scripts (single) scan finished against %s' % url)
     return
 

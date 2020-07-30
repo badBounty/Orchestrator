@@ -63,8 +63,9 @@ def handle_single(scan_information):
         print('------------------- ACUNETIX SINGLE SCAN STARTING -------------------')
         slack_sender.send_simple_message("Acunetix scan started against %s" % scan_information['url_to_scan'])
         urls = [scan_information['url_to_scan']]
-        scan_information['url_to_scan'] = urls
-        scan_target(scan_information)
+        info = copy.deepcopy(info_copy)
+        info['url_to_scan'] = urls
+        scan_target(info)
         print('------------------- ACUNETIX SINGLE SCAN FINISHED -------------------')
     return
 

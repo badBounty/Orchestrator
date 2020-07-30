@@ -5,6 +5,7 @@ import xml
 from datetime import datetime
 import subprocess
 import os
+import copy
 
 from ..mongo import mongo
 from .. import constants
@@ -19,7 +20,7 @@ def handle_target(info):
                                      % (info['target'], len(info['url_to_scan'])))
     valid_ports = ['443']
     for url in info['url_to_scan']:
-        sub_info = info
+        sub_info = copy.deepcopy(info)
         sub_info['url_to_scan'] = url
 
         split_url = url.split('/')
@@ -34,8 +35,9 @@ def handle_target(info):
 
 
 def handle_single(scan_info):
+    info = copy.deepcopy(scan_info)
     # Url will come with http or https, we will strip and append ports that could have tls/ssl
-    url = scan_info['url_to_scan']
+    url = info['url_to_scan']
     slack_sender.send_simple_message("SSL/TLS scan started against %s" % url)
     valid_ports = ['443']
     split_url = url.split('/')
@@ -45,7 +47,7 @@ def handle_single(scan_info):
         final_url = url
     print("SSL/TLS (single) scan started against %s" % url)
     for port in valid_ports:
-        scan_target(scan_info, url, final_url+':'+port)
+        scan_target(info, url, final_url+':'+port)
     print("SSL/TLS (single) scan finished against %s" % url)
     return
 

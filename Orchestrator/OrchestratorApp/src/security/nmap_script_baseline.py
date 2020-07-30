@@ -4,7 +4,7 @@ import xmltodict
 import json
 import base64
 import uuid
-
+import copy
 from time import sleep
 from PIL import Image
 from io import BytesIO
@@ -28,12 +28,12 @@ def cleanup(path):
 
 
 def handle_target(info):
-    print('Module Nmap Scripts started against target: %s. %d alive urls found!'% (info['target'], len(info['url_to_scan'])))
+    print('Module Nmap Scripts Baseline started against target: %s. %d alive urls found!'% (info['target'], len(info['url_to_scan'])))
     slack_sender.send_simple_message("Nmap scripts started against target: %s. %d alive urls found!"
                                      % (info['target'], len(info['url_to_scan'])))
     scanned_hosts = list()
     for url in info['url_to_scan']:
-        sub_info = info
+        sub_info = copy.deepcopy(info)
         sub_info['url_to_scan'] = url
         try:
             host = url.split('/')[2]
@@ -44,22 +44,23 @@ def handle_target(info):
             sub_info['domain'] = host
             basic_scan(sub_info, host)
         scanned_hosts.append(host)
-    print('Module Nmap Scripts finished against %s'+ info['target'])
+    print('Module Nmap Scripts Baseline finished against %s'% info['target'])
     return
 
 
 def handle_single(scan_info):
-    url = scan_info['url_to_scan']
-    print('Module Nmap Scripts (single) started against %s'% url)
+    info = copy.deepcopy(scan_info)
+    url = info['url_to_scan']
+    print('Module Nmap Scripts Baseline (single) started against %s'% url)
     slack_sender.send_simple_message("Nmap scripts started against %s" % url)
     # We receive the url with http/https, we will get only the host so nmap works
     try:
         host = url.split('/')[2]
     except IndexError:
         host = url
-    scan_info['domain'] = url
-    basic_scan(scan_info, host)
-    print('Module Nmap Scripts (single) finished against %s'% url)
+    info['domain'] = host
+    basic_scan(info, host)
+    print('Module Nmap Scripts Baseline (single) finished against %s'% url)
     return
 
 def add_vuln_to_mongo(scan_info, scan_type, description, img_str):

@@ -45,6 +45,7 @@ def is_not_ip(url):
     return not pat.match(clean)
 
 def handle_target(info):
+    info = copy.deepcopy(info)
     if info['nessus_scan'] and nessus:
         print("Module Nessus scan started against target: %s. %d alive urls found!"
                                         % (info['target'], len(info['url_to_scan'])))
@@ -56,14 +57,14 @@ def handle_target(info):
         divider = targets//2
         #Plain list for nessus scan
         urls = ','.join(get_only_url(l) for l in url_list[divider:])
-        sub_info = info
+        sub_info = copy.deepcopy(info)
         sub_info['url_to_scan'] = url_list[divider:]
         sub_info['nessus_target'] = urls
         print('Scanning ' + urls)
         scan_target(sub_info)
         #Plain list for nessus scan
         urls = ','.join(get_only_url(l) for l in url_list[:divider])
-        sub_info = info
+        sub_info = copy.deepcopy(info)
         sub_info['url_to_scan'] = url_list[:divider]
         sub_info['nessus_target'] = urls
         print('Scanning ' + urls)
@@ -73,13 +74,14 @@ def handle_target(info):
 
 
 def handle_single(scan_information):
-    if scan_information['nessus_scan'] and nessus and is_not_ip(scan_information['url_to_scan']):
+    info = copy.deepcopy(scan_information)
+    if info['nessus_scan'] and nessus and is_not_ip(info['url_to_scan']):
         print('Module Nessus Single Scan Starting against %s' % scan_information['url_to_scan'])
         slack_sender.send_simple_message("Nessus scan started against %s" % scan_information['url_to_scan'])
         url_plain = get_only_url(scan_information['url_to_scan'])
-        scan_information['nessus_target'] = url_plain
-        scan_information['url_to_scan'] = list().append(scan_information['url_to_scan'])
-        scan_target(scan_information)
+        info['nessus_target'] = url_plain
+        info['url_to_scan'] = list().append(info['url_to_scan'])
+        scan_target(info)
         print('Module Nessus Single Scan Finished against %s' % scan_information['url_to_scan'])
 
     return

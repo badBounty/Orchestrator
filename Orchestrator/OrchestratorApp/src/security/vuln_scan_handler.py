@@ -147,8 +147,7 @@ def launch_url_scan(scan_information):
             acunetix_scan_task.s(scan_information,'target').set(queue='acunetix_queue'),
             burp_scan_task.s(scan_information, 'target').set(queue='burp_queue')
         ],
-        body=generate_report_task.s(scan_information,'target').set(queue='slow_queue'),
-        immutable=True)
+        body=generate_report_task.s(scan_information,'target').set(queue='slow_queue'),immutable=True)
     if scan_information['start_date']:
         datetime_object = datetime.strptime(scan_information['start_date'], '%Y-%m-%d %H:%M')
         date_scan = datetime_object + timedelta(hours=3)
@@ -167,31 +166,31 @@ def launch_ip_scan(scan_information):
                 nmap_script_baseline_task.s(scan_information, 'target').set(queue='slow_queue'),
                 nmap_script_scan_task.s(scan_information, 'target').set(queue='slow_queue')
             ],
-            body=task_finished.s(),
-            mmutable=True),    
+            body=task_finished.s()
+            ),    
         # Based on the previous output, ips with port 80 and 443 will be scanned
-        prepare_info_after_nmap.si(scan_information),
+        prepare_info_after_nmap.s(scan_information).set(queue='fast_queue'),
         chord(
             [
                 # Fast_scans
                 header_scan_task.s('target').set(queue='fast_queue'),
                 http_method_scan_task.s('target').set(queue='fast_queue'),
                 #libraries_scan_task.s('target').set(queue='fast_queue'),
-                ffuf_task.s('target').set(queue='fast_queue'),
+                #ffuf_task.s('target').set(queue='fast_queue'),
                 iis_shortname_scan_task.s('target').set(queue='fast_queue'),
-                bucket_finder_task.s('target').set(queue='fast_queue'),
-                token_scan_task.s('target').set(queue='fast_queue'),
+                #bucket_finder_task.s('target').set(queue='fast_queue'),
+                #token_scan_task.s('target').set(queue='fast_queue'),
                 css_scan_task.s('target').set(queue='fast_queue'),
                 firebase_scan_task.s('target').set(queue='fast_queue'),
                 host_header_attack_scan.s('target').set(queue='fast_queue'),
                 # Slow_scans
                 cors_scan_task.s('target').set(queue='slow_queue'),
-                ssl_tls_scan_task.s('target').set(queue='slow_queue'),
-                nessus_scan_task.s(scan_information,'target').set(queue='slow_queue'),
+                #ssl_tls_scan_task.s('target').set(queue='slow_queue'),
+                #nessus_scan_task.s('target').set(queue='slow_queue'),
                 burp_scan_task.s('target').set(queue='burp_queue'),
 
             ],
-            body=generate_report_task.s(scan_information,'target').set(queue='slow_queue'))
+            body=generate_report_task.s(scan_information,'target').set(queue='slow_queue'),immutable=True)
         )
     if scan_information['start_date']:
         datetime_object = datetime.strptime(scan_information['start_date'], '%Y-%m-%d %H:%M')
@@ -245,8 +244,7 @@ def handle_target_scan(info):
             acunetix_scan_task.s(scan_information,'target').set(queue='acunetix_queue'),
             burp_scan_task.s(scan_information, 'target').set(queue='burp_queue'),
         ],
-        body=generate_report_task.s(scan_information,'target').set(queue='slow_queue'),
-        immutable=True)
+        body=generate_report_task.s(scan_information,'target').set(queue='slow_queue'),immutable=True)
     if scan_information['start_date']:
         datetime_object = datetime.strptime(scan_information['start_date'], '%Y-%m-%d %H:%M')
         date_scan = datetime_object + timedelta(hours=3)
@@ -287,7 +285,7 @@ def handle_new_target_scan(info):
                 acunetix_scan_task.s('target').set(queue='acuentix_queue'),
                 burp_scan_task.s('target').set(queue='burp_queue')
             ],
-            body=generate_report_task.s(info,'target').set(queue='slow_queue'))
+            body=generate_report_task.s(info,'target').set(queue='slow_queue'),immutable=True)
     )
     if info['start_date']:
         datetime_object = datetime.strptime(info['start_date'], '%Y-%m-%d %H:%M')
@@ -335,7 +333,7 @@ def handle_single_scan(info):
             acunetix_scan_task.s(scan_information,'single').set(queue='acunetix_queue'),
             burp_scan_task.s(scan_information,'single').set(queue='burp_queue')
         ],
-        body=generate_report_task.s(scan_information,'single').set(queue='slow_queue'))
+        body=generate_report_task.s(scan_information,'single').set(queue='slow_queue'),immutable=True)
     
     if scan_information['start_date']:
         datetime_object = datetime.strptime(scan_information['start_date'], '%Y-%m-%d %H:%M')

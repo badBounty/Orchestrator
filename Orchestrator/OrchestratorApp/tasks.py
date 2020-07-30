@@ -50,11 +50,10 @@ def prepare_info_for_target_scan(task, info):
     return scan_information
 
 @shared_task
-def prepare_info_after_nmap(info):
+def prepare_info_after_nmap(task,info):
     web_ips = mongo.get_ips_with_web_interface(info)
     scan_information = copy.deepcopy(info)
     scan_information['url_to_scan'] = web_ips
-    print(scan_information)
     return scan_information
 
 

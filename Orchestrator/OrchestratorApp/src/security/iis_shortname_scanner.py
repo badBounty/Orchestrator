@@ -4,6 +4,7 @@ from PIL import Image
 from io import BytesIO
 from datetime import datetime
 import uuid
+import copy
 
 from ..mongo import mongo
 from ..comms import image_creator
@@ -17,7 +18,7 @@ def handle_target(info):
     print('Module IIS Shortname starting against '+ str(len(info['url_to_scan'])) + ' targets')
     slack_sender.send_simple_message("Check and scann : %s. %d alive urls found!"% (info['target'], len(info['url_to_scan'])))
     for url in info['url_to_scan']:
-        sub_info = info
+        sub_info = copy.deepcopy(info)
         sub_info['url_to_scan'] = url
         print('Scanning ' + url)
         scan_target(sub_info, sub_info['url_to_scan'])
@@ -28,7 +29,8 @@ def handle_target(info):
 def handle_single(scan_info):
     print('Module IIS Shortname (single) scan started against %s' % scan_info['url_to_scan'])
     slack_sender.send_simple_message("IIS ShortName Scanner scan started against %s" % scan_info['url_to_scan'])
-    scan_target(scan_info, scan_info['url_to_scan'])
+    info = copy.deepcopy(scan_info)
+    scan_target(info, info['url_to_scan'])
     print('Module IIS Shortname (single) finished')
     return
 
@@ -40,6 +42,7 @@ def scan_target(scan_info, url_to_scan):
         return
     except Exception:
         error_string = traceback.format_exc()
+        print('ERROR on {0}, description:{1}'.format(url_to_scan,error_string))
         return
     try:
         if 'IIS' in resp.headers['Server']:

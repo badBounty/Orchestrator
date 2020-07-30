@@ -1,4 +1,4 @@
-import re,requests,urllib3,subprocess,traceback
+import re,requests,urllib3,subprocess,traceback,copy
 from datetime import datetime
 
 from ..slack import slack_sender
@@ -21,7 +21,7 @@ def handle_target(info):
     slack_sender.send_simple_message("Bucket finder scan started against target: %s. %d alive urls found!"
                                      % (info['target'], len(info['url_to_scan'])))
     for url in info['url_to_scan']:
-        sub_info = info
+        sub_info = copy.deepcopy(info)
         sub_info['url_to_scan'] = url
         print('Scanning ' + url)
         scan_target(sub_info, sub_info['url_to_scan'])
@@ -32,7 +32,8 @@ def handle_target(info):
 def handle_single(scan_information):
     print('Module S3 Bucket scan (single) started against %s' % scan_information['target'])
     slack_sender.send_simple_message("Bucket finder scan started against %s" % scan_information['target'])
-    scan_target(scan_information, scan_information['url_to_scan'])
+    info = copy.deepcopy(info)
+    scan_target(info, info['url_to_scan'])
     print('Module S3 Bucket scan (single) finished')
     return
 
