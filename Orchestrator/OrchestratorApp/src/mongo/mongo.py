@@ -13,11 +13,11 @@ def get_workspaces():
     workspaces = resources.distinct('from_workspace')
     return workspaces
 
-# In this case the target will be a filename
+# In this case the target will be a ip list
 def get_ips_with_web_interface(info):
     urls_to_send = list()
     for ip in info['url_to_scan']:
-        resource = resources.find_one({'domain': ip})    
+        resource = resources.find_one({'subdomain':ip,'ip': ip})    
         if type(resource['nmap_information']) != list:
             if resource['nmap_information']['@portid'] == '80':
                 urls_to_send.append('http://'+ip)
@@ -323,14 +323,14 @@ def find_last_version_of_librarie(name):
         return ''
 
 def add_simple_ip_resource(scan_info):
-    exists = resources.find_one({'domain': scan_info['domain'], 'ip': scan_info['domain']})
+    exists = resources.find_one({'subdomain': scan_info['ip'],'ip': scan_info['ip']})
     timestamp = datetime.now()
     if not exists:
         resource ={
-                'domain': scan_info['domain'],
-                'subdomain': scan_info['domain'],
+                'domain': None,
+                'subdomain': scan_info['ip'],
                 'is_alive': True,
-                'ip': scan_info['domain'],
+                'ip': scan_info['ip'],
                 'additional_info':{
                     'isp': None,
                     'asn': None,
@@ -356,8 +356,8 @@ def add_simple_ip_resource(scan_info):
             'last_seen': timestamp
             }})
 
-def add_nmap_information_to_subdomain(scan_information, nmap_json):
-    resource = resources.find_one({'domain': scan_information['domain'], 'ip': scan_information['domain']})
+def add_nmap_information_to_ip(scan_information, nmap_json):
+    resource = resources.find_one({'subdomain': scan_information['ip'],'ip': scan_information['ip']})
     if not resource:
         print('ERROR adding nmap information to resource, resource not found')
         return

@@ -41,7 +41,7 @@ def handle_target(info):
             host = url
         if host not in scanned_hosts:
             print('Scanning ' + url)
-            sub_info['domain'] = host
+            sub_info['ip'] = host
             basic_scan(sub_info, host)
         scanned_hosts.append(host)
     print('Module Nmap Scripts Baseline finished against %s'% info['target'])
@@ -58,7 +58,7 @@ def handle_single(scan_info):
         host = url.split('/')[2]
     except IndexError:
         host = url
-    info['domain'] = host
+    info['ip'] = host
     basic_scan(info, host)
     print('Module Nmap Scripts Baseline (single) finished against %s'% url)
     return
@@ -123,7 +123,7 @@ def basic_scan(scan_info, url_to_scan):
     json_data = json.dumps(my_dict)
     json_data = json.loads(json_data)
     img_str = image_creator.create_image_from_file(output_dir + '.nmap')
-    mongo.add_nmap_information_to_subdomain(scan_info, json_data['nmaprun']['host']['ports']['port'])
+    mongo.add_nmap_information_to_ip(scan_info, json_data['nmaprun']['host']['ports']['port'])
     check_ports_and_report(scan_info,plaintext_ports,'plaintext_services',json_data,img_str)
     check_ports_and_report(scan_info,remote_ports,'unnecessary_services',json_data,img_str)
     cleanup(output_dir)

@@ -15,16 +15,13 @@ def create_report(info):
     target = info['target']
     findings = get_findings(target, language)
     file_dir,missing_finding = reportGenerator.crearReporte(language, reportType, findings)
-    print("------------- Saving report in redmine -------------")
+    print("Saving report on redmine")
     redmine.create_report_issue(info,file_dir,missing_finding)
-    print("------------- DONE !!! -------------")
-    print("------------- Deleting report form source -------------")
+    print("Deleting report from source")
     try:
         os.remove(file_dir)
     except FileNotFoundError:
-        print("File %s is supposed to exist!" % file_dir)
         return
-    print("------------- DONE ------------------------------------")
     return
 
 def get_findings(target, language):
