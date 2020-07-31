@@ -31,7 +31,7 @@ def handle_single(scan_info):
     slack_sender.send_simple_message("Firebase scan started against %s" % scan_info['url_to_scan'])
     info = copy.deepcopy(scan_info)
     scan_target(info, info['url_to_scan'])
-    print('Module Firebase (single) scan')
+    print('Module Firebase (single) scan finished against %s' % scan_info['url_to_scan'])
     return
 
 

@@ -33,7 +33,7 @@ def handle_single(scan_info):
     slack_sender.send_simple_message("Header scan started against %s" % scan_info['url_to_scan'])
     info = copy.deepcopy(scan_info)
     scan_target(info, info['url_to_scan'])
-    print('Module Header Scan (single) finished')
+    print('Module Header Scan (single) finished against %s' % scan_info['url_to_scan'])
     return
 
 

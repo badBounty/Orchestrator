@@ -108,5 +108,5 @@ def handle_single(scan_info):
         slack_sender.send_simple_message("Libraries scan started against %s" % scan_info['url_to_scan'])
         info = copy.deepcopy(scan_info)
         analyze(info, info['url_to_scan'])
-        print('Module libraries scan (single) finished')
+        print('Module libraries scan (single) finished against %s' % scan_info['url_to_scan'])
     return

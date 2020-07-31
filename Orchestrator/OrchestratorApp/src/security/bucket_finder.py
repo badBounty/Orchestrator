@@ -32,7 +32,7 @@ def handle_target(info):
 def handle_single(scan_information):
     print('Module S3 Bucket scan (single) started against %s' % scan_information['target'])
     slack_sender.send_simple_message("Bucket finder scan started against %s" % scan_information['target'])
-    info = copy.deepcopy(info)
+    info = copy.deepcopy(scan_information)
     scan_target(info, info['url_to_scan'])
     print('Module S3 Bucket scan (single) finished')
     return

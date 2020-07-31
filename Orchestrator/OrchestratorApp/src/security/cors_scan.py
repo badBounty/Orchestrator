@@ -44,8 +44,8 @@ def handle_target(info):
 
 def handle_single(info):
     info = copy.deepcopy(info)
-    print('Module CORS Scan started against %s' % scan_info['url_to_scan'])
-    slack_sender.send_simple_message("CORS scan started against %s" % scan_info['url_to_scan'])
+    print('Module CORS Scan started against %s' % info['url_to_scan'])
+    slack_sender.send_simple_message("CORS scan started against %s" % info['url_to_scan'])
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
     # Put urls in a single file
@@ -53,14 +53,14 @@ def handle_single(info):
     FILE_WITH_URL = ROOT_DIR + '/tools_output/' + random_filename + '.txt'
     cleanup(FILE_WITH_URL)
     with open(FILE_WITH_URL, 'w') as f:
-        f.write("%s\n" % scan_info['url_to_scan'])
+        f.write("%s\n" % info['url_to_scan'])
 
     # Call scan target
-    scan_target(scan_info, FILE_WITH_URL)
+    scan_target(info, FILE_WITH_URL)
 
     # Delete all created files
     cleanup(FILE_WITH_URL)
-    print('Module CORS Scan finished against %s' % scan_info['url_to_scan'])
+    print('Module CORS Scan finished against %s' % info['url_to_scan'])
     return
 
 

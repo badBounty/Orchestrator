@@ -36,7 +36,6 @@ def handle_single(scan_info):
 
 
 def add_vulnerability_to_mongo(scan_info, css_url, vuln_type):
-    timestamp = datetime.now()
     if vuln_type == 'Access':
         description = "Possible css injection found at %s. File could not be accessed"% (css_url)
     elif vuln_type == 'Status':
