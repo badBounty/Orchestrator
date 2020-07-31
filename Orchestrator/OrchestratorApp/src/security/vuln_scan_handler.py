@@ -147,7 +147,7 @@ def launch_url_scan(scan_information):
             acunetix_scan_task.s(scan_information,'target').set(queue='acunetix_queue'),
             burp_scan_task.s(scan_information, 'target').set(queue='burp_queue')
         ],
-        body=generate_report_task.s(scan_information,'target').set(queue='slow_queue'),immutable=True)
+        body=generate_report_task.s(scan_information,'target').set(queue='slow_queue'))
     if scan_information['start_date']:
         datetime_object = datetime.strptime(scan_information['start_date'], '%Y-%m-%d %H:%M')
         date_scan = datetime_object + timedelta(hours=3)
@@ -244,7 +244,7 @@ def handle_target_scan(info):
             acunetix_scan_task.s(scan_information,'target').set(queue='acunetix_queue'),
             burp_scan_task.s(scan_information, 'target').set(queue='burp_queue'),
         ],
-        body=generate_report_task.s(scan_information,'target').set(queue='slow_queue'),immutable=True)
+        body=generate_report_task.s(scan_information,'target').set(queue='slow_queue'))
     if scan_information['start_date']:
         datetime_object = datetime.strptime(scan_information['start_date'], '%Y-%m-%d %H:%M')
         date_scan = datetime_object + timedelta(hours=3)
@@ -333,7 +333,7 @@ def handle_single_scan(info):
             acunetix_scan_task.s(scan_information,'single').set(queue='acunetix_queue'),
             burp_scan_task.s(scan_information,'single').set(queue='burp_queue')
         ],
-        body=generate_report_task.s(scan_information,'single').set(queue='slow_queue'),immutable=True)
+        body=generate_report_task.s(scan_information,'single').set(queue='slow_queue'))
     
     if scan_information['start_date']:
         datetime_object = datetime.strptime(scan_information['start_date'], '%Y-%m-%d %H:%M')
