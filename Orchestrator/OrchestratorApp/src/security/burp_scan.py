@@ -14,6 +14,7 @@ import xmltodict
 import json
 import base64
 import copy
+import traceback
 from datetime import datetime
 
 #Put
@@ -97,54 +98,61 @@ def scan_target(scan_info):
         proc1.kill()
         proc2.kill()
         if burp_config['bash_folder'] != burp_fold:
-            burp_process = subprocess.Popen(burp_config['bash_folder'], stdout=subprocess.PIPE)
-            time.sleep(120)
-            #GETTING PID FOR TERMINATE JAVA AFTER BURP SCAN
-            pid = burp_process.stdout.readline().decode('utf-8').split()[3]
-            header = {'accept': '*/*'}
+            try: 
+                burp_process = subprocess.Popen(burp_config['bash_folder'], stdout=subprocess.PIPE)
+                time.sleep(120)
+                #GETTING PID FOR TERMINATE JAVA AFTER BURP SCAN
+                pid = burp_process.stdout.readline().decode('utf-8').split()[3]
+                header = {'accept': '*/*'}
 
-            subprocess.run(['curl', '-k', '-x', 'http://127.0.0.1:8080', '-L', scan_info['url_to_scan']],
-                        capture_output=True)
+                subprocess.run(['curl', '-k', '-x', 'http://127.0.0.1:8080', '-L', scan_info['url_to_scan']],
+                            capture_output=True)
 
-            # Arrancamos agregando el url al scope
-            add_to_scope_response = requests.put(add_to_scope_url % scan_info['url_to_scan'], headers=header)
-            if add_to_scope_response.status_code != 200:
-                return
-            query_scope_response = requests.get(query_in_scope_url % scan_info['url_to_scan'], headers=header)
-            if not query_scope_response.json()['inScope']:
-                return
+                # Arrancamos agregando el url al scope
+                add_to_scope_response = requests.put(add_to_scope_url % scan_info['url_to_scan'], headers=header)
+                if add_to_scope_response.status_code != 200:
+                    return
+                query_scope_response = requests.get(query_in_scope_url % scan_info['url_to_scan'], headers=header)
+                if not query_scope_response.json()['inScope']:
+                    return
 
-            spider_response = requests.post(spider_url % scan_info['url_to_scan'], headers=header)
-            if spider_response.status_code != 200:
-                return
-            spider_status_response = requests.get(spider_status_url, headers=header)
-            while spider_status_response.json()['spiderPercentage'] != 100:
+                spider_response = requests.post(spider_url % scan_info['url_to_scan'], headers=header)
+                if spider_response.status_code != 200:
+                    return
                 spider_status_response = requests.get(spider_status_url, headers=header)
-                time.sleep(1)
+                while spider_status_response.json()['spiderPercentage'] != 100:
+                    spider_status_response = requests.get(spider_status_url, headers=header)
+                    time.sleep(1)
 
-            passive_scan_response = requests.post(passive_scan_url % scan_info['url_to_scan'], headers=header)
-            if passive_scan_response.status_code != 200:
-                return
-            scanner_status_response = requests.get(scan_status_url, headers=header)
-            while scanner_status_response.json()['scanPercentage'] != 100:
+                passive_scan_response = requests.post(passive_scan_url % scan_info['url_to_scan'], headers=header)
+                if passive_scan_response.status_code != 200:
+                    return
                 scanner_status_response = requests.get(scan_status_url, headers=header)
-                time.sleep(5)
+                while scanner_status_response.json()['scanPercentage'] != 100:
+                    scanner_status_response = requests.get(scan_status_url, headers=header)
+                    time.sleep(5)
 
-            ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-            random_filename = uuid.uuid4().hex
-            OUTPUT_DIR = ROOT_DIR + '/tools_output/' + random_filename + '.xml'
+                ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+                random_filename = uuid.uuid4().hex
+                OUTPUT_DIR = ROOT_DIR + '/tools_output/' + random_filename + '.xml'
 
-            download_response = requests.get(download_report % scan_info['url_to_scan'], headers=header)
+                download_response = requests.get(download_report % scan_info['url_to_scan'], headers=header)
 
-            open(OUTPUT_DIR, 'wb').write(download_response.content)
-            add_vulnerability(scan_info, download_response.content,OUTPUT_DIR, 'burp_result.xml')
-            
-            burp_process.kill()
-            os.system("kill -9 "+pid)
-            is_burp_already_running = False
-            try:
-                os.remove(OUTPUT_DIR)
-            except FileNotFoundError:
-                print("File %s is supposed to exist!" % OUTPUT_DIR)
-                return
+                open(OUTPUT_DIR, 'wb').write(download_response.content)
+                add_vulnerability(scan_info, download_response.content,OUTPUT_DIR, 'burp_result.xml')
+                
+                burp_process.kill()
+                os.system("kill -9 "+pid)
+                is_burp_already_running = False
+                try:
+                    os.remove(OUTPUT_DIR)
+                except FileNotFoundError:
+                    print("File %s is supposed to exist!" % OUTPUT_DIR)
+                    return
+            except requests.exceptions.ConnectionError:
+                is_burp_already_running = False
+                burp_process.kill()
+                os.system("kill -9 "+pid)
+                error_string = traceback.format_exc()
+                print('ERROR on {0}, description:{1}'.format(scan_info['url_to_scan'],error_string))
             

@@ -86,7 +86,7 @@ def add_vuln_to_mongo(scan_info, scan_type, description, img_str):
     return
 
 def check_ports_and_report(scan_info,ports,scan_type,json_scan,img_str):
-    message=''
+    message='Target: {}'.format(scan_info['url_to_scan'])
     nmap_ports = list()
     ports_numbers = list()
     try:

@@ -37,7 +37,8 @@ def handle_single(scan_info):
 
 def scan_target(scan_info, url_to_scan):
     try:
-        resp = requests.get(url_to_scan)
+        headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:76.0) Gecko/20100101 Firefox/78.0'}
+        resp = requests.get(url_to_scan,headers=headers)
     except requests.exceptions.SSLError:
         return
     except Exception:
