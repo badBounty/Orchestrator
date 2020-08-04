@@ -1,4 +1,4 @@
-import json, requests, itertools, collections, os, traceback, copy
+import json, requests, itertools, collections, os, traceback, copy,time
 from bs4 import BeautifulSoup
 from Orchestrator.settings import WAPPALIZE_KEY
 from .. import constants
@@ -20,11 +20,13 @@ def get_cves_and_last_version(librarie):
     name = librarie["name"]
     name = "Internet Information Server" if name == "IIS" else name
     url = "https://www.cvedetails.com/version-search.php?vendor=&product=%"+name+"%&version="+version
-    resp = requests.get(url)
+    time.sleep(2)
+    headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:76.0) Gecko/20100101 Firefox/78.0'}
+    resp = requests.get(url,headers=headers)
     html = BeautifulSoup(resp.text, "html.parser")
     table_div = html.find('div', {'id': 'searchresults'})
+    last_version = get_latest_version(name)
     if table_div is not None:
-        last_version = get_latest_version(name)
         table_data = []
         table_headers = [[cell.text.replace('\n', '').replace('\t', '') for cell in row("th")] for row in
                          table_div.find('table')("tr")][0]
@@ -53,8 +55,8 @@ def add_libraries_vulnerability(scan_info, message):
     mongo.add_vulnerability(vulnerability)
 
 
-def fastPrint(libraries):
-    message= ""
+def fastPrint(libraries,url_to_scan):
+    message= "The following libraries were found at {}\n".format(url_to_scan)
     for info in libraries:
         info_title= "Name: "+info['name']
         version = info['versions'][0] if info['versions'] else ""
@@ -79,13 +81,15 @@ def analyze(scan_info, url_to_scan):
             for lib in libraries:
                 lib['cves'], lib['last_version'] = get_cves_and_last_version(lib)
 
-            message = fastPrint(libraries)
+            message = fastPrint(libraries,url_to_scan)
             add_libraries_vulnerability(scan_info,  message)
-    except KeyError:
+    except KeyError as e:
+        error_string = traceback.format_exc()
+        print('Libraries scan error '+error_string)
         return
     except Exception as e:
         error_string = traceback.format_exc()
-        print('Libraries scan error '+str(e))
+        print('Libraries scan error '+error_string)
 
 
 def handle_target(info):

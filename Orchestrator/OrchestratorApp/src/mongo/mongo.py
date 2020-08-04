@@ -24,11 +24,15 @@ def get_ips_with_web_interface(info):
             if resource['nmap_information']['@portid'] == '443':
                 urls_to_send.append('https://'+ip)
         else:
+            all_ports =  [port['@portid'] for port in resource['nmap_information']]
             for information in resource['nmap_information']:
-                if information['@portid'] == '80':
-                    urls_to_send.append('http://'+ip)
-                if information['@portid'] == '443':
+                resource_port = information['@portid']
+                if resource_port == '80' and all(elem in all_ports  for elem in ['80','443']):
                     urls_to_send.append('https://'+ip)
+                elif resource_port == '443' and not all(elem in all_ports  for elem in ['80','443']):
+                    urls_to_send.append('https://'+ip)
+                elif resource_port == '80':
+                    urls_to_send.append('http://'+ip)
     return urls_to_send
 
 def get_responsive_http_resources(target):
@@ -316,9 +320,9 @@ def get_observation_for_object(vuln_name,language):
     return finding_kb
 
 def find_last_version_of_librarie(name):
-    librarie = libraries_versions.find({'name':name})
+    librarie = libraries_versions.find_one({'name':name})
     if librarie:
-        return librarie[0]['version']
+        return librarie['version']
     else:
         return ''
 

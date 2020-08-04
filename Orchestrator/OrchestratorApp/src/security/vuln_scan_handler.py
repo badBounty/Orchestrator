@@ -12,7 +12,7 @@ def handle(info):
     if not info['checkbox_redmine']:
         info['redmine_project'] = 'no_project'
     if not info['checkbox_report']:
-        info['report_type'] = ''
+        info['report_type'] = None
     #Validate if start date is created
     try:
         info['start_date']
