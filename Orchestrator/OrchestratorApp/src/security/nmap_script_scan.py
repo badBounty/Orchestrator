@@ -118,7 +118,7 @@ def outdated_software(scan_info, url_to_scan):
     TOOL_DIR = ROOT_DIR + '/tools/nmap/nmap-vulners/vulners.nse'
 
     outdated_software_process = subprocess.run(
-        ['nmap', '-sV', '-Pn', '-vvv', '--top-ports=500', '--script=' + TOOL_DIR, url_to_scan], capture_output=True
+        ['nmap', '-sV', '-Pn','-sS', '-vvv', '--top-ports=500', '--script=' + TOOL_DIR, url_to_scan], capture_output=True
     )
     text = outdated_software_process.stdout.decode()
     text = text.split('\n')
@@ -144,7 +144,7 @@ def web_versions(scan_info, url_to_scan):
     http_passwd = ROOT_DIR + '/tools/nmap/web_versions/http-passwd.nse'
 
     http_passwd_subprocess = subprocess.run(
-        ['nmap', '-sV', '-Pn', '-vvv', '--top-ports=500', '--script', http_passwd, '--script-args',
+        ['nmap', '-sV', '-Pn','-sS', '-vvv', '--top-ports=500', '--script', http_passwd, '--script-args',
          'http-passwd.root=/test/', url_to_scan], capture_output=True)
     text_httpd_passwd = http_passwd_subprocess.stdout.decode()
     text_httpd_passwd = text_httpd_passwd.split('\n')

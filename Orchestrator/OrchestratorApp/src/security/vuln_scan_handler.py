@@ -239,6 +239,7 @@ def handle_target_scan(info):
             # Slow_scans
             cors_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
             ssl_tls_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
+            nmap_script_baseline_task.s('target').set(queue='slow_queue'),
             nmap_script_scan_task.s(scan_information, 'target').set(queue='slow_queue'),
             nessus_scan_task.s(scan_information,'target').set(queue='slow_queue'),
             acunetix_scan_task.s(scan_information,'target').set(queue='acunetix_queue'),
@@ -280,6 +281,7 @@ def handle_new_target_scan(info):
                 # Slow_scans
                 cors_scan_task.s('target').set(queue='slow_queue'),
                 ssl_tls_scan_task.s('target').set(queue='slow_queue'),
+                nmap_script_baseline_task.s('target').set(queue='slow_queue'),
                 nmap_script_scan_task.s('target').set(queue='slow_queue'),
                 nessus_scan_task.s('target').set(queue='slow_queue'),
                 acunetix_scan_task.s('target').set(queue='acuentix_queue'),

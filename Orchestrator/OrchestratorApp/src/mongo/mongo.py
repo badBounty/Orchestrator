@@ -6,7 +6,7 @@ from Orchestrator.settings import MONGO_INFO
 resources = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['RESOURCES_COLLECTION']]
 observations = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['OBSERVATIONS_COLLECTION']]
 vulnerabilities = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['VULNERABILITIES_COLLECTION']]
-libraries_versions = MONGO_CLIENT[MONGO_INFO['DATABASE']]['libraries_versions']
+libraries_versions = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['LIBRARIES_COLLECTION']]
 
 # ------------------- GETTERS -------------------
 def get_workspaces():

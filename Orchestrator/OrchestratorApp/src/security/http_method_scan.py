@@ -61,6 +61,16 @@ def scan_target(scan_info, url_to_scan):
 
     try:
         options_response = requests.options(url_to_scan)
+        responses.append({'method': 'TRACE', 'response': options_response})
+    except requests.exceptions.SSLError:
+        return
+    except requests.exceptions.ConnectionError:
+        return
+    except requests.exceptions.TooManyRedirects:
+        return
+
+    try:
+        options_response = requests.options(url_to_scan)
         responses.append({'method': 'OPTIONS', 'response': options_response})
     except requests.exceptions.SSLError:
         return

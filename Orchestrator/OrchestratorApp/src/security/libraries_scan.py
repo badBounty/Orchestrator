@@ -26,6 +26,7 @@ def get_cves_and_last_version(librarie):
     html = BeautifulSoup(resp.text, "html.parser")
     table_div = html.find('div', {'id': 'searchresults'})
     last_version = get_latest_version(name)
+
     if table_div is not None:
         table_data = []
         table_headers = [[cell.text.replace('\n', '').replace('\t', '') for cell in row("th")] for row in
@@ -34,7 +35,6 @@ def get_cves_and_last_version(librarie):
             if row.has_attr('class'):
                 for cell in row("td"):
                     table_data.append(cell.text.replace('\n', '').replace('\t', ''))
-
         len_headers = len(table_headers)
         len_data = len(table_data)
         result = collections.defaultdict(list)
