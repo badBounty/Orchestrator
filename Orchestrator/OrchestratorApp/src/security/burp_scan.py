@@ -63,19 +63,21 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
     my_dict = xmltodict.parse(file_string)
     json_data = json.dumps(my_dict)
     json_data = json.loads(json_data)
+    print(json_data)
     description = 'Burp scan completed against %s' % scan_info['url_to_scan'] +'\n'
     try:
-        for issue in json_data['issues']['issue']:
-            if issue['name'] not in burp_config['blacklist_findings']:
-                name = copy.deepcopy(constants.BURP_SCAN)
-                name['english_name'] = name['english_name'] + issue['name']
-                extra='Burp Request: \n'+base64.b64decode(issue['requestresponse']['request']['#text']).decode("utf-8")
-                vulnerability = Vulnerability(name, scan_info, description+extra)
-                vulnerability.add_file_string(file_string)
-                vulnerability.add_attachment(file_dir, file_name)
-                slack_sender.send_simple_vuln(vulnerability)
-                redmine.create_new_issue(vulnerability)
-                mongo.add_vulnerability(vulnerability)
+        if 'issue' in json_data['issues']: 
+            for issue in json_data['issues']['issue']:
+                if issue['name'] not in burp_config['blacklist_findings']:
+                    name = copy.deepcopy(constants.BURP_SCAN)
+                    name['english_name'] = name['english_name'] + issue['name']
+                    extra='Burp Request: \n'+base64.b64decode(issue['requestresponse']['request']['#text']).decode("utf-8")
+                    vulnerability = Vulnerability(name, scan_info, description+extra)
+                    vulnerability.add_file_string(file_string)
+                    vulnerability.add_attachment(file_dir, file_name)
+                    slack_sender.send_simple_vuln(vulnerability)
+                    redmine.create_new_issue(vulnerability)
+                    mongo.add_vulnerability(vulnerability)
     except KeyError:
         return
     except TypeError as e:
@@ -155,4 +157,3 @@ def scan_target(scan_info):
                 os.system("kill -9 "+pid)
                 error_string = traceback.format_exc()
                 print('ERROR on {0}, description:{1}'.format(scan_info['url_to_scan'],error_string))
-            
