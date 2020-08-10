@@ -63,7 +63,6 @@ def add_vulnerability(scan_info, file_string, file_dir, file_name):
     my_dict = xmltodict.parse(file_string)
     json_data = json.dumps(my_dict)
     json_data = json.loads(json_data)
-    print(json_data)
     description = 'Burp scan completed against %s' % scan_info['url_to_scan'] +'\n'
     try:
         if 'issue' in json_data['issues']: 

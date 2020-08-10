@@ -54,13 +54,24 @@ def handle_single(scan_info):
 
 def checker(scan_info, url_with_port, result):
     # testssl has a bunch of vulns, we could test more
+    message = ""
     if result['id'] == 'SSLv2' and result['finding'] != 'not offered':
-        add_vulnerability(scan_info, "SSLv2 is available at %s" % url_with_port)
+        message += "SSLv2 is available at %s\n" % url_with_port
     elif result['id'] == 'SSLv3' and result['finding'] != 'not offered':
-        add_vulnerability(scan_info, "SSLv3 is available at %s" % url_with_port)
+        message += "SSLv3 is available at %s\n" % url_with_port
     elif result['id'] == 'TLS1' and result['finding'] != 'not offered':
-        add_vulnerability(scan_info, "TLS1.0 is available at %s" % url_with_port)
-
+        message += "TLS1.0 is available at %s\n" % url_with_port
+    elif result['id'] == 'POODLE_SSL' and 'VULNERABLE (NOT ok)' in result['finding']:
+        message += "TLS Vulnerable to POODLE ATTACK available at %s\n" % url_with_port
+    elif result['id'] == 'SWEET32' and result['finding'] != 'not vulnerable':
+        message += "64-bit block size cipher suites supported at %s\n" % url_with_port
+    elif result['id'] == 'LOGJAM' and 'VULNERABLE (NOT ok)' in result['finding']:
+        message += "LOGJAM experimental 1024 bit available at %s\n" % url_with_port
+    elif 'cipher-tls1' in result['id'] and 'DH 1024' in result['finding']:
+        message += "Short key length of DHE cipher suites (Less than 2048 bits) available at %s" % url_with_port
+    print(message)
+    if message:
+        add_vulnerability(scan_info, message)
 
 def cleanup(path):
     try:

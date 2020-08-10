@@ -37,7 +37,7 @@ def handle_single(scan_info):
 
 
 def add_vulnerability_to_mongo(scan_info):
-    vulnerability = Vulnerability(constants.HOST_HEADER_ATTACK, scan_info,"Host header attack possible at url")
+    vulnerability = Vulnerability(constants.HOST_HEADER_ATTACK, scan_info,"Host header attack possible at url {}".format(scan_info['url_to_scan']))
     slack_sender.send_simple_vuln(vulnerability)
     redmine.create_new_issue(vulnerability)
     mongo.add_vulnerability(vulnerability)
