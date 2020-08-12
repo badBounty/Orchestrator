@@ -14,6 +14,7 @@ from .src.security import header_scan, http_method_scan, ssl_tls_scan,\
     iis_shortname_scanner, burp_scan, nessus_scan, acunetix_scan
 from .src.slack import slack_sender
 from .src.mongo import mongo
+from .src.redmine import redmine
 from .src.comms import email_handler
 from .src.reporting import reporting
 
@@ -206,6 +207,7 @@ def acunetix_scan_task(scan_information, scan_type):
 
 @shared_task
 def generate_report_task(Task,scan_information,scan_type):
+    redmine.create_issue_scan_finished(scan_information)
     if scan_information['report_type']:
             reporting.create_report(scan_information)
             task_finished(Task)

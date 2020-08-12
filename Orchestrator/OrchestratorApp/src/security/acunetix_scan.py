@@ -85,7 +85,8 @@ def add_vulnerability(scan_info,scan_id,vulns):
         #Checking if is not a vulnerability already reported by other tool
         if res['title'] not in acunetix_info['BLACK_LIST']:
             affected_urls = ('\n'.join(res['resourceAf'])+'\n'+''.join(res['request_info']))
-            name = {'english_name':constants.ACUNETIX_SCAN['english_name']+ res['title']}
+            name = copy.deepcopy(constants.ACUNETIX_SCAN)
+            name['english_name'] = name['english_name']+ res['title']
             description = 'Acunetix scan completed against %s' % info['url_to_scan'] +'\n Affecteds URLS>'
             vulnerability = Vulnerability(name, info, description+affected_urls)
             slack_sender.send_simple_vuln(vulnerability)
@@ -168,16 +169,30 @@ def check_acu_status_and_create_vuln(scan_info,id_list,headers,session):
     return 
 
 def check_if_scan_is_possible(headers,session):
-    #Get already runned runnings scans
-    r = session.get(basic_url+launch_scan_url,verify=verify,headers=headers)
-    json_data = json.loads(r.text)
-    scans_running = len(json_data['scans'])
-    if scans_running < max_scans_possible:
-        #We can launch a scan
-        return True,max_scans_possible if scans_running == 0 else (max_scans_possible-scans_running)
-    else:
+    try:
+        #Get already runned scans
+        r = session.get(basic_url+launch_scan_url,verify=verify,headers=headers)
+        json_scan = json.loads(r.text)
+        #Just in case we get disconnected for some reason   
+        try:
+            json_scan['code']
+            if json_scan['message'] == 'Unauthorized':
+                r = session.post(basic_url+login_url,json=login_json,verify=verify)
+                #Get login values
+                headers['X-Auth'] = r.headers['X-Auth']
+                headers['X-Cookie'] = r.headers['Set-Cookie']
+                r = session.get(basic_url+launch_scan_url,verify=verify,headers=headers)
+                json_scan = json.loads(r.text)
+        except KeyError:
+                pass
+        scans_running = len(json_scan['scans'])
+        if scans_running < max_scans_possible:
+            #We can launch a scan
+            return True,max_scans_possible if scans_running == 0 else (max_scans_possible-scans_running)
+        else:
+            return False,0
+    except requests.exceptions.ReadTimeout:
         return False,0
-
 
 def scan_target(scan_info):
     wait_until_its_free = True
@@ -199,6 +214,6 @@ def scan_target(scan_info):
             wait_until_its_free = False
         else:
             #Acunetix is busy send notifications via slack - redmine ??
-            time.sleep(3600) #Waiting an hour before ask again
+            time.sleep(1800) #Wait half an hour before ask again
             pass
     return

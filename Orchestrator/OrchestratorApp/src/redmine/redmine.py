@@ -53,6 +53,26 @@ def create_new_issue(vulnerability):
         print("CONTINUING WITH THE SCAN")
         pass
 
+def create_issue_scan_finished(scan_information):
+    if redmine_client is None:
+        return
+    issue = redmine_client.issue.new()
+    issue.project_id = scan_information['redmine_project']
+    issue.subject = 'One Shot Scan Finalizado'
+    issue.tracker_id = 4
+    issue.description = 'One shot Scan ha finalizado, todas las vulns detectadas fueron subidas como issues al redmine'
+    issue.status_id = 0 
+    issue.priority_id = 1
+    issue.assigned_to_id = scan_information['assigned_users']
+    issue.watcher_user_ids = scan_information['watchers']
+    try:
+        issue.save()
+    except Exception as e:
+        print("ERROR SAVING THE ISSUE - SHOWING FULL ERROR:\n")
+        print(e)
+        print("CONTINUING WITH THE SCAN")
+        pass
+            
 
 def create_report_issue(info,file_dir,missing_finding):
     message = 'RECORDAR, ABRIRLO Y GUARDARLO DE NUEVO PORQUE TIENE EL XML ROTO POR LA GENERACION\n'
