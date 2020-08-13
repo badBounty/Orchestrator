@@ -119,9 +119,10 @@ def scan_target(scan_info, url_to_scan):
                         if not reported_invalid:
                             reported_invalid = True
             except KeyError:
-                message_exists = message_exists + "Header %s was not found \n" % header
-                if not reported_exists:
-                    reported_exists = True
+                if header != 'Access-Control-Allow-Origin':
+                    message_exists = message_exists + "Header %s was not found \n" % header
+                    if not reported_exists:
+                        reported_exists = True
 
         if reported_exists:
             add_header_missing_vulnerability(scan_info, img_b64, message_exists)
