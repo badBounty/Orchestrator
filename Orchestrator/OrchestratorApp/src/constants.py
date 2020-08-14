@@ -27,15 +27,11 @@ ACUNETIX_SCAN = {
 
 ### VULNERABILITIES ###
 INVALID_VALUE_ON_HEADER = {
-    'english_name': 'Insecure HTTP Response Header Configuration (Invalid value)',
+    'english_name': 'Insecure HTTP Response Header Configuration',
     'spanish_name': 'Inadecuada configuración de encabezados de seguridad',
     'status' : 1
 }
-HEADER_NOT_FOUND = {
-    'english_name': 'Insecure HTTP Response Header Configuration (Not found)',
-    'spanish_name': 'Inadecuada configuración de encabezados de seguridad',
-    'status': 1
-}
+
 HOST_HEADER_ATTACK = {
     'english_name': 'Host header attack possible',
     'spanish_name': 'Ataque de cabecera Host posible',
@@ -171,7 +167,7 @@ HTTP_PASSWD_NMAP_DESCRIPTION = 'Http passwd nmap script'
 WEB_VERSIONS_NMAP_DESCRIPTION = 'Web versions nmap script'
 # BURP #
 BURP_SCAN_DESCRIPTION = 'Burp scan ran against %s'
-
+TITLE_POSSIBLE_ERROR_PAGES = "Possible bad error messages detected on the following URLS:\n"
 
 ### REPORTING ###
 recursoAfectadoPlu_ES = "Recursos Afectados"

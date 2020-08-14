@@ -65,29 +65,12 @@ def add_header_value_vulnerability(scan_info, img_string, description):
     im.save(output_dir, 'PNG')
 
     vulnerability.add_attachment(output_dir, 'headers-result.png')
-
+    
     slack_sender.send_simple_vuln(vulnerability)
     redmine.create_new_issue(vulnerability)
     os.remove(output_dir)
     mongo.add_vulnerability(vulnerability)
-
-
-def add_header_missing_vulnerability(scan_info, img_string, description):
-    vulnerability = Vulnerability(constants.HEADER_NOT_FOUND, scan_info, description)
-    vulnerability.add_image_string(img_string)
-
-    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-    random_filename = uuid.uuid4().hex
-    output_dir = ROOT_DIR+'/tools_output/' + random_filename + '.png'
-    im = Image.open(BytesIO(base64.b64decode(img_string)))
-    im.save(output_dir, 'PNG')
-
-    vulnerability.add_attachment(output_dir, 'headers-result.png')
-
-    slack_sender.send_simple_vuln(vulnerability)
-    redmine.create_new_issue(vulnerability)
-    os.remove(output_dir)
-    mongo.add_vulnerability(vulnerability)
+    return vulnerability
 
 
 def scan_target(scan_info, url_to_scan):
@@ -123,9 +106,11 @@ def scan_target(scan_info, url_to_scan):
                     message_exists = message_exists + "Header %s was not found \n" % header
                     if not reported_exists:
                         reported_exists = True
-
+        final_message = ""
         if reported_exists:
-            add_header_missing_vulnerability(scan_info, img_b64, message_exists)
+            final_message +=message_exists
         if reported_invalid:
-            add_header_value_vulnerability(scan_info, img_b64, message_invalid)
+            final_message +=message_invalid
+        if final_message:
+            add_header_value_vulnerability(scan_info, img_b64, final_message)
     return
