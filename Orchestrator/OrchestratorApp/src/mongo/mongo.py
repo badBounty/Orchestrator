@@ -2,6 +2,7 @@ from ..slack import slack_sender
 from datetime import datetime
 from OrchestratorApp import MONGO_CLIENT
 from Orchestrator.settings import MONGO_INFO
+import traceback
 
 resources = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['RESOURCES_COLLECTION']]
 observations = MONGO_CLIENT[MONGO_INFO['DATABASE']][MONGO_INFO['OBSERVATIONS_COLLECTION']]
@@ -17,22 +18,28 @@ def get_workspaces():
 def get_ips_with_web_interface(info):
     urls_to_send = list()
     for ip in info['url_to_scan']:
-        resource = resources.find_one({'subdomain':ip,'ip': ip})    
-        if type(resource['nmap_information']) != list:
-            if resource['nmap_information']['@portid'] == '80':
-                urls_to_send.append('http://'+ip)
-            if resource['nmap_information']['@portid'] == '443':
-                urls_to_send.append('https://'+ip)
-        else:
-            all_ports =  [port['@portid'] for port in resource['nmap_information']]
-            for information in resource['nmap_information']:
-                resource_port = information['@portid']
-                if resource_port == '80' and all(elem in all_ports  for elem in ['80','443']):
-                    urls_to_send.append('https://'+ip)
-                elif resource_port == '443' and not all(elem in all_ports  for elem in ['80','443']):
-                    urls_to_send.append('https://'+ip)
-                elif resource_port == '80':
+        try:
+            resource = resources.find_one({'subdomain':ip,'ip': ip})    
+            if type(resource['nmap_information']) != list:
+                if resource['nmap_information']['@portid'] == '80':
                     urls_to_send.append('http://'+ip)
+                if resource['nmap_information']['@portid'] == '443':
+                    urls_to_send.append('https://'+ip)
+            else:
+                all_ports =  [port['@portid'] for port in resource['nmap_information']]
+                for information in resource['nmap_information']:
+                    resource_port = information['@portid']
+                    if resource_port == '80' and all(elem in all_ports  for elem in ['80','443']):
+                        urls_to_send.append('https://'+ip)
+                    elif resource_port == '443' and not all(elem in all_ports  for elem in ['80','443']):
+                        urls_to_send.append('https://'+ip)
+                    elif resource_port == '80':
+                        urls_to_send.append('http://'+ip)
+        except TypeError:
+            error_string = traceback.format_exc()
+            print(error_string)
+            pass
+
     return urls_to_send
 
 def get_responsive_http_resources(target):
