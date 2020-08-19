@@ -109,7 +109,6 @@ def check_ports_and_report(scan_info,ports,scan_type,json_scan,img_str):
                     add_vuln_to_mongo(scan_info, scan_type, message, img_str)
     except KeyError as e:
         error_string = traceback.format_exc()
-        print(json_scan)
         print('Nmap baseline scan error '+error_string)
     return
 
@@ -133,7 +132,6 @@ def basic_scan(scan_info, url_to_scan):
         cleanup(output_dir)
     except KeyError as e:
         error_string = traceback.format_exc()
-        print(json_data)
         print('Nmap baseline scan error '+error_string)
         pass
     return

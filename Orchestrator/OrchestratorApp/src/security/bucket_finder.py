@@ -118,7 +118,6 @@ def get_buckets(scan_information, url_to_scan):
         error_string = traceback.format_exc()
         print('Error in: '+error_string)
         return
-
     # Buckets can come in different ways
     # Way 1: http<s>://s3.amazonaws.com/bucketName
     # Way 2: http<s>://bucketName.s3.amazonaws.com

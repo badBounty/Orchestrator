@@ -5,6 +5,7 @@ import json
 import base64
 import uuid
 import copy
+import traceback
 
 from time import sleep
 from PIL import Image
@@ -305,14 +306,16 @@ def default_account(scan_info,url_to_scan):
     xml_file.close()
     json_data = json.dumps(my_dict)
     json_data = json.loads(json_data)
-    for port in json_data['nmaprun']['host']['ports']['port']:
-        try:
+    try:
+        for port in json_data['nmaprun']['host']['ports']['port']:
             for scp in port['script']:
                 if isinstance(scp, dict):
                     if "] at /" in scp['@output']:
                         message+=scp['@output']
-        except KeyError:
-            pass
+    except KeyError:
+        error_string = traceback.format_exc()
+        print('Nmap Script Scan error '+error_string)
+        return
     if message:
         img_str = image_creator.create_image_from_string(message)
         add_vuln_to_mongo(scan_info, "default_creds", message, img_str)

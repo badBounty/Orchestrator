@@ -26,18 +26,17 @@ def handle_target(info):
     slack_sender.send_simple_message("CORS scan started against target: %s. %d alive urls found!"
                                      % (info['target'], len(info['url_to_scan'])))
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-
-    # We first put all the urls with http/s into a txt file
     random_filename = uuid.uuid4().hex
     FILE_WITH_URLS = ROOT_DIR + '/tools_output/' + random_filename + '.txt'
-    with open(FILE_WITH_URLS, 'w') as f:
-        for item in info['url_to_scan']:
-            f.write("%s\n" % item)
-
-    # Call scan target with the file
-    scan_target(info, FILE_WITH_URLS)
-    # Delete all created files
-    cleanup(FILE_WITH_URLS)
+    for subdomain in info['target']:
+        scan_info = copy.deepcopy(info)
+        scan_info['target'] = subdomain
+        with open(FILE_WITH_URLS, 'w') as f:
+            f.write("%s\n" % subdomain)
+        # Call scan target with the file
+        scan_target(scan_info, FILE_WITH_URLS)
+        # Delete all created files
+        cleanup(FILE_WITH_URLS)
     print('Module CORS Scan finished')
     return
 

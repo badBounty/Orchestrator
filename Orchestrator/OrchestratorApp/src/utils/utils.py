@@ -3,6 +3,11 @@ import re
 import math
 import os
 import subprocess
+import time
+import pycurl
+import traceback
+from io import BytesIO
+
 from selenium import webdriver
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -35,12 +40,34 @@ regex_str = r"""
           (?:"|')                               # End newline delimiter
         """
 
+def get_response(url):
+    try:
+        response = requests.get(url, verify=False, timeout=3)
+    except requests.exceptions.SSLError:
+        print('Url %s raised SSL Error at utils.py' % url)
+        return None
+    except requests.exceptions.ConnectionError:
+        print('Url %s raised Connection Error at utils.py' % url)
+        return None
+    except requests.exceptions.ReadTimeout:
+        print('Url %s raised Read Timeout Error at utils.py' % url)
+        return None
+    except requests.exceptions.TooManyRedirects:
+        print('Url %s raised Too many redirects Error at utils.py' % url)
+        return None
+    except Exception:
+        error_string = traceback.format_exc()
+        final_error = 'On {0}, was Found: {1}'.format(url,error_string)
+        print(final_error)
+        return None
+    return response
+
+
 def get_js_files(url):
     js_files = list()
     regex = re.compile(regex_str, re.VERBOSE)
-    try:
-        response = requests.get(url, verify = False, timeout = 3)
-    except requests.exceptions.ReadTimeout:
+    response = get_response(url)
+    if response is None:
         return []
     all_matches = [(m.group(1), m.start(0), m.end(0)) for m in re.finditer(regex, response.text)]
     for match in all_matches:
@@ -57,9 +84,8 @@ def get_js_files(url):
 def get_css_files_linkfinder(url):
     css_files = list()
     regex = re.compile(regex_str, re.VERBOSE)
-    try:
-        response = requests.get(url, verify = False, timeout = 3)
-    except requests.exceptions.ReadTimeout:
+    response = get_response(url)
+    if response is None:
         return []
     all_matches = [(m.group(1), m.start(0), m.end(0)) for m in re.finditer(regex, response.text)]
     for match in all_matches:
@@ -85,3 +111,43 @@ def url_screenshot(url):
     OUTPUT_DIR = ROOT_DIR+'/../security/tools_output'
     driver.save_screenshot(OUTPUT_DIR+name+".png")
     driver.quit()
+
+def find_bad_error_messages(urls):
+    buffer = BytesIO()
+    header = BytesIO()
+    c = pycurl.Curl()
+
+    payloads = ['};','}};',']};','<script>alert`1`</script>','\'','\"','%27','%2527','&#8217;','&#8221;','\'OR+1=1+--+-','\"OR%201=1%20--%20-','2%20ORDER%20BY%203','"><script>alert(String.fromCharCode(88,83,83))</script>',\
+    '<script>alert`1`</script>','?cmd=whoami','http://evil.com','examples/jsp/%252e%252e/manager/html','file.aspx','file.php','%252e%252e%252e%252eetc%252epasswd'\
+        ,'\..\..\..\..\Windows\win.ini','file:///etc/passwd','http://127.0.0.1:80']
+    extension = ['css','js','php','html','aspx']
+    possible_bad_messages = ""
+    for site in urls:
+        for p in payloads:
+            if list(filter(site.endswith, extension)) != []:
+                url = site+'?url={}'.format(p)
+            elif '?' in site:
+                print(site)
+                url_clean = site.split('?')[0]
+                url_param = (site.split('?')[1]).split('=')[0]
+                url = url_clean+'?'+url_param+'={}'.format(p)
+                print('----')
+                print(url)
+            else:
+                url = site+'/{}'.format(p)
+            try:
+                time.sleep(1)
+                c.setopt(c.URL,url)
+                c.setopt(c.WRITEFUNCTION,buffer.write)
+                c.setopt(c.HEADERFUNCTION, header.write)
+                c.perform()
+                status_code = c.getinfo(pycurl.HTTP_CODE)
+                size = int(len(buffer.getvalue().decode('UTF-8')))
+                if status_code not in [200,302,404] and size > 256:                    
+                    msg = 'URL: {0} Payload used {1} - response code detected {2} - length ({3} bytes)\n'.format(url,p,int(status_code),size)
+                    possible_bad_messages+=msg
+            except pycurl.error:
+                error_string = traceback.format_exc()
+                print('ERROR on {0}, description:{1}'.format(url,error_string))
+                pass
+    return possible_bad_messages
