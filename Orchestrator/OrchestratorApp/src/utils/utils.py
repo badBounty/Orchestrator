@@ -4,7 +4,6 @@ import math
 import os
 import subprocess
 import time
-import pycurl
 import traceback
 from io import BytesIO
 
