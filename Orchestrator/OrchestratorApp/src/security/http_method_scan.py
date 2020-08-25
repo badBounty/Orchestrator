@@ -60,8 +60,11 @@ def scan_target(scan_info, url_to_scan):
         return
 
     try:
-        options_response = requests.options(url_to_scan)
-        responses.append({'method': 'TRACE', 'response': options_response})
+        s = requests.Session()
+        req = requests.Request('TRACE',url_to_scan)
+        prepped = s.prepare_request(req)
+        trace_response = s.send(prepped,verify=False)
+        responses.append({'method': 'TRACE', 'response': trace_response})
     except requests.exceptions.SSLError:
         return
     except requests.exceptions.ConnectionError:
