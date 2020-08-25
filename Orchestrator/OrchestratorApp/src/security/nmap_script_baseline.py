@@ -27,6 +27,12 @@ def cleanup(path):
         pass
     return
 
+def http_and_https(ports_numbers):
+    http_s_list = ['80','443']
+    if http_s_list[0] in ports_numbers and http_s_list[1] in ports_numbers:
+        return True
+    else:
+        return False
 
 def handle_target(info):
     print('Module Nmap Scripts Baseline started against target: %s. %d alive urls found!'% (info['target'], len(info['url_to_scan'])))
@@ -104,9 +110,9 @@ def check_ports_and_report(scan_info,ports,scan_type,json_scan,img_str):
                     message+= 'Product: '+port['service']['@product']+'\n'
                 if '@version' in port['service']:
                     message+= 'Version: '+port['service']['@version']+'\n\n'
-                http_and_https = (port['@portid'] == '80' and all(elem in ports_numbers  for elem in ['80','443']))
-                if not http_and_https:
-                    add_vuln_to_mongo(scan_info, scan_type, message, img_str)
+            ports_numbers.append(port['@portid'])
+        if not http_and_https(ports_numbers):
+            add_vuln_to_mongo(scan_info, scan_type, message, img_str)
     except KeyError as e:
         error_string = traceback.format_exc()
         print('Nmap baseline scan error '+error_string)
