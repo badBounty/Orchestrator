@@ -86,10 +86,12 @@ def analyze(scan_info, url_to_scan):
     except KeyError as e:
         error_string = traceback.format_exc()
         print('Libraries scan error '+error_string)
-        return
+        return False
     except Exception as e:
         error_string = traceback.format_exc()
         print('Libraries scan error '+error_string)
+        return False
+    return True
 
 
 def handle_target(info):
@@ -97,11 +99,18 @@ def handle_target(info):
         print('Module libraries scan started against '+ str(len(info['url_to_scan'])) + ' targets')
         slack_sender.send_simple_message("Libraries scan started against target: %s. %d alive urls found!"
                                         % (info['target'], len(info['url_to_scan'])))
+        subject = 'Module Libraries Scan finished'
+        desc = ''
         for url in info['url_to_scan']:
             sub_info = copy.deepcopy(info)
             sub_info['url_to_scan'] = url
             print('Scanning ' + url)
-            analyze(sub_info, sub_info['url_to_scan'])
+            finished_ok = analyze(sub_info, sub_info['url_to_scan'])
+            if finished_ok:
+                desc += 'Libraries Scan termino sin dificultades para el target {}\n'.format(info['url_to_scan'])
+            else:
+                desc += 'Libraries Scan encontro un problema y no pudo correr para el target {}\n'.format(info['url_to_scan'])
+        redmine.create_informative_issue(info,subject,desc)
         print('Module libraries scan finished')
     return
 
@@ -111,6 +120,12 @@ def handle_single(scan_info):
         print('Module libraries scan (single) started against %s' % scan_info['url_to_scan'])
         slack_sender.send_simple_message("Libraries scan started against %s" % scan_info['url_to_scan'])
         info = copy.deepcopy(scan_info)
-        analyze(info, info['url_to_scan'])
+        subject = 'Module Libraries Scan finished'
+        finished_ok = analyze(info, info['url_to_scan'])
+        if finished_ok:
+            desc = 'Header Scan termino sin dificultades para el target {}'.format(scan_info['url_to_scan'])
+        else:
+            desc = 'Header Scan encontro un problema y no pudo correr para el target {}'.format(scan_info['url_to_scan'])
+        redmine.create_informative_issue(scan_info,subject,desc)
         print('Module libraries scan (single) finished against %s' % scan_info['url_to_scan'])
     return

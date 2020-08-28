@@ -21,22 +21,29 @@ def cleanup(path):
 
 def handle_target(info):
     info = copy.deepcopy(info)
-    print('Module CORS Scan started against target: %s. %d alive urls found!'% (info['target'], len(info['url_to_scan'])))
+    print('Module CORS Scan started against target: %s. %d alive urls found!'% (info['url_to_scan'], len(info['url_to_scan'])))
     print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
     slack_sender.send_simple_message("CORS scan started against target: %s. %d alive urls found!"
-                                     % (info['target'], len(info['url_to_scan'])))
+                                     % (info['url_to_scan'], len(info['url_to_scan'])))
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     random_filename = uuid.uuid4().hex
     FILE_WITH_URLS = ROOT_DIR + '/tools_output/' + random_filename + '.txt'
+    subject = 'Module CORS Scan finished'
+    desc = ''
     for subdomain in info['target']:
         scan_info = copy.deepcopy(info)
         scan_info['target'] = subdomain
         with open(FILE_WITH_URLS, 'w') as f:
             f.write("%s\n" % subdomain)
         # Call scan target with the file
-        scan_target(scan_info, FILE_WITH_URLS)
+        finished_ok = scan_target(scan_info, FILE_WITH_URLS)
+        if finished_ok:
+            desc += 'CORS Scan termino sin dificultades para el target {}'.format(scan_info['target'])
+        else:
+            desc += 'CORS Scan encontro un problema y no pudo correr para el target {}'.format(scan_info['target'])
         # Delete all created files
         cleanup(FILE_WITH_URLS)
+    redmine.create_informative_issue(info,subject,desc)
     print('Module CORS Scan finished')
     return
 
@@ -55,8 +62,13 @@ def handle_single(info):
         f.write("%s\n" % info['url_to_scan'])
 
     # Call scan target
-    scan_target(info, FILE_WITH_URL)
-
+    subject = 'Module CORS Scan finished'
+    finished_ok = scan_target(info, FILE_WITH_URL)
+    if finished_ok:
+        desc = 'CORS Scan termino sin dificultades para el target {}'.format(info['url_to_scan'])
+    else:
+        desc = 'CORS Scan encontro un problema y no pudo correr para el target {}'.format(info['url_to_scan'])
+    redmine.create_informative_issue(info,subject,desc)
     # Delete all created files
     cleanup(FILE_WITH_URL)
     print('Module CORS Scan finished against %s' % info['url_to_scan'])
@@ -83,10 +95,10 @@ def scan_target(scan_info, file_name):
 
     if not vulns:
         cleanup(FILE_WITH_JSON_RESULT)
-        return
+        return True
 
     for vuln in vulns:
         add_vulnerability(scan_info, vuln)
 
     cleanup(FILE_WITH_JSON_RESULT)
-    return
+    return True

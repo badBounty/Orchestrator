@@ -53,7 +53,13 @@ def handle_target(info):
         full_list = info['url_to_scan']
         info_for_scan = copy.deepcopy(info_copy)
         info_for_scan['url_to_scan'] = full_list
-        scan_target(info_for_scan)
+        subject = 'Module Acunetix Scan finished'
+        finished_ok = scan_target(info_for_scan)
+        if finished_ok:
+            desc = 'Acunetix Scan termino sin dificultades para el target {}'.format(info['url_to_scan'])
+        else:
+            desc = 'Acunetix Scan encontro un problema y no pudo correr para el target {}'.format(info['url_to_scan'])
+        redmine.create_informative_issue(info,subject,desc)
         print('Module Acunetix scan finished against target: %s'% info['target'])
     return
 
@@ -65,7 +71,13 @@ def handle_single(scan_information):
         urls = [scan_information['url_to_scan']]
         info = copy.deepcopy(scan_information)
         info['url_to_scan'] = urls
-        scan_target(info)
+        finished_ok = scan_target(info)
+        subject = 'Module Acunetix Scan finished'
+        if finished_ok:
+            desc = 'Acunetix Scan termino sin dificultades para el target {}'.format(scan_information['url_to_scan'])
+        else:
+            desc = 'Acunetix Scan encontro un problema y no pudo correr para el target {}'.format(scan_information['url_to_scan'])
+        redmine.create_informative_issue(scan_information,subject,desc)
         print('Module Acunetix (single) scan finished against target:%s' % scan_information['url_to_scan'])
     return
 
@@ -216,4 +228,4 @@ def scan_target(scan_info):
             #Acunetix is busy send notifications via slack - redmine ??
             time.sleep(1800) #Wait half an hour before ask again
             pass
-    return
+    return True

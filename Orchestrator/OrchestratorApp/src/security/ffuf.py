@@ -26,11 +26,18 @@ def handle_target(info):
         print('Found ' + str(len(info['url_to_scan'])) + ' targets to scan')
         slack_sender.send_simple_message("Directory bruteforce scan started against target: %s. %d alive urls found!"
                                         % (info['target'], len(info['url_to_scan'])))
+        subject = 'Module FFUF Scan finished'
+        desc = ''
         for url in info['url_to_scan']:
             sub_info = copy.deepcopy(info)
             sub_info['url_to_scan'] = url
             print('Scanning ' + url)
-            scan_target(sub_info, sub_info['url_to_scan'])
+            finished_ok = scan_target(sub_info, sub_info['url_to_scan'])
+            if finished_ok:
+                desc = 'FFUF Scan termino sin dificultades para el target {}'.format(sub_info['url_to_scan'])
+            else:
+                desc = 'FFUF Scan encontro un problema y no pudo correr para el target {}'.format(sub_info['url_to_scan'])
+        redmine.create_informative_issue(info,subject,desc)
         print('Module ffuf finished')
     return
 
@@ -40,7 +47,13 @@ def handle_single(scan_info):
         print('Module ffuf (single) started against %s' % scan_info['url_to_scan'])
         slack_sender.send_simple_message("Directory bruteforce scan started against %s" % scan_info['url_to_scan'])
         info = copy.deepcopy(scan_info)
-        scan_target(info, info['url_to_scan'])
+        subject = 'Module FFUF Scan finished'
+        finished_ok = scan_target(info, info['url_to_scan'])
+        if finished_ok:
+            desc = 'FFUF Scan termino sin dificultades para el target {}'.format(scan_info['url_to_scan'])
+        else:
+            desc = 'FFUF Scan encontro un problema y no pudo correr para el target {}'.format(scan_info['url_to_scan'])
+        redmine.create_informative_issue(scan_info,subject,desc)
         print('Module ffuf (single) finished')
     return
 
@@ -84,4 +97,4 @@ def scan_target(scan_info, url_with_http):
         add_vulnerability(scan_info, url_with_http, description)
 
     cleanup(JSON_RESULT)
-    return
+    return True

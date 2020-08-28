@@ -19,11 +19,18 @@ def handle_target(info):
     print('Module Header Scan starting against ' + str(len(info['url_to_scan'])) + ' targets')
     slack_sender.send_simple_message("Header scan started against target: %s. %d alive urls found!"
                                      % (info['target'], len(info['url_to_scan'])))
+    subject = 'Module Header Scan finished'
+    desc = ''
     for url in info['url_to_scan']:
         sub_info = copy.deepcopy(info)
         sub_info['url_to_scan'] = url
         print('Scanning ' + url)
-        scan_target(sub_info, sub_info['url_to_scan'])
+        finished_ok = scan_target(sub_info, sub_info['url_to_scan'])
+        if finished_ok:
+            desc += 'Header Scan termino sin dificultades para el target {}\n'.format(info['url_to_scan'])
+        else:
+            desc += 'Header Scan encontro un problema y no pudo correr para el target {}\n'.format(info['url_to_scan'])
+    redmine.create_informative_issue(info,subject,desc)
     print('Module Header Scan finished')
     return
 
@@ -32,7 +39,13 @@ def handle_single(scan_info):
     print('Modole Header Scan (single) started against %s' % scan_info['url_to_scan'])
     slack_sender.send_simple_message("Header scan started against %s" % scan_info['url_to_scan'])
     info = copy.deepcopy(scan_info)
-    scan_target(info, info['url_to_scan'])
+    finished_ok = scan_target(info, info['url_to_scan'])
+    subject = 'Module Header Scan finished'
+    if finished_ok:
+        desc = 'Header Scan termino sin dificultades para el target {}'.format(scan_info['url_to_scan'])
+    else:
+        desc = 'Header Scan encontro un problema y no pudo correr para el target {}'.format(scan_info['url_to_scan'])
+    redmine.create_informative_issue(scan_info,subject,desc)
     print('Module Header Scan (single) finished against %s' % scan_info['url_to_scan'])
     return
 
@@ -81,9 +94,9 @@ def scan_target(scan_info, url_to_scan):
             message += h + " : " + response.headers[h]+'\n'
         img_b64 = image_creator.create_image_from_string(message)
     except requests.exceptions.SSLError:
-        return
+        return False
     except requests.exceptions.ConnectionError:
-        return
+        return False
 
     important_headers = ['Content-Security-Policy', 'X-XSS-Protection', 'x-frame-options', 'X-Content-Type-options',
                          'Strict-Transport-Security', 'Access-Control-Allow-Origin']
@@ -113,4 +126,4 @@ def scan_target(scan_info, url_to_scan):
             final_message +=message_invalid
         if final_message:
             add_header_value_vulnerability(scan_info, img_b64, final_message)
-    return
+    return True

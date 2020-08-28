@@ -207,7 +207,9 @@ def acunetix_scan_task(scan_information, scan_type):
 
 @shared_task
 def generate_report_task(Task,scan_information,scan_type):
-    redmine.create_issue_scan_finished(scan_information)
+    subject = 'One Shot Scan Finalizado'
+    desc = 'One shot Scan ha finalizado, todas las vulns detectadas fueron subidas como issues al redmine'
+    redmine.create_informative_issue(scan_information,subject,desc)
     if scan_information['report_type']:
             reporting.create_report(scan_information)
             task_finished(Task)

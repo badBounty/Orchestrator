@@ -5,7 +5,6 @@ import os
 import subprocess
 import time
 import traceback
-from io import BytesIO
 
 from selenium import webdriver
 
@@ -110,3 +109,34 @@ def url_screenshot(url):
     OUTPUT_DIR = ROOT_DIR+'/../security/tools_output'
     driver.save_screenshot(OUTPUT_DIR+name+".png")
     driver.quit()
+
+def find_bad_error_messages(urls):
+    print('Starting Possible bad error messages')
+    payloads = ['};','}};',']};','<script>alert`1`</script>','\'','\"','%27','%2527','&#8217;','&#8221;','\'OR+1=1+--+-','\"OR%201=1%20--%20-','2%20ORDER%20BY%203','"><script>alert(String.fromCharCode(88,83,83))</script>',\
+    '<script>alert`1`</script>','?cmd=whoami','http://evil.com','examples/jsp/%252e%252e/manager/html','file.aspx','file.php','%252e%252e%252e%252eetc%252epasswd'\
+        ,'\..\..\..\..\Windows\win.ini','file:///etc/passwd','http://127.0.0.1:80']
+    extension = ['css','js','php','html','aspx']
+    possible_bad_messages = ""
+    try:
+        for site in urls:
+            for p in payloads:
+                if list(filter(site.endswith, extension)) != []:
+                    url = site+'?url={}'.format(p)
+                elif '?' in site:
+                    url_clean = site.split('?')[0]
+                    url_param = (site.split('?')[1]).split('=')[0]
+                    url = url_clean+'?'+url_param+'={}'.format(p)
+                else:
+                    url = site+'/{}'.format(p)
+                time.sleep(1)
+                resp = get_response(url)
+                if resp:
+                    status_code = int(resp.status_code)
+                    size = int(len(resp.text))
+                    if status_code not in [200,302,404] and size > 256:                    
+                        msg = 'URL: {0} Payload used {1} - response code detected {2} - length ({3} bytes)\n'.format(url,p,status_code,size)
+                        possible_bad_messages+=msg
+    except Exception:
+        print('Error')
+    print('Finished Possible bad error messages')
+    return possible_bad_messages

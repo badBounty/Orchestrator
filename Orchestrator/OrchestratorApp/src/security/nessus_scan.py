@@ -54,6 +54,7 @@ def handle_target(info):
         slack_sender.send_simple_message("Nessus scan started against target: %s. %d alive urls found!"
                                         % (info['target'], len(info['url_to_scan'])))
         print('Found ' + str(targets) + ' targets to scan')
+        subject = 'Module Nessus Scan finished'
         divider = targets//2
         #Plain list for nessus scan
         urls = ','.join(get_only_url(l) for l in url_list[divider:])
@@ -61,14 +62,19 @@ def handle_target(info):
         sub_info['url_to_scan'] = url_list[divider:]
         sub_info['nessus_target'] = urls
         print('Scanning ' + urls)
-        scan_target(sub_info)
+        finished_1 = scan_target(sub_info)
         #Plain list for nessus scan
         urls = ','.join(get_only_url(l) for l in url_list[:divider])
         sub_info = copy.deepcopy(info)
         sub_info['url_to_scan'] = url_list[:divider]
         sub_info['nessus_target'] = urls
         print('Scanning ' + urls)
-        scan_target(sub_info)
+        finished_2 = scan_target(sub_info)
+        if finished_1 and finished_2:
+            desc = 'Nessus Scan termino sin dificultades para el target {}'.format(info['url_to_scan'])
+        else:
+            desc = 'Nessus Scan encontro un problema y no pudo correr para el target {}'.format(info['url_to_scan'])
+        redmine.create_informative_issue(info,subject,desc)
         print('Module Nessus Scan finished against %s'% info['target'])
     return
 
@@ -81,7 +87,13 @@ def handle_single(scan_information):
         url_plain = get_only_url(scan_information['url_to_scan'])
         info['nessus_target'] = url_plain
         info['url_to_scan'] = list().append(info['url_to_scan'])
-        scan_target(info)
+        finished_ok = scan_target(info)
+        subject = 'Module Nessus Scan finished'
+        if finished_ok:
+            desc = 'Nessus Scan termino sin dificultades para el target {}'.format(scan_information['url_to_scan'])
+        else:
+            desc = 'Nessus Scan encontro un problema y no pudo correr para el target {}'.format(scan_information['url_to_scan'])
+        redmine.create_informative_issue(scan_information,subject,desc)
         print('Module Nessus Single Scan Finished against %s' % scan_information['url_to_scan'])
 
     return
@@ -162,3 +174,4 @@ def scan_target(scan_info):
         add_vulnerability(scan_info, json_scan,header)
     else:
         print('The scan with id: '+scan_id+' has been paused or stopped go to nessus and checked manually')
+    return True

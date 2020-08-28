@@ -39,6 +39,8 @@ def handle_target(info):
     slack_sender.send_simple_message("Nmap scripts started against target: %s. %d alive urls found!"
                                      % (info['target'], len(info['url_to_scan'])))
     scanned_hosts = list()
+    subject = 'Module Nmap Baseline Scan finished'
+    desc = ''
     for url in info['url_to_scan']:
         sub_info = copy.deepcopy(info)
         sub_info['url_to_scan'] = url
@@ -49,8 +51,13 @@ def handle_target(info):
         if host not in scanned_hosts:
             print('Scanning ' + url)
             sub_info['ip'] = host
-            basic_scan(sub_info, host)
+            finished_ok = basic_scan(sub_info, host)
+            if finished_ok:
+                desc += 'Nmap Baseline Scan termino sin dificultades para el target {}\n'.format(sub_info['url_to_scan'])
+            else:
+                desc += 'Nmap Baseline Scan encontro un problema y no pudo correr para el target {}\n'.format(sub_info['url_to_scan'])
         scanned_hosts.append(host)
+    redmine.create_informative_issue(info,subject,desc)
     print('Module Nmap Scripts Baseline finished against %s'% info['target'])
     return
 
@@ -66,7 +73,13 @@ def handle_single(scan_info):
     except IndexError:
         host = url
     info['ip'] = host
-    basic_scan(info, host)
+    finished_ok = basic_scan(info, host)
+    subject = 'Module Nmap Baseline Scan finished'
+    if finished_ok:
+        desc = 'Nmap Baseline Scan termino sin dificultades para el target {}'.format(scan_info['url_to_scan'])
+    else:
+        desc = 'Nmap Baseline Scan encontro un problema y no pudo correr para el target {}'.format(scan_info['url_to_scan'])
+    redmine.create_informative_issue(scan_info,subject,desc)
     print('Module Nmap Scripts Baseline (single) finished against %s'% url)
     return
 
@@ -139,5 +152,5 @@ def basic_scan(scan_info, url_to_scan):
     except KeyError as e:
         error_string = traceback.format_exc()
         print('Nmap baseline scan error '+error_string)
-        pass
-    return
+        return False
+    return True

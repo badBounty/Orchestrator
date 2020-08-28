@@ -53,14 +53,14 @@ def create_new_issue(vulnerability):
         print("CONTINUING WITH THE SCAN")
         pass
 
-def create_issue_scan_finished(scan_information):
+def create_informative_issue(scan_information,subject,description):
     if redmine_client is None:
         return
     issue = redmine_client.issue.new()
     issue.project_id = scan_information['redmine_project']
-    issue.subject = 'One Shot Scan Finalizado'
+    issue.subject = subject
     issue.tracker_id = 4
-    issue.description = 'One shot Scan ha finalizado, todas las vulns detectadas fueron subidas como issues al redmine'
+    issue.description = description
     issue.status_id = 0 
     issue.priority_id = 1
     issue.assigned_to_id = scan_information['assigned_users']

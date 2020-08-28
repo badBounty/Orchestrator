@@ -20,11 +20,18 @@ def handle_target(info):
     print('Module S3 Bucket scan started against target: %s. %d alive urls found!' % (info['target'], len(info['url_to_scan'])))
     slack_sender.send_simple_message("Bucket finder scan started against target: %s. %d alive urls found!"
                                      % (info['target'], len(info['url_to_scan'])))
+    subject = 'Module Bucket S3 Scan finished'
+    desc = ''
     for url in info['url_to_scan']:
         sub_info = copy.deepcopy(info)
         sub_info['url_to_scan'] = url
         print('Scanning ' + url)
-        scan_target(sub_info, sub_info['url_to_scan'])
+        finished_ok = scan_target(sub_info, sub_info['url_to_scan'])
+        if finished_ok:
+            desc += 'Bucket S3 Scan termino sin dificultades para el target {}\n'.format(info['url_to_scan'])
+        else:
+            desc += 'Bucket S3 Scan encontro un problema y no pudo correr para el target {}\n'.format(info['url_to_scan'])
+    redmine.create_informative_issue(info,subject,desc)
     print('Module S3 Bucket scan finished')
     return
 
@@ -33,7 +40,13 @@ def handle_single(scan_information):
     print('Module S3 Bucket scan (single) started against %s' % scan_information['target'])
     slack_sender.send_simple_message("Bucket finder scan started against %s" % scan_information['target'])
     info = copy.deepcopy(scan_information)
-    scan_target(info, info['url_to_scan'])
+    finished_ok = scan_target(info, info['url_to_scan'])
+    subject = 'Module Bucket S3 Scan finished'
+    if finished_ok:
+        desc = 'Bucket S3 Scan termino sin dificultades para el target {}'.format(info['url_to_scan'])
+    else:
+        desc = 'Bucket S3 Scan encontro un problema y no pudo correr para el target {}'.format(info['url_to_scan'])
+    redmine.create_informative_issue(info,subject,desc)
     print('Module S3 Bucket scan (single) finished')
     return
 
@@ -49,13 +62,13 @@ def filter_invalids(some_list):
 
 def scan_target(scan_information, url_to_scan):
     # We first search for buckets inside the html code
-    get_buckets(scan_information, url_to_scan)
+    finished = get_buckets(scan_information, url_to_scan)
     # We now scan javascript files
     javascript_files_found = utils.get_js_files(url_to_scan)
     if javascript_files_found:
         for javascript in javascript_files_found:
             get_buckets(scan_information, javascript)
-    return
+    return finished
 
 
 def add_vulnerability_to_mongo(scanned_url, finding_name, bucket_name, description , scan_info):
@@ -111,13 +124,13 @@ def get_buckets(scan_information, url_to_scan):
     try:
         response = requests.get(url_to_scan, verify=False, timeout=3)
     except requests.exceptions.ConnectionError:
-        return
+        return False
     except requests.exceptions.ReadTimeout:
-        return
+        return False
     except Exception as e:
         error_string = traceback.format_exc()
         print('Error in: '+error_string)
-        return
+        return False
     # Buckets can come in different ways
     # Way 1: http<s>://s3.amazonaws.com/bucketName
     # Way 2: http<s>://bucketName.s3.amazonaws.com
@@ -165,3 +178,4 @@ def get_buckets(scan_information, url_to_scan):
     # We now have to check the buckets
     get_ls_buckets(bucket_list, url_to_scan, scan_information)
     get_cprm_buckets(bucket_list, url_to_scan, scan_information)
+    return True

@@ -33,6 +33,8 @@ def handle_target(info):
     slack_sender.send_simple_message("Nmap scripts started against target: %s. %d alive urls found!"
                                      % (info['target'], len(info['url_to_scan'])))
     scanned_hosts = list()
+    subject = 'Module Nmap Script Scan finished'
+    desc = ''
     for url in info['url_to_scan']:
         sub_info = copy.deepcopy(info)
         sub_info['url_to_scan'] = url
@@ -42,8 +44,8 @@ def handle_target(info):
             host = url
         print('Scanning ' + url)
         if host not in scanned_hosts:
-            outdated_software(sub_info, host)
-            web_versions(sub_info, host)
+            f1 = outdated_software(sub_info, host)
+            f2 = web_versions(sub_info, host)
             if sub_info['invasive_scans']:
                 if wordlist['ssh_ftp_user'] and wordlist['ssh_ftp_pass']:
                     ssh_ftp_brute_login(sub_info, host, True)#SHH
@@ -51,7 +53,12 @@ def handle_target(info):
                     ssh_ftp_brute_login(sub_info, host, False)#FTP
                     ftp_anon_login(sub_info, host)#FTP ANON
                 default_account(sub_info,host)#Default creds in web console
+        if f1 and f2:
+            desc += 'Nmap Script Scan termino sin dificultades para el target {}\n'.format(sub_info['url_to_scan'])
+        else:
+            desc += 'Nmap Script Scan encontro un problema y no pudo correr para el target {}\n'.format(sub_info['url_to_scan'])
         scanned_hosts.append(host)
+    redmine.create_informative_issue(info,subject,desc)
     print('Module Nmap Scripts finished against %s'% info['target'])
     return
 
@@ -63,8 +70,9 @@ def handle_single(scan_info):
     slack_sender.send_simple_message("Nmap scripts started against %s" % url)
     # We receive the url with http/https, we will get only the host so nmap works
     host = url.split('/')[2]
-    outdated_software(info, host)
-    web_versions(info, host)
+    f1 = outdated_software(info, host)
+    f2 = web_versions(info, host)
+    subject = 'Module Nmap Scriptaseline Scan finished'
     if info['invasive_scans']:
         if wordlist['ssh_ftp_user'] and wordlist['ssh_ftp_pass']:
             ssh_ftp_brute_login(info, host, True)#SHH
@@ -72,6 +80,11 @@ def handle_single(scan_info):
             ssh_ftp_brute_login(info, host, False)#FTP
             ftp_anon_login(info, host)#FTP ANON
         default_account(info,host)#Default creds in web console
+    if f1 and f2:
+        desc = 'Nmap Script Scan termino sin dificultades para el target {}\n'.format(scan_info['url_to_scan'])
+    else:
+        desc = 'Nmap Script Scan encontro un problema y no pudo correr para el target {}\n'.format(scan_info['url_to_scan'])
+    redmine.create_informative_issue(scan_info,subject,desc)
     print('Module Nmap Scripts (single) scan finished against %s' % url)
     return
 
@@ -132,7 +145,7 @@ def outdated_software(scan_info, url_to_scan):
             extra_info = extra_info + line
     if outdated_software_found:
         add_vuln_to_mongo(scan_info, 'outdated_software', extra_info)
-    return
+    return True
 
 
 def web_versions(scan_info, url_to_scan):
@@ -188,7 +201,7 @@ def web_versions(scan_info, url_to_scan):
                                            text_web_versions[i+1] + " \n " + text_web_versions[i+2]
     if web_versions_found:
         add_vuln_to_mongo(scan_info, 'web_versions', extra_info_web_versions)
-    return
+    return True
 
 
 def ssh_ftp_brute_login(scan_info, url_to_scan, is_ssh):
@@ -225,7 +238,7 @@ def ssh_ftp_brute_login(scan_info, url_to_scan, is_ssh):
     except KeyError:
         message = None
     cleanup(output_dir)
-    return
+    return True
 
 
 def ftp_anon_login(scan_info,url_to_scan):
@@ -249,7 +262,7 @@ def ftp_anon_login(scan_info,url_to_scan):
     except KeyError:
         message = None
     cleanup(output_dir)
-    return
+    return True
 
 
 def http_errors(target_name, url_to_scan, language):
@@ -286,7 +299,7 @@ def http_errors(target_name, url_to_scan, language):
     if message:
         vuln_name = constants.POSSIBLE_ERROR_PAGES_ENGLISH if language == "eng" else constants.POSSIBLE_ERROR_PAGES_SPANISH
         redmine.create_new_issue(vuln_name, message)
-    return
+    return True
 
 
 def default_account(scan_info,url_to_scan):
@@ -315,9 +328,9 @@ def default_account(scan_info,url_to_scan):
     except KeyError:
         error_string = traceback.format_exc()
         print('Nmap Script Scan error '+error_string)
-        return
+        return False
     if message:
         img_str = image_creator.create_image_from_string(message)
         add_vuln_to_mongo(scan_info, "default_creds", message, img_str)
     cleanup(output_dir)
-    return
+    return True

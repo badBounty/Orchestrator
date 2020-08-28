@@ -19,6 +19,8 @@ def handle_target(info):
     slack_sender.send_simple_message("SSL/TLS scan started against target: %s. %d alive urls found!"
                                      % (info['target'], len(info['url_to_scan'])))
     valid_ports = ['443']
+    subject = 'Module SSL/TLS Scan finished'
+    desc = ''
     for url in info['url_to_scan']:
         sub_info = copy.deepcopy(info)
         sub_info['url_to_scan'] = url
@@ -29,7 +31,12 @@ def handle_target(info):
         except IndexError:
             final_url = url
         for port in valid_ports:
-            scan_target(sub_info, url, final_url+':'+port)
+            finished_ok = scan_target(sub_info, url, final_url+':'+port)        
+            if finished_ok:
+                desc += 'SSL/TLS Scan termino sin dificultades para el target {}\n'.format(info['url_to_scan'])
+            else:
+                desc += 'SSL/TLS Scan encontro un problema y no pudo correr para el target {}\n'.format(info['url_to_scan'])
+    redmine.create_informative_issue(info,subject,desc)
     print('Module SSL/TLS finished against %s'% info['target'])
     return
 
@@ -47,7 +54,13 @@ def handle_single(scan_info):
         final_url = url
     print("SSL/TLS (single) scan started against %s" % url)
     for port in valid_ports:
-        scan_target(info, url, final_url+':'+port)
+        finished_ok = scan_target(info, url, final_url+':'+port)
+        subject = 'Module SSL/TLS Scan finished'
+        if finished_ok:
+            desc = 'SSL/TLS Scan termino sin dificultades para el target {}'.format(info['url_to_scan'])
+        else:
+            desc = 'SSL/TLS Scan encontro un problema y no pudo correr para el target {}'.format(info['url_to_scan'])
+        redmine.create_informative_issue(info,subject,desc)
     print("SSL/TLS (single) scan finished against %s" % url)
     return
 
@@ -109,4 +122,4 @@ def scan_target(scan_info, url, url_with_port):
         add_vulnerability(scan_info, issue)
     cleanup(OUTPUT_FULL_NAME)
 
-    return
+    return True
