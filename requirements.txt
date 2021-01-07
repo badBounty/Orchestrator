@@ -28,7 +28,7 @@ jeepney==0.4.3
 jmespath==0.10.0
 jsbeautifier==1.11.0
 kombu==4.6.8
-lxml==4.5.0
+lxml==4.6.2
 mss==5.1.0
 multidict==4.7.5
 pillow==7.1.2
