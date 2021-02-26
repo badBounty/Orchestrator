@@ -1,5 +1,5 @@
 -i https://pypi.org/simple
-aiohttp==3.6.2
+aiohttp==3.7.4
 amqp==2.5.2
 argparse==1.4.0
 asgiref==3.2.7
