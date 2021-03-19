@@ -31,7 +31,7 @@ kombu==4.6.8
 lxml==4.5.0
 mss==5.1.0
 multidict==4.7.5
-pillow==7.1.2
+pillow==8.1.1
 pyasn1==0.4.8
 pymongo[srv]==3.10.1
 pyscreenshot==2.2
